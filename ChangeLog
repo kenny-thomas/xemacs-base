@@ -1,3 +1,7 @@
+2003-09-20  Norbert Koch  <viteno@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 1.81 released.
+
 2003-09-20  Steve Youngs  <youngs@xemacs.org>
 
 	* compile.el (grep-null-device): Add missing quote.
