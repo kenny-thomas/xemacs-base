@@ -23,7 +23,7 @@
 ;; Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 ;; 02111-1307, USA.
 
-;;; Synched up with: FSF 19.34.
+;;; Synched up with: FSF 21.3.
 
 ;;; Commentary:
  
@@ -50,8 +50,8 @@ to a tcp server on another machine."
 			     (concat " tq-temp-"
 				     (process-name process)))))))
     (set-process-filter process
-			(`(lambda (proc string)
-			   (tq-filter  '(, tq) string))))
+			`(lambda (proc string)
+			   (tq-filter '(, tq) string)))
     tq))
 
 ;;; accessors
@@ -69,7 +69,7 @@ to a tcp server on another machine."
 (defun tq-queue-head-closure (tq) (car (cdr (car (tq-queue tq)))))
 (defun tq-queue-empty        (tq) (not (tq-queue tq)))
 (defun tq-queue-pop          (tq) (setcar tq (cdr (car tq))) (null (car tq)))
- 
+
 
 ;;; must add to queue before sending!
 (defun tq-enqueue (tq question regexp closure fn)
@@ -89,10 +89,10 @@ that's how we tell where the answer ends."
 
 (defun tq-filter (tq string)
   "Append STRING to the TQ's buffer; then process the new data."
-  (set-buffer (tq-buffer tq))
-  (goto-char (point-max))
-  (insert string)
-  (tq-process-buffer tq))
+  (with-current-buffer (tq-buffer tq)
+    (goto-char (point-max))
+    (insert string)
+    (tq-process-buffer tq)))
 
 (defun tq-process-buffer (tq)
   "Check TQ's buffer for the regexp at the head of the queue."
@@ -110,10 +110,13 @@ that's how we tell where the answer ends."
       (if (re-search-forward (tq-queue-head-regexp tq) nil t)
 	  (let ((answer (buffer-substring (point-min) (point))))
 	    (delete-region (point-min) (point))
-	    (funcall (tq-queue-head-fn tq)
-		     (tq-queue-head-closure tq)
-		     answer)
-	    (tq-queue-pop tq)
+	    (unwind-protect
+		(condition-case nil
+		    (funcall (tq-queue-head-fn tq)
+			     (tq-queue-head-closure tq)
+			     answer)
+		  (error nil))
+	      (tq-queue-pop tq))
 	    (tq-process-buffer tq))))))
 
 (provide 'tq)

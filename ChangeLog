@@ -1,10 +1,4 @@
-2004-11-06  Ben Wing  <ben@xemacs.org>
-
-	* field.el (field-beginning):
-	* field.el (field-end):
-	skip-start and skip-end values were switched.
-
-2004-11-01  Ben Wing  <ben@xemacs.org>
+2004-11-07  Ben Wing  <ben@xemacs.org>
 
 	* add-log.el:
 	* add-log.el (require):
@@ -17,7 +11,6 @@
 	* add-log.el (add-log-file-name-function): New.
 	* add-log.el (change-log-version-info-enabled): New.
 	* add-log.el (change-log-version-number-regexp-list): New.
-	* add-log.el (Note): New.
 	* add-log.el (change-log-date-face): New.
 	* add-log.el (change-log-name-face): New.
 	* add-log.el (change-log-email-face): New.
@@ -52,6 +45,32 @@
 	* add-log.el (change-log-merge): New.
 	* add-log.el (change-log-redate): New.
 	* assoc.el:
+	* debug.el:
+	* debug.el (debugger): New.
+	* debug.el (debugger-mode-hook): New.
+	* debug.el (debugger-batch-max-lines): New.
+	* debug.el (debugger-previous-backtrace): New.
+	* debug.el (debugger-outer-overriding-terminal-local-map)): New.
+	* debug.el (debug):
+	* debug.el (debugger-setup-buffer): New.
+	* debug.el (debugger-make-xrefs): New.
+	* debug.el (debugger-continue):
+	* debug.el (debugger-jump):
+	* debug.el (debugger-frame-number):
+	* debug.el (debugger-frame):
+	* debug.el (debugger-frame-clear):
+	* debug.el (debugger-env-macro): New.
+	* debug.el (debugger-mode-map):
+	* debug.el (debugger-record-buffer): New.
+	* debug.el (debugger-record-expression): New.
+	* debug.el (debugger-mode):
+	* debug.el (debug-on-entry):
+	* debug.el (cancel-debug-on-entry):
+	* debug.el (debug-on-entry-1):
+	* easy-mmode.el:
+	* easy-mmode.el (define-minor-mode):
+	* easy-mmode.el (easy-mmode-define-global-mode):
+	* easy-mmode.el (easy-mmode-define-keymap):
 	* macros.el:
 	* macros.el (name-last-kbd-macro):
 	* macros.el (insert-kbd-macro):
@@ -67,7 +86,6 @@
 	* ring.el (ring-copy): New.
 	* ring.el (ring-remove):
 	* ring.el (ring-ref):
-	* ring.el (INDEX): New.
 	* ring.el (ring-elements): New.
 	* shell.el:
 	* shell.el (shell-dumb-shell-regexp): New.
@@ -97,11 +115,25 @@
 	* sort.el (sort-numeric-fields):
 	* sort.el (sort-regexp-fields):
 	* sort.el (sort-columns):
+	* timezone.el:
+	* timezone.el (timezone-world-timezones):
+	* timezone.el (timezone-parse-date):
+	* timezone.el (timezone-parse-time):
+	* timezone.el (timezone-time-from-absolute):
+	* timezone.el (timezone-fix-time):
 	* tq.el:
 	* tq.el (tq-create):
 	* tq.el (tq-filter):
 	* tq.el (tq-process-buffer):
-	Sync add-log, assoc, macros, ring, shell, sort, tq to 21.3.
+	Sync add-log, assoc, debug, macros, ring, shell, sort,
+	timezone, tq to 21.3.
+	Really sync easy-mmode with 21.3.
+
+2004-11-06  Ben Wing  <ben@xemacs.org>
+
+	* field.el (field-beginning):
+	* field.el (field-end):
+	skip-start and skip-end values were switched.
 
 2004-10-28  Ben Wing  <ben@xemacs.org>
 

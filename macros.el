@@ -1,4 +1,4 @@
-;;; macros.el --- non-primitive commands for keyboard macros.
+;;; macros.el --- non-primitive commands for keyboard macros
 
 ;; Copyright (C) 1985, 86, 87, 92, 94, 95 Free Software Foundation, Inc.
 
@@ -22,7 +22,7 @@
 ;; Free Software Foundation, 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;;; Synched up with: FSF 19.34.
+;;; Synched up with: FSF 21.3.
 
 ;;; Commentary:
 
@@ -48,7 +48,7 @@ editor command."
   (and (fboundp symbol)
        (not (stringp (symbol-function symbol)))
        (not (vectorp (symbol-function symbol)))
-       (error "Function %s is already defined and not a keyboard macro."
+       (error "Function %s is already defined and not a keyboard macro"
 	      symbol))
   (if (string-equal symbol "")
       (error "No command name given"))
@@ -84,6 +84,7 @@ use this command, and then save the file."
   (let (definition)
     (if (string= (symbol-name macroname) "")
 	(progn
+	  ;; XEmacs change: delete lots of stuff, use format-kbd-macro
 	  (setq definition (format-kbd-macro))
 	  (insert "(setq last-kbd-macro"))
       (setq definition (format-kbd-macro macroname))
@@ -188,7 +189,7 @@ and mark at opposite ends of the quoted section, and use
 Suppose you wanted to build a keyword table in C where each entry
 looked like this:
 
-    { \"foo\", foo_data, foo_function }, 
+    { \"foo\", foo_data, foo_function },
     { \"bar\", bar_data, bar_function },
     { \"baz\", baz_data, baz_function },
 
@@ -211,7 +212,7 @@ and then select the region of un-tablified names and use
   (or macro
       (progn
 	(if (null last-kbd-macro)
-	    (error "No keyboard macro has been defined."))
+	    (error "No keyboard macro has been defined"))
 	(setq macro last-kbd-macro)))
   (save-excursion
     (let ((end-marker (progn
@@ -229,9 +230,12 @@ and then select the region of un-tablified names and use
 	  (forward-line 1)
 	  (set-marker next-line-marker (point)))
 	(save-excursion
-	  (execute-kbd-macro (or macro last-kbd-macro))))
+	  (let ((mark-active nil))
+	    (execute-kbd-macro (or macro last-kbd-macro)))))
       (set-marker end-marker nil)
       (set-marker next-line-marker nil))))
+
+(provide 'macros)
 
 (provide 'macros)
 

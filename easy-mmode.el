@@ -132,6 +132,7 @@ and replace a sub-expression, e.g.
 	  ;; Reconstruct a string from the pieces.
 	  (setq matches (cons (substring string start l) matches)) ; leftover
 	  (apply #'concat (nreverse matches))))))
+
 
 (defun easy-mmode-pretty-mode-name (mode &optional lighter)
   "Turn the symbol MODE into a string intended for the user.
@@ -168,23 +169,33 @@ used (see below).
 
 BODY contains code that will be executed each time the mode is (de)activated.
   It will be executed after any toggling but before running the hooks.
-  BODY can start with a list of CL-style keys specifying additional arguments.
-  The following keyword arguments are supported:
-:group   Followed by the group name to use for any generated `defcustom'.
-:global  If non-nil specifies that the minor mode is not meant to be
-         buffer-local.  By default, the variable is made buffer-local.
-:init-value  Same as the INIT-VALUE argument.
-:lighter  Same as the LIGHTER argument.
+  Before the actual body code, you can write
+  keyword arguments (alternating keywords and values).
+  These following keyword arguments are supported:
+:group GROUP	Custom group name to use in all generated `defcustom' forms.
+:global GLOBAL	If non-nil specifies that the minor mode is not meant to be
+              	buffer-local, so don't make the variable MODE buffer-local.
+		By default, the mode is buffer-local.
+:init-value VAL	Same as the INIT-VALUE argument.
+:lighter SPEC	Same as the LIGHTER argument.
+:require SYM	Same as in `defcustom'.
 
 For backwards compatibility, these hooks are run each time the mode is
-(de)activated.  When the mode is toggled, MODE-hook is always run before the
+\(de)activated.  When the mode is toggled, MODE-hook is always run before the
 other hook.
 MODE-hook: run if the mode is toggled.
 MODE-on-hook: run if the mode is activated.
 MODE-off-hook: run if the mode is deactivated.
  
 \(defmacro easy-mmode-define-minor-mode
-  (MODE DOC &optional INIT-VALUE LIGHTER KEYMAP &rest BODY)...\)" 
+  (MODE DOC &optional INIT-VALUE LIGHTER KEYMAP &rest BODY)...\)
+
+For example, you could write
+  (define-minor-mode foo-mode \"If enabled, foo on you!\"
+    nil \"Foo \" foo-keymap
+    :require 'foo :global t :group 'inconvenience
+    ...BODY CODE...)"
+
   ;; Allow skipping the first three args.
   (cond
    ((keywordp init-value)
@@ -197,9 +208,9 @@ MODE-off-hook: run if the mode is deactivated.
   (let* ((mode-name (symbol-name mode))
 	 (pretty-name (easy-mmode-pretty-mode-name mode lighter))
 	 (globalp nil)
-	 (togglep t)			;why would you ever prevent toggling?
 	 (group nil)
 	 (extra-args nil)
+	 (require t)
 	 (keymap-sym (if (and keymap (symbolp keymap)) keymap
 		       (intern (concat mode-name "-map"))))
 	 (hook (intern (concat mode-name "-hook")))
@@ -214,21 +225,27 @@ MODE-off-hook: run if the mode is deactivated.
 	(:global (setq globalp (pop body)))
 	(:extra-args (setq extra-args (pop body)))
 	(:group (setq group (nconc group (list :group (pop body)))))
+	(:require (setq require (pop body)))
 	(t (pop body))))
 
     (unless group
       ;; We might as well provide a best-guess default group.
       (setq group
-	    `(:group ',(intern (replace-regexp-in-string "-mode\\'" ""
-							 mode-name)))))
+	    ;; XEmacs: the commented-out functions are going to be in
+	    ;; 21.5.  easy-mmode will be moved to the core in any case,
+	    ;; so don't worry for now.
+	    `(:group ',(or ;(custom-current-group)
+			   (intern (replace-regexp-in-string
+				    "-mode\\'" "" mode-name))))))
     ;; Add default properties to LIGHTER.
-    (unless (or (not (stringp lighter))
-		(get-text-property 0 'local-map lighter)
-		(get-text-property 0 'keymap lighter))
-      (setq lighter
-	    (propertize lighter
-			'local-map modeline-minor-mode-map ; XEmacs change
-			'help-echo "mouse-3: minor mode menu")))
+;; #### FSF comments this out in 21.3.
+;     (unless (or (not (stringp lighter))
+; 		(get-text-property 0 'local-map lighter)
+; 		(get-text-property 0 'keymap lighter))
+;       (setq lighter
+; 	    (propertize lighter
+; 			'local-map modeline-minor-mode-map ; XEmacs change
+; 			'help-echo "mouse-3: minor mode menu")))
 
     `(progn
        ;; Define the variable to enable or disable the mode.
@@ -251,33 +268,39 @@ use either \\[customize] or the function `%s'."
 	       :initialize 'custom-initialize-default
 	       ,@group
 	       :type 'boolean
-	       ,@(when curfile
-		   (list
-		    :require
-		    (list 'quote
-			  (intern (file-name-nondirectory
-				   (file-name-sans-extension curfile)))))))))
+	       ,@(cond
+		  ((not (and curfile require)) nil)
+		  ((not (eq require t)) `(:require ,require))
+		  (t `(:require
+		       ',(intern (file-name-nondirectory
+				  (file-name-sans-extension curfile)))))))))
 
        ;; The actual function.
        (defun ,mode (&optional arg ,@extra-args)
 	 ,(or doc
 	      (format (concat "Toggle %s on or off.
 Interactively, with no prefix argument, toggle the mode.
-With universal prefix ARG " (unless togglep "(or if ARG is nil) ") "turn mode on.
+With universal prefix ARG turn mode on.
 With zero or negative ARG turn mode off.
 \\{%s}") pretty-name keymap-sym))
-	 ;; Make no arg by default in an interactive call,
-	 ;; so that repeating the command toggles again.
-	 ;; XEmacs change: use the "P" arg.
-	 (interactive "P")
+	 ;; Use `toggle' rather than (if ,mode 0 1) so that using
+	 ;; repeat-command still does the toggling correctly.
+	 (interactive (list (or current-prefix-arg 'toggle)))
 	 ;; XEmacs addition: save the old mode
 	 (let ((old-mode ,mode))
 	   (setq ,mode
-		 (if arg
-		     (or (listp arg);; XEmacs addition: C-u alone
-			 (> (prefix-numeric-value arg) 0))
-		   ,(if togglep `(not ,mode) t)))
+		 (cond
+		  ((eq arg 'toggle) (not ,mode))
+		  (arg (or (listp arg);; XEmacs addition: C-u alone
+			   (> (prefix-numeric-value arg) 0)))
+		  (t
+		   (if (null ,mode) t
+		     (message
+		      "Toggling %s off; better pass an explicit argument."
+		      ',mode)
+		     nil))))
 	   ,@body
+	   ;; The on/off hooks are here for backward compatibility only.
 	   ;; The on/off hooks are here for backward compatibility only.
 	   ;; XEmacs change: check mode before running hooks
 	   (and ,hook
@@ -289,11 +312,14 @@ With zero or negative ARG turn mode off.
 	   (and ,hook-off
 		(not ,mode)
 		(run-hooks ',hook-off)))
-	 ;; Return the new setting.
 	 (if (interactive-p)
-	     (message ,(format "%s %%sabled" pretty-name)
-		      (if ,mode "en" "dis")))
+	     (progn
+	       ;; see comment up at custom-current-group.
+	       ;; ,(if globalp `(customize-mark-as-set ',mode))
+	       (message ,(format "%s %%sabled" pretty-name)
+			(if ,mode "en" "dis"))))
 	 (force-mode-line-update)
+	 ;; Return the new setting.
 	 ,mode)
 
        ;; Autoloading an easy-mmode-define-minor-mode autoloads
@@ -311,7 +337,7 @@ With zero or negative ARG turn mode off.
        ;; The toggle's hook.
        (defcustom ,hook nil
 	 ,(format "Hook run at the end of function `%s'." mode-name)
-	 :group ,(cadr group)
+	 ,@group
 	 :type 'hook)
 
        ;; XEmacs addition: declare the on and off hooks also
@@ -343,9 +369,10 @@ With zero or negative ARG turn mode off.
 
        ;; If the mode is global, call the function according to the default.
        ,(if globalp
-	    `(if (and load-file-name ,mode
+	    `(if (and load-file-name (not (equal ,init-value ,mode))
+		      ;; XEmacs addition:
 		      (not purify-flag))
-		 (eval-after-load load-file-name '(,mode 1)))))))
+		 (eval-after-load load-file-name '(,mode (if ,mode 1 -1))))))))
 
 ;;;
 ;;; make global minor mode
@@ -377,8 +404,10 @@ KEYS is a list of CL-style keyword arguments:
     (unless group
       ;; We might as well provide a best-guess default group.
       (setq group
-	    `(:group ',(intern (replace-regexp-in-string "-mode\\'" ""
-							 (symbol-name mode))))))
+	    `(:group ',(or ;(custom-current-group)
+			   (intern (replace-regexp-in-string
+				    "-mode\\'" "" (symbol-name mode)))))))
+
     `(progn
        ;; The actual global minor-mode
        (define-minor-mode ,global-mode
@@ -391,6 +420,7 @@ in which `%s' turns it on."
 
 	 ;; Setup hook to handle future mode changes and new buffers.
 	 (if ,global-mode
+	     ;; XEmacs: find-file-hooks not find-file-hook
 	     (progn
 	       (add-hook 'find-file-hooks ',buffers)
 	       (add-hook 'change-major-mode-hook ',cmmh))
@@ -417,11 +447,13 @@ in which `%s' turns it on."
 	   (let ((buf (pop ,buffers)))
 	     (when (buffer-live-p buf)
 	       (with-current-buffer buf (,turn-on))))))
+       (put ',buffers 'definition-name ',global-mode)
 
        ;; The function that catches kill-all-local-variables.
        (defun ,cmmh ()
 	 (add-to-list ',buffers (current-buffer))
-	 (add-hook 'post-command-hook ',buffers)))))
+	 (add-hook 'post-command-hook ',buffers))
+       (put ',cmmh 'definition-name ',global-mode))))
 
 ;;;
 ;;; easy-mmode-defmap
@@ -447,7 +479,8 @@ KEY and BINDINGS are suitable for `define-key'.
 Optional NAME is passed to `make-sparse-keymap'.
 Optional map M can be used to modify an existing map.
 ARGS is a list of additional keyword arguments."
-  (let (inherit dense suppress)
+  (let (inherit dense ;suppress
+		)
     (while args
       (let ((key (pop args))
 	    (val (pop args)))

@@ -1,6 +1,6 @@
 ;;; timezone.el --- time zone package for XEmacs
 
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 1996, 1999 Free Software Foundation, Inc.
 
 ;; Author: Masanobu Umeda
 ;; Maintainer: XEmacs Development Team
@@ -23,7 +23,7 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;;; Synched up with: FSF 19.30.
+;;; Synched up with: FSF 21.3.
 
 ;;; Commentary:
 
@@ -35,8 +35,6 @@
 ;; and timezone-abs functions.
 
 ;;; Code:
-
-(provide 'timezone)
 
 (defvar timezone-world-timezones
   '(("PST" .  -800)
@@ -136,7 +134,10 @@ Optional argument TIMEZONE specifies a time zone."
 
 (defun timezone-parse-date (date)
   "Parse DATE and return a vector [YEAR MONTH DAY TIME TIMEZONE].
-19 is prepended to year if necessary.  Timezone may be nil if nothing.
+Two-digit dates are `windowed'.  Those <69 have 2000 added; otherwise 1900
+is added.  Three-digit dates have 1900 added.
+TIMEZONE is nil for DATEs without a zone field.
+
 Understands the following styles:
  (1) 14 Apr 89 03:20[:12] [GMT]
  (2) Fri, 17 Mar 89 4:01[:33] [GMT]
@@ -144,10 +145,13 @@ Understands the following styles:
  (4) 6 May 1992 1641-JST (Wednesday)
  (5) 22-AUG-1993 10:59:12.82
  (6) Thu, 11 Apr 16:17:12 91 [MET]
- (7) Mon, 6  Jul 16:47:20 T 1992 [MET]"
+ (7) Mon, 6  Jul 16:47:20 T 1992 [MET]
+ (8) 1996-06-24 21:13:12 [GMT]
+ (9) 1996-06-24 21:13-ZONE"
+  ;; XEmacs addition: surround with condition-case
   (condition-case nil
       (progn
-  ;; Get rid of any text properties.
+ ;; Get rid of any text properties.
   (and (stringp date)
        (or (text-properties-at 0 date)
 	   (next-property-change 0 date))
@@ -160,6 +164,16 @@ Understands the following styles:
 	(time nil)
 	(zone nil))			;This may be nil.
     (cond ((string-match
+	    "\\([0-9]+\\)[ \t]+\\([^ \t,]+\\)[ \t]+\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9:]+\\)[ \t]*\\([-+a-zA-Z0-9]+\\)" date)
+	   ;; Styles: (1) and (2) with timezone and buggy timezone
+	   ;; This is most common in mail and news,
+	   ;; so it is worth trying first.
+	   (setq year 3 month 2 day 1 time 4 zone 5))
+	  ((string-match
+	    "\\([0-9]+\\)[ \t]+\\([^ \t,]+\\)[ \t]+\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9:]+\\)[ \t]*\\'" date)
+	   ;; Styles: (1) and (2) without timezone
+	   (setq year 3 month 2 day 1 time 4 zone nil))
+	  ((string-match
 	    "\\([^ \t,]+\\),[ \t]+\\([0-9]+\\)[ \t]+\\([^ \t,]+\\)[ \t]+\\([0-9]+:[0-9:]+\\)[ \t]+\\(T[ \t]+\\|\\)\\([0-9]+\\)[ \t]*\\'" date)
 	   ;; Styles: (6) and (7) without timezone
 	   (setq year 6 month 3 day 2 time 4 zone nil))
@@ -167,14 +181,6 @@ Understands the following styles:
 	    "\\([^ \t,]+\\),[ \t]+\\([0-9]+\\)[ \t]+\\([^ \t,]+\\)[ \t]+\\([0-9]+:[0-9:]+\\)[ \t]+\\(T[ \t]+\\|\\)\\([0-9]+\\)[ \t]*\\([-+a-zA-Z0-9]+\\)" date)
 	   ;; Styles: (6) and (7) with timezone and buggy timezone
 	   (setq year 6 month 3 day 2 time 4 zone 7))
-	  ((string-match
-	    "\\([0-9]+\\)[ \t]+\\([^ \t,]+\\)[ \t]+\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9:]+\\)[ \t]*\\'" date)
-	   ;; Styles: (1) and (2) without timezone
-	   (setq year 3 month 2 day 1 time 4 zone nil))
-	  ((string-match
-	    "\\([0-9]+\\)[ \t]+\\([^ \t,]+\\)[ \t]+\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9:]+\\)[ \t]*\\([-+a-zA-Z0-9]+\\)" date)
-	   ;; Styles: (1) and (2) with timezone and buggy timezone
-	   (setq year 3 month 2 day 1 time 4 zone 5))
 	  ((string-match
 	    "\\([^ \t,]+\\)[ \t]+\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9:]+\\)[ \t]+\\([0-9]+\\)" date)
 	   ;; Styles: (3) without timezone
@@ -188,56 +194,63 @@ Understands the following styles:
 	   ;; Styles: (4) with timezone
 	   (setq year 3 month 2 day 1 time 4 zone 5))
 	  ((string-match
-	    "\\([0-9]+\\)-\\([A-Za-z]+\\)-\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9]+:[0-9]+\\)\\.[0-9]+" date)
+	    "\\([0-9]+\\)-\\([A-Za-z]+\\)-\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9]+:[0-9]+\\)\\(\\.[0-9]+\\)?[ \t]+\\([-+a-zA-Z0-9]+\\)" date)
+	   ;; Styles: (5) with timezone.
+	   (setq year 3 month 2 day 1 time 4 zone 6))
+	  ((string-match
+	    "\\([0-9]+\\)-\\([A-Za-z]+\\)-\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9]+:[0-9]+\\)\\(\\.[0-9]+\\)?" date)
 	   ;; Styles: (5) without timezone.
 	   (setq year 3 month 2 day 1 time 4 zone nil))
+	  ((string-match
+	    "\\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9]+:[0-9]+\\)[ \t]+\\([-+a-zA-Z0-9]+\\)" date)
+	   ;; Styles: (8) with timezone.
+	   (setq year 1 month 2 day 3 time 4 zone 5))
+	  ((string-match
+	    "\\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9]+\\)[ \t]+\\([-+a-zA-Z0-9:]+\\)" date)
+	   ;; Styles: (8) with timezone with a colon in it.
+	   (setq year 1 month 2 day 3 time 4 zone 5))
+	  ((string-match
+	    "\\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9]+:[0-9]+\\)" date)
+	   ;; Styles: (8) without timezone.
+	   (setq year 1 month 2 day 3 time 4 zone nil))
 	  )
-    (if year
-	(progn
-	  (setq year
-		(substring date (match-beginning year) (match-end year)))
-	  ;; It is now Dec 1992.  8 years before the end of the World.
-	  (if (< (length year) 4)
-	      ;; 2 digit years are bogus, so guess the century
-	      (let ((yr (string-to-int year)))
-		(when (>= yr 100)
-		  ;; What does a three digit year mean?
-		  (setq yr (- yr 100)))
-		(setq year (format "%d%02d"
-				   (if (< yr 69)
-				       20
-				     19)
-				   yr))))
-	  (let ((string (substring date
-				   (match-beginning month)
-				   (+ (match-beginning month) 3))))
-	    (setq month
-		  (int-to-string
-		   (cdr (assoc (upcase string) timezone-months-assoc)))))
-
-	  (setq day
-		(substring date (match-beginning day) (match-end day)))
-	  (setq time
-		(substring date (match-beginning time) (match-end time)))))
-    (if zone
-	(setq zone
-	      (substring date (match-beginning zone) (match-end zone))))
+    (when year
+      (setq year (match-string year date))
+      ;; Guess ambiguous years.  Assume years < 69 don't predate the
+      ;; Unix Epoch, so are 2000+.  Three-digit years are assumed to
+      ;; be relative to 1900.
+      (if (< (length year) 4)
+	  (let ((y (string-to-int year)))
+	    (if (< y 69)
+		(setq y (+ y 100)))
+	    (setq year (int-to-string (+ 1900 y)))))
+      (setq month
+	    (if (= (aref date (+ (match-beginning month) 2)) ?-)
+		;; Handle numeric months, spanning exactly two digits.
+		(substring date
+			   (match-beginning month)
+			   (+ (match-beginning month) 2))
+	      (let* ((string (substring date
+					(match-beginning month)
+					(+ (match-beginning month) 3)))
+		     (monthnum
+		      (cdr (assoc (upcase string) timezone-months-assoc))))
+		(if monthnum
+		    (int-to-string monthnum)))))
+      (setq day (match-string day date))
+      (setq time (match-string time date)))
+    (if zone (setq zone (match-string zone date)))
     ;; Return a vector.
-    (if year
+    (if (and year month)
 	(vector year month day time zone)
-      (vector "0" "0" "0" "0" nil))
-    )
-  )
-    (t (signal 'invalid-date (list date))))
-)
+      (vector "0" "0" "0" "0" nil))))
+    (t (signal 'invalid-date (list date)))))
 
 (defun timezone-parse-time (time)
   "Parse TIME (HH:MM:SS) and return a vector [hour minute second].
 Recognize HH:MM:SS, HH:MM, HHMMSS, HHMM."
   (let ((time (or time ""))
-	(hour nil)
-	(minute nil)
-	(second nil))
+	hour minute second)
     (cond ((string-match "\\`\\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\)\\'" time)
 	   ;; HH:MM:SS
 	   (setq hour 1 minute 2 second 3))
@@ -253,13 +266,9 @@ Recognize HH:MM:SS, HH:MM, HHMMSS, HHMM."
 	  )
     ;; Return [hour minute second]
     (vector
-     (if hour
-	 (substring time (match-beginning hour) (match-end hour)) "0")
-     (if minute
-	 (substring time (match-beginning minute) (match-end minute)) "0")
-     (if second
-	 (substring time (match-beginning second) (match-end second)) "0"))
-    ))
+     (if hour (match-string hour time) "0")
+     (if minute (match-string minute time) "0")
+     (if second (match-string second time) "0"))))
 
 
 ;; Miscellaneous
@@ -292,7 +301,7 @@ Return a list suitable as an argument to current-time-zone,
 or nil if the date cannot be thus represented.
 DATE is the number of days elapsed since the (imaginary)
 Gregorian date Sunday, December 31, 1 BC."
-  (let* ((current-time-origin 719162)
+  (let* ((current-time-origin 719163)
 	    ;; (timezone-absolute-from-gregorian 1 1 1970)
 	 (days (- date current-time-origin))
 	 (seconds-per-day (float 86400))
@@ -322,9 +331,11 @@ If LOCAL is nil, it is assumed to be GMT.
 If TIMEZONE is nil, use the local time zone."
   (let* ((date   (timezone-parse-date date))
 	 (year   (string-to-int (aref date 0)))
-	 (year	 (cond ((< year 50)
+	 (year	 (cond ((< year 69)
 			(+ year 2000))
 		       ((< year 100)
+			(+ year 1900))
+		       ((< year 1000)	; possible 3-digit years.
 			(+ year 1900))
 		       (t year)))
 	 (month  (string-to-int (aref date 1)))
@@ -349,30 +360,21 @@ If TIMEZONE is nil, use the local time zone."
     (cond ((<= 24 hour)			;24 -> 00
 	   (setq hour (- hour 24))
 	   (setq day  (1+ day))
-	   (if (< (timezone-last-day-of-month month year) day)
-	       (progn
-		 (setq month (1+ month))
-		 (setq day 1)
-		 (if (< 12 month)
-		     (progn
-		       (setq month 1)
-		       (setq year (1+ year))
-		       ))
-		 )))
+	   (when (< (timezone-last-day-of-month month year) day)
+	     (setq month (1+ month))
+	     (setq day 1)
+	     (when (< 12 month)
+	       (setq month 1)
+	       (setq year (1+ year)))))
 	  ((> 0 hour)
 	   (setq hour (+ hour 24))
 	   (setq day  (1- day))
-	   (if (> 1 day)
-	       (progn
-		 (setq month (1- month))
-		 (if (> 1 month)
-		     (progn
-		       (setq month 12)
-		       (setq year (1- year))
-		       ))
-		 (setq day (timezone-last-day-of-month month year))
-		 )))
-	  )
+	   (when (> 1 day)
+	     (setq month (1- month))
+	     (when (> 1 month)
+	       (setq month 12)
+	       (setq year (1- year)))
+	     (setq day (timezone-last-day-of-month month year)))))
     (vector year month day hour minute second timezone)))
 
 ;; Partly copied from Calendar program by Edward M. Reingold.
@@ -422,5 +424,7 @@ The Gregorian date Sunday, December 31, 1 BC is imaginary."
     (if (< n 0)
 	(- (/ (- divisor 1 n) divisor))
       (/ n divisor))))
+
+(provide 'timezone)
 
 ;;; timezone.el ends here
