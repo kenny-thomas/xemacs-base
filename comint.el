@@ -1237,6 +1237,18 @@ Argument 0 is the command name."
 ;;
 ;; Input processing stuff
 ;;
+(defun comint-add-to-input-history (cmd)
+  "Maybe add CMD to the input history.  
+CMD is only added to the input history if `comint-input-filter'
+returns non-nil when called on CMD. If `comint-input-ignoredups' is
+non-nil then duplicates are ignored."
+  (if (and (funcall comint-input-filter cmd)
+	   (or (null comint-input-ignoredups)
+	       (not (ring-p comint-input-ring))
+	       (ring-empty-p comint-input-ring)
+	       (not (string-equal (ring-ref comint-input-ring 0)
+				  cmd))))
+      (ring-insert comint-input-ring cmd)))
 
 (defun comint-send-input ()
   "Send input to process.
@@ -1331,13 +1343,7 @@ Similarly for Soar, Scheme, etc."
 	  (if comint-process-echoes
 	      (delete-region pmark (point))
 	    (insert-before-markers ?\n))
-	  (if (and (funcall comint-input-filter history)
-		   (or (null comint-input-ignoredups)
-		       (not (ring-p comint-input-ring))
-		       (ring-empty-p comint-input-ring)
-		       (not (string-equal (ring-ref comint-input-ring 0)
-					  history))))
-	      (ring-insert comint-input-ring history))
+	  (comint-add-to-input-history history)
 	  ;; Run the input filters on the history instead
 	  ;; of the input, so that the input sentinel is called on the
 	  ;; history-expanded text and sees "cd foo" instead of "cd !$".

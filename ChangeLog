@@ -1,3 +1,9 @@
+2000-11-09  Volker Franz <volker.franz@tuebingen.mpg.de>
+
+	* comint.el (comint-send-input): Extracted function
+	comint-add-to-input-history from comint-send-input.
+	(comint-add-to-input-history): New function.
+
 2000-11-07  Martin Buchholz <martin@xemacs.org>
 
 	* env.el: Doc fix.
