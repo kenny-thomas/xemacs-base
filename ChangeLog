@@ -1,3 +1,10 @@
+2000-01-13  Andreas Jaeger  <aj@suse.de>
+
+	* regexp-opt.el: Moved from package xemacs-devel to here since
+	other packages depend on it.
+
+	* Makefile (ELCS): Added regexp-opt.elc
+
 2000-01-12  Kirill 'Big K' Katsnelson  <kkm@dtmx.com>
 
 	* add-log.el (add-log-current-defun-function): Changed :type of

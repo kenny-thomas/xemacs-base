@@ -30,8 +30,8 @@ ELCS = add-log.elc advice.elc annotations.elc assoc.elc case-table.elc \
 	ebuff-menu.elc echistory.elc ehelp.elc edmacro.elc electric.elc \
 	enriched.elc env.elc facemenu.elc ffap.elc helper.elc imenu.elc \
 	iso-syntax.elc macros.elc novice.elc outline.elc \
-	passwd.elc pp.elc regi.elc ring.elc shell.elc skeleton.elc sort.elc \
-	thing.elc time-stamp.elc timezone.elc xbm-button.elc xpm-button.elc
+	passwd.elc pp.elc regexp-opt.elc regi.elc ring.elc shell.elc skeleton.elc \
+	sort.elc thing.elc time-stamp.elc timezone.elc xbm-button.elc xpm-button.elc
 
 DATA_FILES = etc/enriched.doc
 DATA_DEST = .
