@@ -1,3 +1,7 @@
+2003-01-03  Rendhalver [Peter Brown]  <rendhalver@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 1.73 released.
+
 2002-12-17  Jerry James  <james@xemacs.org>
 
 	* ffap.el: Require advice at compile time, not load time.
