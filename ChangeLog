@@ -1,3 +1,9 @@
+1998-12-05  SL Baur  <steve@altair.xemacs.org>
+
+	* timezone.el (timezone-zone-to-minute): Make function match
+	documentation.
+	From torin@perv.daft.com via James LewisMoss <dres@ioa.com>.
+
 1998-10-08  Didier Verna  <verna@inf.enst.fr>
 
 	* time-stamp.el (time-stamp-strftime): fixed usage of `concat'

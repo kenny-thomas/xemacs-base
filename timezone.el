@@ -274,7 +274,7 @@ or an integer of the form +-HHMM, or a time zone name."
      (timezone
       (progn
 	(setq timezone
-	      (or (cdr (assoc (upcase timezone) timezone-world-timezones))
+	      (or (and (stringp timezone) (cdr (assoc (upcase timezone) timezone-world-timezones)))
 		  ;; +900
 		  timezone))
 	(if (stringp timezone)
