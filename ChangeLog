@@ -1,3 +1,7 @@
+2002-10-19  Ville Skyttä  <scop@xemacs.org>
+
+	* ffap.el (ffap): Remove dummy defun for ffap, autoload alias.
+
 2002-10-15  Ville Skyttä  <scop@xemacs.org>
 
 	* Makefile (srckit): Remove.

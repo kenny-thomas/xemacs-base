@@ -1398,10 +1398,7 @@ See <ftp://ftp.mathcs.emory.edu/pub/mic/emacs/> for latest version."
 				filename))))))
 
 ;; Shortcut: allow {M-x ffap} rather than {M-x find-file-at-point}.
-;; The defun is for autoload.el; the defalias takes over at load time.
 ;;;###autoload
-(defun ffap (&optional filename)
-  "A short alias for the find-file-at-point command.")
 (defalias 'ffap 'find-file-at-point)
 
 
