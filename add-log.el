@@ -725,12 +725,14 @@ NOTE: This function handles diff output both from `cvs diff' and just
 running `diff' directly, but *ONLY* unified-format (-u) diffs. #### Someone
 should fix this to handle context diffs as well.
 
-Allowed keys are :my-name, defaulting to (user-full-name), and
-:my-email, defaulting to (user-mail-address)."
+Allowed keys are :my-name, defaulting to
+ (or add-log-full-name (user-full-name)),
+and :my-email, defaulting to
+ (or add-log-mailing-address (user-mail-address))."
   (interactive "DBase directory of patch: ")
   (cl-parsing-keywords
-      ((:my-name (user-full-name))
-       (:my-email (user-mail-address)))
+      ((:my-name (or add-log-full-name (user-full-name)))
+       (:my-email (or add-log-mailing-address (user-mail-address))))
       ()
     (let* ((font-lock-auto-fontify nil)
 	   (file-re1 "Index: \\(\\S-*\\)")

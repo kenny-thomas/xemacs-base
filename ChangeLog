@@ -1,3 +1,9 @@
+2000-10-08  Adrian Aichner  <adrian@xemacs.org>
+
+	* add-log.el (patch-to-change-log): Honor variables
+	`add-log-full-name' and `add-log-mailing-address', like
+	`add-change-log-entry' does.
+
 2000-10-05  Martin Buchholz  <martin@xemacs.org>
 
 	* *: Mega typo fix.
