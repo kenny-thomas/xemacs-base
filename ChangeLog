@@ -1,3 +1,11 @@
+2001-04-10  Ben Wing  <ben@xemacs.org>
+
+	* add-log.el (patch-to-change-log):
+	Fix warnings.  Make sure font-lock-auto-fontify is not
+	turned off when visiting ChangeLogs, so that they end up
+	font-locked when all is done.  Anchor file-re1 at begline
+	to avoid problems when the diff itself contains `Index:'.
+
 2001-03-31  Mike Sperber <mike@xemacs.org>
 
 	* compile.el (compilation-shell-minor-mode): Added.

@@ -745,21 +745,22 @@ The following keys are allowed:
        (:my-email (or add-log-mailing-address (user-mail-address)))
        :keep-source-files :extent-property :extent-property-value)
       ()
-    (let* ((font-lock-auto-fontify nil)
-	   (file-re1 "Index: \\(\\S-*\\)")
+    (let* ((old-font-lock-auto-fontify font-lock-auto-fontify)
+	   (font-lock-auto-fontify nil)
+	   (file-re1 "^Index: \\(\\S-*\\)")
 	   (file-re2 "^\\+\\+\\+ \\(\\S-*\\)")
 	   (hunk-re "^@@ -[0-9]+,[0-9]+ \\+\\([0-9]+\\),\\([0-9]+\\) @@$")
 	   (basename-re "\\`\\(.*\\)/\\(.*\\)\\'")
 	   (lisp-defun-re "(def[a-z-]* \\([^ \n]+\\)")
-	   (c-token-re "[][_a-zA-Z0-9]+")
-	   (ws-re "\\(\\s-\\|\n\\+\\)*")
-	   (c-multi-token-re (concat c-token-re "\\(" ws-re c-token-re "\\)*"))
-	   (c-defun-re (concat "^+\\(" c-token-re ws-re "\\)*"
-			       "\\(" c-token-re "\\)" ws-re "(" ws-re
-			       "\\("
-			       c-multi-token-re ws-re
-			       "\\(," ws-re c-multi-token-re ws-re "\\)*"
-			       "\\)?" ws-re ")" ws-re "{" ws-re "$"))
+; 	   (c-token-re "[][_a-zA-Z0-9]+")
+; 	   (ws-re "\\(\\s-\\|\n\\+\\)*")
+; 	   (c-multi-token-re (concat c-token-re "\\(" ws-re c-token-re "\\)*"))
+; 	   (c-defun-re (concat "^+\\(" c-token-re ws-re "\\)*"
+; 			       "\\(" c-token-re "\\)" ws-re "(" ws-re
+; 			       "\\("
+; 			       c-multi-token-re ws-re
+; 			       "\\(," ws-re c-multi-token-re ws-re "\\)*"
+; 			       "\\)?" ws-re ")" ws-re "{" ws-re "$"))
 	   (new-defun-re (concat "^+" lisp-defun-re))
 	   (nomore-defun-re (concat "^-" lisp-defun-re))
 	   (done-hash       (make-hash-table :size 20 :test 'equal))
@@ -769,6 +770,7 @@ The following keys are allowed:
 	   file absfile limit current-defun
 	   dirname basename previous-dirname
 	   all-entries first-file-re-p
+	   insertion-marker
 	   )
 
       (flet
@@ -826,11 +828,13 @@ The following keys are allowed:
 		  (finish-up-change-log-buffer))
 	      (setq previous-dirname dirname)
 	      (setq change-log-buffer
-		    (find-file-noselect
-		     ;; APA: find a change-log relative to current directory.
-		     (with-temp-buffer
-		       (cd (expand-file-name dirname devdir))
-		       (find-change-log))))
+		    (let ((font-lock-auto-fontify
+			   old-font-lock-auto-fontify))
+		      (find-file-noselect
+		       ;; APA: find a change-log relative to current directory.
+		       (with-temp-buffer
+			 (cd (expand-file-name dirname devdir))
+			 (find-change-log)))))
 	      (setq change-log-directory
 		    (with-current-buffer change-log-buffer default-directory))
 	      (when cl-extent-property
