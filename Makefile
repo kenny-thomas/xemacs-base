@@ -46,6 +46,4 @@ GENERATED += custom-load.elc
 
 all:: $(ELCS) auto-autoloads.elc custom-load.elc
 
-srckit: srckit-std
-
 binkit: binkit-common
