@@ -1,3 +1,16 @@
+2001-04-20  Ben Wing  <ben@xemacs.org>
+
+	* sort.el:
+	* sort.el (sort): New.
+	* sort.el (sort-subr):
+	* sort.el (sort-fields):
+	* sort.el (sort-regexp-fields):
+	* sort.el (sort-regexp-fields-numerically): New.
+	* sort.el (sort-columns):
+	Synch with FSF 20.7.
+	Add new arg for compare fun to `sort-subr', `sort-regexp-fields'.
+	New command `sort-regexp-fields-numerically'.
+	
 2001-04-10  Ben Wing  <ben@xemacs.org>
 
 	* add-log.el (patch-to-change-log):

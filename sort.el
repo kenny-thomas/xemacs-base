@@ -23,7 +23,7 @@
 ;; Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 ;; 02111-1307, USA.
 
-;;; Synched up with: FSF 19.34.
+;;; Synched up with: FSF 20.7.
 
 ;;; Commentary:
 
@@ -32,11 +32,18 @@
 
 ;;; Code:
 
-(defvar sort-fold-case nil
-  "*Non-nil if the buffer sort functions should ignore case.")
+(defgroup sort nil
+  "Commands to sort text in an Emacs buffer."
+  :group 'data)
+
+(defcustom sort-fold-case nil
+  "*Non-nil if the buffer sort functions should ignore case."
+  :group 'sort
+  :type 'boolean)
 
 ;;;###autoload
-(defun sort-subr (reverse nextrecfun endrecfun &optional startkeyfun endkeyfun)
+(defun sort-subr (reverse nextrecfun endrecfun &optional startkeyfun endkeyfun
+			  comparefun)
   "General text sorting routine to divide buffer into records and sort them.
 Arguments are REVERSE NEXTRECFUN ENDRECFUN &optional STARTKEYFUN ENDKEYFUN.
 
@@ -71,7 +78,12 @@ starts at the beginning of the record.
 
 ENDKEYFUN moves from the start of the sort key to the end of the sort key.
 ENDKEYFUN may be nil if STARTKEYFUN returns a value or if it would be the
-same as ENDRECFUN."
+same as ENDRECFUN.
+
+COMPAREFUN compares the two keys.  It is called with two strings and
+should return true if the first is \"less\" than the second, just as
+for `sort'.  If nil or omitted, the default function accepts keys that
+are numbers (compared numerically) or strings (compared lexicographically)."
   ;; Heuristically try to avoid messages if sorting a small amt of text.
   (let ((messages (> (- (point-max) (point-min)) 50000)))
     (save-excursion
@@ -85,32 +97,32 @@ same as ENDRECFUN."
 	  (or reverse (setq sort-lists (nreverse sort-lists)))
 	  (if messages (message "Sorting records..."))
 	  (setq sort-lists
-		(if (fboundp 'sortcar)
-		    (sortcar sort-lists
-			     (cond ((numberp (car (car sort-lists)))
-				    ;; This handles both ints and floats.
-				    '<)
-				   ((consp (car (car sort-lists)))
-				    (function
-				     (lambda (a b)
-				       (> 0 (compare-buffer-substrings 
-					     nil (car a) (cdr a)
-					     nil (car b) (cdr b))))))
-				   (t
-				    'string<)))
-		  (sort sort-lists
-			(cond ((numberp (car (car sort-lists)))
-			       'car-less-than-car)
-			      ((consp (car (car sort-lists)))
-			       (function
-				(lambda (a b)
-				  (> 0 (compare-buffer-substrings
-					nil (car (car a)) (cdr (car a))
-					nil (car (car b)) (cdr (car b)))))))
-			      (t
-			       (function
-				(lambda (a b)
-				  (string< (car a) (car b)))))))))
+		(sort sort-lists
+		      (cond ((and (consp (car (car sort-lists)))
+				  comparefun)
+			     (function
+			      (lambda (a b)
+				(funcall comparefun
+					 (buffer-substring (car (car a))
+							   (cdr (car a)))
+					 (buffer-substring (car (car b))
+							   (cdr (car b)))))))
+			    ((consp (car (car sort-lists)))
+			     (function
+			      (lambda (a b)
+				(> 0 (compare-buffer-substrings
+				      nil (car (car a)) (cdr (car a))
+				      nil (car (car b)) (cdr (car b)))))))
+			    (comparefun
+			     (function
+			      (lambda (a b)
+				(funcall comparefun (car a) (car b)))))
+			    ((numberp (car (car sort-lists)))
+			     'car-less-than-car)
+			    (t
+			     (function
+			      (lambda (a b)
+				(string< (car a) (car b))))))))
 	  (if reverse (setq sort-lists (nreverse sort-lists)))
 	  (if messages (message "Reordering buffer..."))
 	  (sort-reorder-buffer sort-lists old)))
@@ -307,7 +319,9 @@ region to sort."
 Fields are separated by whitespace and numbered from 1 up.
 With a negative arg, sorts by the ARGth field counted from the right.
 Called from a program, there are three arguments:
-FIELD, BEG and END.  BEG and END specify region to sort."
+FIELD, BEG and END.  BEG and END specify region to sort.
+The variable `sort-fold-case' determines whether alphabetic case affects
+the sort order."
   (interactive "p\nr")
   (sort-fields-1 field beg end
 		 (function (lambda ()
@@ -382,8 +396,9 @@ FIELD, BEG and END.  BEG and END specify region to sort."
 	 (goto-char (match-beginning 0)))))
 
 ;;;###autoload
-(defun sort-regexp-fields (reverse record-regexp key-regexp beg end)
-  "Sort the region lexicographically as specified by RECORD-REGEXP and KEY.
+(defun sort-regexp-fields (reverse record-regexp key-regexp beg end
+				   &optional comparefun)
+  "Sort the region as specified by RECORD-REGEXP and KEY.
 RECORD-REGEXP specifies the textual units which should be sorted.
   For example, to sort lines RECORD-REGEXP would be \"^.*$\"
 KEY specifies the part of each record (ie each match for RECORD-REGEXP)
@@ -398,6 +413,11 @@ With a negative prefix arg sorts in reverse order.
 
 The variable `sort-fold-case' determines whether alphabetic case affects
 the sort order.
+
+COMPAREFUN, if specified, should be a function of two arguments; it
+will be passed the keys (as strings), and should return true if the
+first is \"less\" than the second.  Otherwise the keys will be
+compared lexicographically.
 
 For example: to sort lines in the region by the first word on each line
  starting with the letter \"f\",
@@ -433,13 +453,44 @@ sRegexp specifying key within record: \nr")
 					(setq n 0))
 				       (t (throw 'key nil)))
 				 (condition-case ()
-				     (if (fboundp 'compare-buffer-substrings)
-					 (cons (match-beginning n)
-					       (match-end n))
-					 (buffer-substring (match-beginning n)
-							   (match-end n)))
+				     (cons (match-beginning n)
+					   (match-end n))
 				   ;; if there was no such register
-				   (error (throw 'key nil)))))))))))
+				   (error (throw 'key nil))))))
+		   nil
+		   comparefun)))))
+
+(defun sort-regexp-fields-numerically (reverse record-regexp key-regexp
+					       beg end)
+  "Sort the region numerically as specified by RECORD-REGEXP and KEY.
+RECORD-REGEXP specifies the textual units which should be sorted.
+  For example, to sort lines RECORD-REGEXP would be \"^.*$\"
+KEY specifies the part of each record (ie each match for RECORD-REGEXP)
+  is to be used for sorting.
+  If it is \"\\\\digit\" then the digit'th \"\\\\(...\\\\)\" match field from
+  RECORD-REGEXP is used.
+  If it is \"\\\\&\" then the whole record is used.
+  Otherwise, it is a regular-expression for which to search within the record.
+If a match for KEY is not found within a record then that record is ignored.
+
+With a negative prefix arg sorts in reverse order.
+
+The variable `sort-fold-case' determines whether alphabetic case affects
+the sort order.
+
+For example: to sort lines in the region by the first word on each line
+ starting with the letter \"f\",
+ RECORD-REGEXP would be \"^.*$\" and KEY would be \"\\\\=\\<f\\\\w*\\\\>\""
+  ;; using negative prefix arg to mean "reverse" is now inconsistent with
+  ;; other sort-.*fields functions but then again this was before, since it
+  ;; didn't use the magnitude of the arg to specify anything.
+  (interactive "P\nsRegexp specifying records to sort: 
+sRegexp specifying key within record: \nr")
+  (sort-regexp-fields reverse record-regexp key-regexp beg end
+		      #'(lambda (a b)
+			  (dp a)
+			  (dp b)
+			  (< (string-to-number a) (string-to-number b)))))
 
 
 (defvar sort-columns-subprocess t)
@@ -474,8 +525,12 @@ Use \\[untabify] to convert tabs to spaces before sorting."
       (setq col-end (max col-beg1 col-end1))
       (if (search-backward "\t" beg1 t)
 	  (error "sort-columns does not work with tabs.  Use M-x untabify."))
-      (if (not (eq system-type 'vax-vms))
+      (if (not (or (eq system-type 'vax-vms)
+		   (text-properties-at beg1)
+		   (< (next-property-change beg1 nil end1) end1)))
 	  ;; Use the sort utility if we can; it is 4 times as fast.
+	  ;; Do not use it if there are any properties in the region,
+	  ;; since the sort utility would lose the properties.
 	  (call-process-region beg1 end1 "sort" t t nil
 			       (if reverse "-rt\n" "-t\n")
 			       ;; XEmacs (use int-to-string conversion)
