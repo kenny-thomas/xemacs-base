@@ -1,3 +1,8 @@
+2001-01-24  Matt Tucker  <tuck@whistlingfish.net>
+
+	* passwd.el (passwd-erase-buffer): Temporarily disable font-lock
+	for performance reasons.
+
 2000-12-06  Karl M. Hegbloom  <karlheg@debian.org>
 
 	* shell.el (shell): Return the buffer so callers may use it.
