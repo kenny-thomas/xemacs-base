@@ -1,3 +1,9 @@
+2000-04-05  Karl M. Hegbloom  <karlheg@debian.org>
+
+	* comint.el (comint-password-prompt-regexp): Make the space in
+	"pass phrase" optional so that it catches the `gpg' passphrase
+	prompt by default.
+
 2000-07-08  Adrian Aichner  <aichner@ecf.teradyne.com>
 
 	* add-log.el (change-log-name): Remove outta-space port.
