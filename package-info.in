@@ -1,5 +1,14 @@
 (xemacs-base
-  (version VERSION
+  (standards-version 1.0
+   version VERSION
+   author-version AUTHOR_VERSION
+   date DATE
+   build-date BUILD_DATE
+   maintainer MAINTAINER
+   distribution mule
+   priority high
+   category CATEGORY
+   dump nil
    description "Fundamental XEmacs support, you almost certainly need this."
    filename FILENAME
    md5sum MD5SUM

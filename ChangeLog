@@ -1,3 +1,8 @@
+1998-01-24  SL Baur  <steve@altair.xemacs.org>
+
+	* Makefile (VERSION): Update to package standards 1.0.
+	* package-info.in: Ditto.
+
 1998-01-16  Greg Klanderman  <greg@alphatech.com (Greg Klanderman)>
 
 	* add-log.el (prompt-for-change-log-name): use find-change-log to
