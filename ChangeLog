@@ -1,3 +1,8 @@
+1999-11-03    Robert Fenk <fenk@forwiss.tu-muenchen.de>
+
+	* shell.el (shell-dirstack-message): `getenv "HOME"' replaced by
+	`user-home-directory', because usually HOME is not defined on WinNT.
+
 1999-09-01  Gabriel Foster  <gabe@sgrail.com>
 
 	* compile.el: Added support for the SGI MipsPro 7.3 compilers to

@@ -845,7 +845,7 @@ command again."
 (defun shell-dirstack-message ()
   (let* ((msg "")
          (ds (cons default-directory shell-dirstack))
-         (home (format "^%s\\(/\\|$\\)" (regexp-quote (getenv "HOME"))))
+         (home (format "^%s\\(/\\|$\\)" (regexp-quote (user-home-directory))))
          (prefix (and comint-file-name-prefix
 		      ;; XEmacs addition: don't turn "/foo" into "foo" !!
 		      (not (= 0 (length comint-file-name-prefix)))
