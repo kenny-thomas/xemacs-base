@@ -448,7 +448,7 @@ This is to work around a bug in Emacs process signaling.")
 
 
 
-
+;;;###autoload
 (defun comint-mode ()
   "Major mode for interacting with an inferior interpreter.
 Interpreter name is same as buffer name, sans the asterisks.

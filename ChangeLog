@@ -1,3 +1,7 @@
+2000-01-18  Martin Buchholz  <martin@xemacs.org>
+
+	* comint.el (comint-mode): Add autoload cookie.
+
 2000-01-13  Andreas Jaeger  <aj@suse.de>
 
 	* regexp-opt.el: Moved from package xemacs-devel to here since
