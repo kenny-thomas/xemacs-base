@@ -1,3 +1,7 @@
+2004-09-07  Jerry James  <james@xemacs.org>
+
+	* Makefile (ELCS): Add timer-funcs.el and realphabetize.
+
 2004-10-04  Adrian Aichner  <adrian@xemacs.org>
 
 	* ffap.el (ffap-alist): Single typo fix.
