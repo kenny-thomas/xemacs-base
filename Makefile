@@ -23,7 +23,7 @@ MAINTAINER = XEmacs Development Team <xemacs-beta@xemacs.org>
 PACKAGE = xemacs-base
 PKG_TYPE = regular
 REQUIRES =
-CATEGORY = libs
+CATEGORY = standard
 
 ELCS = add-log.elc advice.elc annotations.elc assoc.elc case-table.elc \
 	chistory.elc comint.elc comint-xemacs.elc compile.elc debug.elc \
