@@ -1,3 +1,7 @@
+2002-07-14  Steve Youngs  <youngs@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 1.66 released.
+
 2002-07-09  Hrvoje Niksic  <hniksic@xemacs.org>
 
 	* ffap.el (ffap-read-file-or-url): Return the current directory
