@@ -1234,10 +1234,19 @@ which may actually result in an url rather than a filename."
 	   (if dir (cons guess (length dir)) guess)
 	   'file-name-history
 	   ))
-    ;; Do file substitution like (interactive "F"), suggested by MCOOK.
-    (or (ffap-url-p guess) (setq guess (substitute-in-file-name guess)))
-    ;; Should not do it on url's, where $ is a common (VMS?) character.
-    ;; Note: upcoming url.el package ought to handle this automatically.
+    (unless (ffap-url-p guess)
+      ;; Emulate (interactive "F") by returning the current directory
+      ;; if the user has simply pressed RET.
+      (when (equal (expand-file-name guess)
+		   (expand-file-name default-directory))
+	(setq guess (or (buffer-file-name) default-directory)))
+
+      ;; Do file substitution like (interactive "F"), suggested by MCOOK.
+      ;; (Don't substitute on url's, where $ is a common (VMS?)
+      ;; character.  Note: upcoming url.el package ought to handle
+      ;; this automatically.)
+      (setq guess (substitute-in-file-name guess)))
+
     guess))
 
 (defun ffap-read-url-internal (string dir action)

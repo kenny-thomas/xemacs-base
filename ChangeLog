@@ -1,3 +1,8 @@
+2002-07-09  Hrvoje Niksic  <hniksic@xemacs.org>
+
+	* ffap.el (ffap-read-file-or-url): Return the current directory
+	if the user's input equals the current directory.
+
 2002-06-27  Steve Youngs  <youngs@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 1.65 released.
