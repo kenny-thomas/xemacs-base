@@ -1,3 +1,8 @@
+1998-02-14  SL Baur  <steve@altair.xemacs.org>
+
+	* compile.el (grep): Print # of matches.
+	From Hrvoje Niksic <hniksic@srce.hr>
+
 1998-01-31  Karl M. Hegbloom  <karlheg@bittersweet.inetarena.com>
 
 	* shell.el (shell-cd-1): Fixed remote directory tracking.

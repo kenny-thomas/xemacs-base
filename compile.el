@@ -546,7 +546,13 @@ easily repeat a grep command."
 	     (let ((code (process-exit-status proc)))
 	       (if (eq (process-status proc) 'exit)
 		   (cond ((zerop code)
-			  '("finished (matches found)\n" . "matched"))
+			  (cons (format "finished (%d matches found)\n"
+					(count-lines (save-excursion
+						       (goto-char (point-min))
+						       (forward-line 2)
+						       (point))
+						     (point-max)))
+				"matched"))
 			 ((= code 1)
 			  '("finished with no matches found\n" . "no match"))
 			 (t
