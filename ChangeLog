@@ -1,3 +1,13 @@
+2002-03-25  Ville Skyttä  <ville.skytta@xemacs.org>
+
+	* regexp-opt.el: Partial synch with GNU Emacs 21.2.
+	(regexp-opt): Handle PAREN with value 'words.
+	(regexp-opt-group): Return empty string if STRINGS is empty.
+
+2002-03-26  Steve Youngs  <youngs@xemacs.org>
+
+	* Makefile (VERSION): 1.60 released.
+
 2002-03-14  David A. Panariti  <panariti@attbi.com>
 
 	* comint.el (comint-strip-ctrl-m):

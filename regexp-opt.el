@@ -1,9 +1,10 @@
-;;; regexp-opt.el --- generate efficient regexps to match strings.
+;;; regexp-opt.el --- generate efficient regexps to match strings
 
-;; Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1994,95,96,97,98,99,2000 Free Software Foundation, Inc.
 
-;; Author: Simon Marshall <simon@gnu.ai.mit.edu>
-;; Keywords: strings, regexps
+;; Author: Simon Marshall <simon@gnu.org>
+;; Maintainer: FSF
+;; Keywords: strings, regexps, extensions
 
 ;; Modified by Karl M. Hegbloom Sep. 1997 to support the new regexp syntax
 ;; with shy groups. (benchmarks pending)
@@ -99,9 +100,9 @@
 (defun regexp-opt (strings &optional paren non-shy)
   "Return a regexp to match a string in STRINGS.
 Each string should be unique in STRINGS and should not contain any regexps,
-quoted or not. If optional PAREN is non-nil, ensure that the returned
-regexp is enclosed by at least one regexp match grouping construct.  If
-optional NON-SHY is non nil, the inner groupings will use \"\\\\( \\\\)\" grouping,
+quoted or not.  If optional PAREN is non-nil, ensure that the returned regexp
+is enclosed by at least one regexp match grouping construct.  If optional
+NON-SHY is non nil, the inner groupings will use \"\\\\( \\\\)\" grouping,
 rather than the default \"\\\\(?: \\\\)\" 'shy', or non-match-capturing groups.
 The returned regexp is typically more efficient than the equivalent regexp:
 
@@ -109,19 +110,25 @@ The returned regexp is typically more efficient than the equivalent regexp:
    (concat open-paren (mapconcat 'regexp-quote STRINGS \"\\\\|\") close-paren))
 
 but typically contains more regexp grouping constructs.
-Use `regexp-opt-depth' to count them."
+Use `regexp-opt-depth' to count them.
+
+If PAREN is `words', then the resulting regexp is additionally surrounded
+by \\=\\< and \\>."
   (save-match-data
     ;; Recurse on the sorted list.
-    (let ((max-lisp-eval-depth (* 1024 1024))
-	  (completion-ignore-case nil))
-      (regexp-opt-group (sort (copy-sequence strings) 'string-lessp) paren nil non-shy))))
+    (let* ((max-lisp-eval-depth (* 1024 1024))
+	   (completion-ignore-case nil)
+	   (words (eq paren 'words))
+	   (sorted-strings (sort (copy-sequence strings) 'string-lessp))
+	   (re (regexp-opt-group sorted-strings paren nil non-shy)))
+      (if words (concat "\\<" re "\\>") re))))
 
 ;;;###autoload
 (defun regexp-opt-depth (regexp &optional count-shy-groups-too)
   "Return the depth of REGEXP.
-This means the number of regexp grouping constructs (parenthesised expressions)
-in REGEXP, not counting the \"\\\\(?: \\\\)\" non-match-capturing groups unless
-COUNT-SHY-GROUPS-TOO is non-nil.
+This means the number of regexp grouping constructs (parenthesised
+expressions) in REGEXP, not counting the \"\\\\(?: \\\\)\"
+non-match-capturing groups unless COUNT-SHY-GROUPS-TOO is non-nil.
 See `regexp-opt'."
   (save-match-data
     ;; Hack to signal an error if REGEXP does not have balanced parentheses.
@@ -145,21 +152,19 @@ See `regexp-opt'."
   (defalias 'make-bool-vector 'make-vector))
 
 (defun regexp-opt-group (strings &optional paren lax non-shy)
-  ;;
-  ;; Return a regexp to match a string in STRINGS.
-  ;; If PAREN non-nil, output regexp parentheses around returned regexp.
-  ;; If LAX non-nil, don't output parentheses if it doesn't require them.
-  ;; If NON-SHY non-nil, don't use \\(?: \\) shy groups, use match capturing ones.
-  ;; Merges keywords to avoid backtracking in Emacs' regexp matcher.
-  ;;
-  ;; The basic idea is to find the shortest common prefix, remove it and
-  ;; recurse.  If there is no prefix, we divide the list into two so that (at
-  ;; least) one half will have at least a one-character common prefix.
-  ;;
-  ;; Also we delay the addition of grouping parenthesis as long as possible
-  ;; until we're sure we need them, and try to remove one-character sequences
-  ;; so we can use character sets rather than grouping parenthesis.
-  ;;
+  "Return a regexp to match a string in STRINGS.
+If PAREN non-nil, output regexp parentheses around returned regexp.
+If LAX non-nil, don't output parentheses if it doesn't require them.
+If NON-SHY non-nil, don't use \\(?: \\) shy groups, use match capturing ones.
+Merges keywords to avoid backtracking in Emacs' regexp matcher.
+
+The basic idea is to find the shortest common prefix, remove it
+and recurse.  If there is no prefix, we divide the list into two so that
+\(at least) one half will have at least a one-character common prefix.
+
+Also we delay the addition of grouping parenthesis as long as possible
+until we're sure we need them, and try to remove one-character sequences
+so we can use character sets rather than grouping parenthesis."
   (let* ((open-group (cond
                        ((and paren non-shy) "\\(")
                        (paren "\\(?:")
@@ -168,6 +173,10 @@ See `regexp-opt'."
 	 (open-charset (if lax "" open-group))
 	 (close-charset (if lax "" close-group)))
     (cond
+     ;;
+     ;; If there are no strings, just return the empty string.
+     ((= (length strings) 0)
+      "")
      ;;
      ;; If there is only one string, just return it.
      ((= (length strings) 1)
