@@ -215,7 +215,7 @@ If ESCAPE-FROM-EDGE is non-nil and POS is at the beginning of its
 field, then the beginning of the *previous* field is returned.
 If LIMIT is non-nil, it is a buffer position; if the beginning of the field
 is before LIMIT, then LIMIT will be returned instead."
-  (car (find-field pos escape-from-edge limit nil t nil)))
+  (car (find-field pos escape-from-edge limit nil nil t)))
 
 ;;;###autoload
 (defun field-end (&optional pos escape-from-edge limit)
@@ -226,7 +226,7 @@ If ESCAPE-FROM-EDGE is non-nil and POS is at the end of its field,
 then the end of the *following* field is returned.
 If LIMIT is non-nil, it is a buffer position; if the end of the field
 is after LIMIT, then LIMIT will be returned instead."
-  (cdr (find-field pos escape-from-edge nil limit nil t)))
+  (cdr (find-field pos escape-from-edge nil limit t nil)))
 
 ;;;###autoload
 (defun constrain-to-field (new-pos old-pos &optional escape-from-edge

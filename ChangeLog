@@ -1,3 +1,114 @@
+2004-11-06  Ben Wing  <ben@xemacs.org>
+
+	* field.el (field-beginning):
+	* field.el (field-end):
+	skip-start and skip-end values were switched.
+
+2004-11-01  Ben Wing  <ben@xemacs.org>
+
+	* add-log.el:
+	* add-log.el (require):
+	* add-log.el (change-log-mode-hook): New.
+	* add-log.el (add-log-full-name):
+	* add-log.el (add-log-mailing-address):
+	* add-log.el (add-log-keep-changes-together): New.
+	* add-log.el (add-log-always-start-new-record): New.
+	* add-log.el (add-log-buffer-file-name-function): New.
+	* add-log.el (add-log-file-name-function): New.
+	* add-log.el (change-log-version-info-enabled): New.
+	* add-log.el (change-log-version-number-regexp-list): New.
+	* add-log.el (Note): New.
+	* add-log.el (change-log-date-face): New.
+	* add-log.el (change-log-name-face): New.
+	* add-log.el (change-log-email-face): New.
+	* add-log.el (change-log-file-face): New.
+	* add-log.el (change-log-list-face): New.
+	* add-log.el (change-log-conditionals-face): New.
+	* add-log.el (change-log-function-face): New.
+	* add-log.el (change-log-acknowledgement-face): New.
+	* add-log.el (change-log-font-lock-keywords):
+	* add-log.el (change-log-mode-map):
+	* add-log.el (iso8601-time-string):
+	* add-log.el (change-log-name):
+	* add-log.el (change-log-version-number-search): New.
+	* add-log.el (find-change-log):
+	* add-log.el (add-log-file-name): New.
+	* add-log.el (add-change-log-entry):
+	* add-log.el (add-change-log-entry-other-window):
+	* add-log.el (change-log-mode):
+	* add-log.el (add-log-current-defun-header-regexp):
+	* add-log.el (add-log-lisp-like-modes):
+	* add-log.el (add-log-current-defun):
+	* add-log.el (change-log-get-method-definition-md):
+	* add-log.el (get-method-definition-md)): Removed.
+	* add-log.el (change-log-get-method-definition-md)): New.
+	* add-log.el (get-method-definition-1): Removed.
+	* add-log.el (change-log-get-method-definition-1): New.
+	* add-log.el (get-method-definition): Removed.
+	* add-log.el (patch-to-change-log):
+	* add-log.el (change-log-get-method-definition): New.
+	* add-log.el (change-log-sortable-date-at): New.
+	* add-log.el (change-log-resolve-conflict): New.
+	* add-log.el (change-log-merge): New.
+	* add-log.el (change-log-redate): New.
+	* assoc.el:
+	* macros.el:
+	* macros.el (name-last-kbd-macro):
+	* macros.el (insert-kbd-macro):
+	* macros.el (apply-macro-to-region-lines):
+	* ring.el:
+	* ring.el (ring-insert-at-beginning):
+	* ring.el (ring-plus1):
+	* ring.el (ring-minus1):
+	* ring.el (ring-length):
+	* ring.el (ring-index):
+	* ring.el (ring-empty-p):
+	* ring.el (ring-size): New.
+	* ring.el (ring-copy): New.
+	* ring.el (ring-remove):
+	* ring.el (ring-ref):
+	* ring.el (INDEX): New.
+	* ring.el (ring-elements): New.
+	* shell.el:
+	* shell.el (shell-dumb-shell-regexp): New.
+	* shell.el (shell-prompt-pattern):
+	* shell.el (shell-file-name-chars):
+	* shell.el (shell-file-name-quote-list):
+	* shell.el (shell-chdrive-regexp):
+	* shell.el (shell-dirtrack-verbose): New.
+	* shell.el (explicit-bash-args):
+	* shell.el (shell-input-autoexpand):
+	* shell.el (shell-mode):
+	* shell.el (shell-write-history-on-exit): New.
+	* shell.el (shell):
+	* shell.el (shell-directory-tracker):
+	* shell.el (shell-cd-1):
+	* shell.el (shell-unquote-argument): New.
+	* shell.el (shell-process-pushd):
+	* shell.el (shell-resync-dirs):
+	* shell.el (shell-backward-command):
+	* shell.el (shell-dynamic-complete-command):
+	* shell.el (shell-replace-by-expanded-directory):
+	* sort.el:
+	* sort.el (sort-subr):
+	* sort.el (sort-reorder-buffer):
+	* sort.el (sort-lines):
+	* sort.el (sort-numeric-base): New.
+	* sort.el (sort-numeric-fields):
+	* sort.el (sort-regexp-fields):
+	* sort.el (sort-columns):
+	* tq.el:
+	* tq.el (tq-create):
+	* tq.el (tq-filter):
+	* tq.el (tq-process-buffer):
+	Sync add-log, assoc, macros, ring, shell, sort, tq to 21.3.
+
+2004-10-28  Ben Wing  <ben@xemacs.org>
+
+	* add-log.el (patch-to-change-log): Make hunk regexp a bit
+	more permissive to allow for --show-c-function and
+	--show-function-line options of `cvs-diff'.
+
 2004-10-22  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 1.89 released.
