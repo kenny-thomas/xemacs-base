@@ -608,7 +608,6 @@ Returns the compilation buffer created."
 	  (parser (or parser compilation-parse-errors-function))
 	  (thisdir default-directory)
 	  ;; XEmacs change
-          (window-save (selected-window))
 	  (buffer-save (current-buffer))
 	  outwin)
 
@@ -677,7 +676,6 @@ Returns the compilation buffer created."
 	  (display-message
 	   'progress
 	   (format "Executing `%s'...done" command))))
-       (select-window window-save)
        (set-buffer buffer-save)))
 
     ;; Make it so the next C-x ` will use this buffer.
