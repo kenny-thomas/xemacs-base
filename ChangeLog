@@ -1,3 +1,9 @@
+2002-05-02  Steve Youngs  <youngs@xemacs.org>
+
+	* Makefile (ELCS): Add easy-mmode.elc.
+
+	* easy-mmode.el: Moved here from pcl-cvs.
+
 2002-04-24  Steve Youngs  <youngs@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 1.62 released.
