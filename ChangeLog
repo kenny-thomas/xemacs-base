@@ -1,3 +1,8 @@
+2000-10-11  Fraser Young <fyoung@anytimenow.com>
+
+	* compile.el (compilation-find-file): Reset buffer
+	when its wrong.
+
 2000-10-03  Yoshiki Hayashi  <yoshiki@xemacs.org>
 
 	* macros.el (kbd-macro-query): Use next-command-event

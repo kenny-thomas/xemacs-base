@@ -1657,6 +1657,7 @@ bTo BUFFER : ")
 	(if (compare-file-to-buffer buffer filename)
 	    (switch-to-buffer buffer)
 	  (progn
+	    (setq buffer nil) ; its the wrong buffer, so forget it
 	    (if (file-name-absolute-p filename)
 		;; The file name is absolute.  Use its explicit directory as
 		;; the first in the search path, and strip it from FILENAME.
