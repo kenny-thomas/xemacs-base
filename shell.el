@@ -254,6 +254,16 @@ This mirrors the optional behavior of tcsh."
   :type '(choice (const :tag "None" nil) file)
   :group 'shell)
 
+(defcustom explicit-ash-args '("-i")
+  "*List of arguments to pass to \"ash\" on startup in `shell-mode'."
+  :type '(repeat (string :tag "Argument"))
+  :group 'shell)
+
+(defcustom explicit-bash-args '("--login")
+  "*List of arguments to pass to \"bash\" on startup in `shell-mode'."
+  :type '(repeat (string :tag "Argument"))
+  :group 'shell)
+
 (defcustom explicit-csh-args
   (if (eq system-type 'hpux)
       ;; -T persuades HP's csh not to think it is smarter
@@ -262,6 +272,26 @@ This mirrors the optional behavior of tcsh."
     '("-i"))
   "*Args passed to inferior shell by M-x shell, if the shell is csh.
 Value is a list of strings, which may be nil."
+  :type '(repeat (string :tag "Argument"))
+  :group 'shell)
+
+(defcustom explicit-ksh-args '("-i")
+  "*List of arguments to pass to \"ksh\" on startup in `shell-mode'."
+  :type '(repeat (string :tag "Argument"))
+  :group 'shell)
+
+(defcustom explicit-pdsh-args '("-i")
+  "*List of arguments to pass to \"pdksh\" on startup in `shell-mode'."
+  :type '(repeat (string :tag "Argument"))
+  :group 'shell)
+
+(defcustom explicit-tcsh-args '("-i")
+  "*List of arguments to pass to \"tcsh\" on startup in `shell-mode'."
+  :type '(repeat (string :tag "Argument"))
+  :group 'shell)
+
+(defcustom explicit-zsh-args '("-i")
+  "*List of arguments to pass to \"zsh\" on startup in `shell-mode'."
   :type '(repeat (string :tag "Argument"))
   :group 'shell)
 
@@ -645,8 +675,9 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 				    (expand-file-name dir))))
   (condition-case nil
       (progn (if (file-name-absolute-p dir)
-                 (cd-absolute (concat comint-file-name-prefix dir))
-                 (cd dir))
+                 ;;(cd-absolute (concat comint-file-name-prefix dir))
+		 (cd-absolute dir)
+	       (cd dir))
              (setq shell-dirstack dirstack)
              (shell-dirstack-message))
     (file-error (message "Couldn't cd."))))
@@ -854,7 +885,7 @@ command again."
   "Copy the environment variable VARIABLE from the subshell to Emacs.
 This command reads the value of the specified environment variable
 in the shell, and sets the same environment variable in Emacs
-\(what `getenv' in Emacvs would return) to that value.
+\(what `getenv' in Emacs would return) to that value.
 That value will affect any new subprocesses that you subsequently start
 from Emacs."
   (interactive (list (read-envvar-name "\

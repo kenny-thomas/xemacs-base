@@ -1,3 +1,12 @@
+1998-01-31  Karl M. Hegbloom  <karlheg@bittersweet.inetarena.com>
+
+	* shell.el (shell-cd-1): Fixed remote directory tracking.
+
+1998-01-23  Karl M. Hegbloom  <karlheg@bittersweet.inetarena.com>
+
+	* shell.el (explicit-*-args): Add args defcustoms for several
+	other popular shells.
+
 1997-12-18  Hrvoje Niksic  <hniksic@srce.hr>
 
 	* add-log.el (add-log-convert): New function.
