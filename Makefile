@@ -25,6 +25,10 @@ PKG_TYPE = regular
 REQUIRES =
 CATEGORY = standard
 
+PACKAGE_SUPPRESS = \
+  (package-suppress 'xemacs-base \"regexp-opt\" '(emacs-version>= 21 5 11)) \
+  (package-suppress 'xemacs-base \"easy-mmode\" '(emacs-version>= 21 5 11))
+
 ELCS = add-log.elc advice.elc annotations.elc assoc.elc case-table.elc \
 	chistory.elc comint.elc comint-xemacs.elc compile.elc debug.elc \
 	ebuff-menu.elc echistory.elc ehelp.elc edmacro.elc electric.elc \
@@ -34,16 +38,7 @@ ELCS = add-log.elc advice.elc annotations.elc assoc.elc case-table.elc \
 	skeleton.elc sort.elc thing.elc time-stamp.elc timezone.elc \
 	xbm-button.elc xpm-button.elc tq.elc easy-mmode.elc
 
-HTML_FILES = 
-HTML_DEP = 
-
 DATA_FILES = etc/enriched.doc
 DATA_DEST = .
 
 include ../../XEmacs.rules
-
-GENERATED += custom-load.elc
-
-compile:: $(ELCS) auto-autoloads.elc custom-load.elc
-
-binkit: binkit-common
