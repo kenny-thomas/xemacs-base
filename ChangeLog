@@ -1,3 +1,13 @@
+1998-08-06  Michael Sperber [Mr. Preprocessor]  <sperber@informatik.uni-tuebingen.de>
+
+	* etc/enriched.doc: Put doc changes for XEmacs version back in.
+
+1998-07-31  Barry A. Warsaw  <bwarsaw@python.org>
+
+	* comint.el (comint-postoutput-scroll-to-bottom):
+	Added (sit-for 0) to work around
+	basic XEmacs recenter bug.
+
 1998-07-12  SL Baur  <steve@altair.xemacs.org>
 
 	* facemenu.el (facemenu-update-facemenu-menu): Kill

@@ -1527,8 +1527,8 @@ This function should be in the list `comint-output-filter-functions'."
                                        1))
                                (t
                                 -1))
-			 window
-			 )))
+			 window)
+		       (sit-for 0)))
 		 ))))
 	 nil t))))
 
