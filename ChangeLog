@@ -1,3 +1,26 @@
+1998-04-06  Martin Buchholz  <martin@xemacs.org>
+
+	* comint.el: Restore function comint-find-source-code and
+	friends removed earlier in 21.0 development cycle.
+
+1998-04-15  Martin Buchholz  <martin@xemacs.org>
+
+	* comint-delim-arg: Obsoleted by improvements to comint-arguments
+	* comint.el (comint-arguments): Use a single regexp for each arg.
+	Use only a third of the code to do the same thing.  Remove
+	dependency on (nthcdr -1 x) working.
+
+1998-04-11  Kirill M. Katsnelson  <kkm@kis.ru>
+
+	* shell.el (shell): When selecting shell file name, consult
+	`shell-file-name' before falling back to "/bin/sh".
+	Fix docstring accordingly.
+
+1998-04-11  Kirill M. Katsnelson  <kkm@kis.ru>
+
+	* compile.el (compile-internal): Close stdin of an inferior grep
+	or make process.
+
 1998-04-04  SL Baur  <steve@altair.xemacs.org>
 
 	* overlay.el: moved to fsf-compat.

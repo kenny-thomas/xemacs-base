@@ -531,7 +531,9 @@ If buffer exists and shell process is running,
  just switch to buffer `*shell*'.
 Program used comes from variable `explicit-shell-file-name',
  or (if that is nil) from the ESHELL environment variable,
- or else from SHELL if there is no ESHELL.
+ or else from SHELL if there is no ESHELL,
+ or if there is no SHELL then from variable `shell-file-name',
+ or, if all of the above are nil, \"/bin/sh\" is used.
 If a file `~/.emacs_SHELLNAME' exists, it is given as initial input
  (Note that this may lose due to a timing error if the shell
   discards input when it starts up.)
@@ -562,7 +564,8 @@ Otherwise, one argument `-i' is passed to the shell.
 	 (let* ((prog (or explicit-shell-file-name
 			  (getenv "ESHELL")
 			  (getenv "SHELL")
-			  "/bin/sh"))		     
+			  shell-file-name
+			  "/bin/sh"))
 		(name (file-name-nondirectory prog))
 		(startfile (concat "~/.emacs_" name))
 		(xargs-name (intern-soft (concat "explicit-" name "-args"))))

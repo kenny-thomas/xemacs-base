@@ -660,6 +660,7 @@ Returns the compilation buffer created."
 						      command)))
 	      (set-process-sentinel proc 'compilation-sentinel)
 	      (set-process-filter proc 'compilation-filter)
+	      (process-send-eof proc)
 	      (set-marker (process-mark proc) (point) outbuf)
 	      (setq compilation-in-progress 
 		    (cons proc compilation-in-progress)))

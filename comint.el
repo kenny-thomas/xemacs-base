@@ -37,7 +37,7 @@
 ;; This file defines a general command-interpreter-in-a-buffer package
 ;; (comint mode). The idea is that you can build specific process-in-a-buffer
 ;; modes on top of comint mode -- e.g., lisp, shell, scheme, T, soar, ....
-;; This way, all these specific packages share a common base functionality, 
+;; This way, all these specific packages share a common base functionality,
 ;; and a common set of bindings, which makes them easier to use (and
 ;; saves code, implementation time, etc., etc.).
 
@@ -55,7 +55,7 @@
 
 ;; For documentation on the functionality provided by comint mode, and
 ;; the hooks available for customising it, see the comments below.
-;; For further information on the standard derived modes (shell, 
+;; For further information on the standard derived modes (shell,
 ;; inferior-lisp, inferior-scheme, ...), see the relevant source files.
 
 ;; For hints on converting existing process modes (e.g., tex-mode,
@@ -127,7 +127,7 @@
 ;;  comint-completion-fignore		list	...
 ;;  comint-file-name-chars		string	...
 ;;  comint-file-name-quote-list		list	...
-;;  comint-get-old-input		function Hooks for specific 
+;;  comint-get-old-input		function Hooks for specific
 ;;  comint-input-filter-functions	hook	process-in-a-buffer
 ;;  comint-output-filter-functions	hook	function modes.
 ;;  comint-input-filter			function ...
@@ -136,7 +136,7 @@
 ;;  comint-process-echoes		boolean	...
 ;;  comint-scroll-to-bottom-on-input	symbol	For scroll behavior
 ;;  comint-scroll-to-bottom-on-output	symbol	...
-;;  comint-scroll-show-maximum-output	boolean	...	
+;;  comint-scroll-show-maximum-output	boolean	...
 ;;
 ;; Comint mode non-buffer local variables:
 ;;  comint-completion-addsuffix		boolean/cons	For file name
@@ -1188,24 +1188,24 @@ Quotes are single and double."
 
 ;; Return a list of arguments from ARG.  Break it up at the
 ;; delimiters in comint-delimiter-argument-list.  Returned list is backwards.
-(defun comint-delim-arg (arg)
-  (if (null comint-delimiter-argument-list)
-      (list arg)
-    (let ((args nil)
-	  (pos 0)
-	  (len (length arg)))
-      (while (< pos len)
-	(let ((char (aref arg pos))
-	      (start pos))
-	  (if (memq char comint-delimiter-argument-list)
-	      (while (and (< pos len) (eq (aref arg pos) char))
-		(setq pos (1+ pos)))
-	    (while (and (< pos len)
-			(not (memq (aref arg pos)
-				   comint-delimiter-argument-list)))
-	      (setq pos (1+ pos))))
-	  (setq args (cons (substring arg start pos) args))))
-      args)))
+;(defun comint-delim-arg (arg)
+;  (if (null comint-delimiter-argument-list)
+;      (list arg)
+;    (let ((args nil)
+;	  (pos 0)
+;	  (len (length arg)))
+;      (while (< pos len)
+;	(let ((char (aref arg pos))
+;	      (start pos))
+;	  (if (memq char comint-delimiter-argument-list)
+;	      (while (and (< pos len) (eq (aref arg pos) char))
+;		(setq pos (1+ pos)))
+;	    (while (and (< pos len)
+;			(not (memq (aref arg pos)
+;				   comint-delimiter-argument-list)))
+;	      (setq pos (1+ pos))))
+;	  (setq args (cons (substring arg start pos) args))))
+;      args)))
 
 (defun comint-arguments (string nth mth)
   "Return from STRING the NTH to MTH arguments.
@@ -1215,36 +1215,24 @@ We assume whitespace separates arguments, except within quotes.
 Also, a run of one or more of a single character
 in `comint-delimiter-argument-list' is a separate argument.
 Argument 0 is the command name."
-  (let ((argpart "[^ \n\t\"'`]+\\|\\(\"[^\"]*\"\\|'[^']*'\\|`[^`]*`\\)")
-	(args ()) (pos 0)
-	(count 0)
-	beg str quotes)
-    ;; Build a list of all the args until we have as many as we want.
-    (while (and (or (null mth) (<= count mth))
-		(string-match argpart string pos))
-      (if (and beg (= pos (match-beginning 0)))
-	  ;; It's contiguous, part of the same arg.
-	  (setq pos (match-end 0)
-		quotes (or quotes (match-beginning 1)))
-	;; It's a new separate arg.
-	(if beg
-	    ;; Put the previous arg, if there was one, onto ARGS.
-	    (setq str (substring string beg pos)
-		  args (if quotes (cons str args)
-			 (nconc (comint-delim-arg str) args))
-		  count (1+ count)))
-	(setq quotes (match-beginning 1))
-	(setq beg (match-beginning 0))
-	(setq pos (match-end 0))))
-    (if beg
-	(setq str (substring string beg pos)
-	      args (if quotes (cons str args)
-		     (nconc (comint-delim-arg str) args))
-	      count (1+ count)))
-    (let ((n (or nth (1- count)))
-	  (m (if mth (1- (- count mth)) 0)))
-      (mapconcat
-       (function (lambda (a) a)) (nthcdr n (nreverse (nthcdr m args))) " "))))
+  (let ((arg-regexp "\\(?:[^ \n\t\"'`]+\\|\"[^\"]*\"\\|'[^']*'\\|`[^`]*`\\)+")
+	(args nil)
+	(pos 0)
+	(count 0))
+    (when comint-delimiter-argument-list
+      (setq arg-regexp
+	    (format "[%s]\\|%s"
+		    (regexp-quote (concat comint-delimiter-argument-list))
+		    arg-regexp)))
+    (while (and (string-match arg-regexp string pos)
+		(or (null mth) (<= count mth)))
+      (when (or (null nth) (<= nth count))
+	(push (substring string (match-beginning 0) (match-end 0)) args))
+      (setq pos (match-end 0))
+      (incf count))
+    (if (null nth)
+	(or (car args) "")
+      (mapconcat 'identity (nreverse args) " "))))
 
 ;;
 ;; Input processing stuff
@@ -1665,7 +1653,7 @@ Repeating \\[universal-argument] without digits or minus sign
 ;; `comint-watch-for-password-prompt' to `comint-output-filter-functions'.
 
 (defun comint-read-noecho (prompt &optional stars)
-  "Read a single line of text from user without echoing, and return it. 
+  "Read a single line of text from user without echoing, and return it.
 Prompt with argument PROMPT, a string.  Optional argument STARS causes
 input to be echoed with '*' characters on the prompt line.  Input ends with
 RET, LFD, or ESC.  DEL or C-h rubs out.  C-u kills line.  C-g aborts (if
@@ -1906,14 +1894,14 @@ See `comint-prompt-regexp'."
 ;; (COMINT-SOURCE-DEFAULT previous-dir/file source-modes)
 ;;============================================================================
 ;; This function computes the defaults for the load-file and compile-file
-;; commands for tea, soar, cmulisp, and cmuscheme modes. 
-;; 
-;; - PREVIOUS-DIR/FILE is a pair (directory . filename) from the last 
+;; commands for tea, soar, cmulisp, and cmuscheme modes.
+;;
+;; - PREVIOUS-DIR/FILE is a pair (directory . filename) from the last
 ;; source-file processing command. NIL if there hasn't been one yet.
 ;; - SOURCE-MODES is a list used to determine what buffers contain source
 ;; files: if the major mode of the buffer is in SOURCE-MODES, it's source.
 ;; Typically, (lisp-mode) or (scheme-mode).
-;; 
+;;
 ;; If the command is given while the cursor is inside a string, *and*
 ;; the string is an existing filename, *and* the filename is not a directory,
 ;; then the string is taken as default. This allows you to just position
@@ -1922,17 +1910,17 @@ See `comint-prompt-regexp'."
 ;; If the command is given in a file buffer whose major mode is in
 ;; SOURCE-MODES, then the the filename is the default file, and the
 ;; file's directory is the default directory.
-;; 
+;;
 ;; If the buffer isn't a source file buffer (e.g., it's the process buffer),
 ;; then the default directory & file are what was used in the last source-file
 ;; processing command (i.e., PREVIOUS-DIR/FILE).  If this is the first time
 ;; the command has been run (PREVIOUS-DIR/FILE is nil), the default directory
 ;; is the cwd, with no default file. (\"no default file\" = nil)
-;; 
+;;
 ;; SOURCE-REGEXP is typically going to be something like (tea-mode)
 ;; for T programs, (lisp-mode) for Lisp programs, (soar-mode lisp-mode)
 ;; for Soar programs, etc.
-;; 
+;;
 ;; The function returns a pair: (default-directory . default-file).
 
 (defun comint-source-default (previous-dir/file source-modes)
@@ -1970,15 +1958,15 @@ See `comint-prompt-regexp'."
 ;; commands that process source files (like loading or compiling a file).
 ;; It prompts for the filename, provides a default, if there is one,
 ;; and returns the result filename.
-;; 
+;;
 ;; See COMINT-SOURCE-DEFAULT for more on determining defaults.
-;; 
+;;
 ;; PROMPT is the prompt string. PREV-DIR/FILE is the (directory . file) pair
 ;; from the last source processing command.  SOURCE-MODES is a list of major
 ;; modes used to determine what file buffers contain source files.  (These
 ;; two arguments are used for determining defaults). If MUSTMATCH-P is true,
 ;; then the filename reader will only accept a file that exists.
-;; 
+;;
 ;; A typical use:
 ;; (interactive (comint-get-source "Compile file: " prev-lisp-dir/file
 ;;                                 '(lisp-mode) t))
@@ -2035,7 +2023,7 @@ See `comint-prompt-regexp'."
 ;; and show the response to the user. For example, a command to get the
 ;; arglist for a Common Lisp function might send a "(arglist 'foo)" query
 ;; to an inferior Common Lisp process.
-;; 
+;;
 ;; This simple facility just sends strings to the inferior process and pops
 ;; up a window for the process buffer so you can see what the process
 ;; responds with.  We don't do anything fancy like try to intercept what the
@@ -2171,7 +2159,7 @@ interpreter (e.g., the percent notation of cmd.exe on NT)."
 	      env-var-val)
 	  (save-match-data
 	    (while (string-match "%\\([^\\\\/]*\\)%" name)
-	      (setq env-var-name 
+	      (setq env-var-name
 		    (substring name (match-beginning 1) (match-end 1)))
 	      (setq env-var-val (if (getenv env-var-name)
 				    (getenv env-var-name)
@@ -2183,7 +2171,7 @@ interpreter (e.g., the percent notation of cmd.exe on NT)."
   "Return the filename at point, or nil if none is found.
 Environment variables are substituted.  See `comint-word'."
   (let ((filename (comint-word comint-file-name-chars)))
-    (and filename (comint-substitute-in-file-name 
+    (and filename (comint-substitute-in-file-name
 		   (comint-unquote-filename filename)))))
 
 
@@ -2391,6 +2379,370 @@ Typing SPC flushes the help buffer."
       (display-completion-list (sort completions 'string-lessp)))
     (comint-restore-window-config conf)))
 
+;; #### - FSFmacs doesn't have this and I'm not gonna nuke it just yet, but
+;; it seems awfully redundant to have this here when compile.el does pretty
+;; much the same thing.  --Stig
+
+;;; Filename and source location extraction from a buffer.
+;;; lemacs change by John Rose
+;;; ===========================================================================
+;;; Functions for recognizing and extracting file names and line numbers.
+;;; C-c C-f attempts to extract a location from the current line, and
+;;; go to that location.
+
+;;; One command:
+;;; comint-find-source-code		Extract source location and follow it.
+
+;;; This should be installed globally, since file names and source locations
+;;; are ubiquitous.  However, don't overwrite an existing key binding.
+(if (not (lookup-key global-map "\C-c\C-f"))
+    (global-set-key "\C-c\C-f" 'comint-find-source-code))
+
+;;; Utility functions:
+;;; comint-extract-source-location	Parse source loc. from buffer or string.
+;;; comint-extract-current-pathname	Extract potential pathname around point.
+;;; comint-match-partial-pathname	Match a potential pathname before point.
+
+(defconst comint-source-location-patterns
+  '(;; grep (and cpp): file.c: 10:
+    ("\\(^\\|[ \t]\\)\\([^ \t\n]+\\): *\\([0-9]+\\):[ \t]*\\(.*\\)" (grep cpp) (2 3 4))
+    ;; cpp: #line 10 "file.c"
+    ("#\\(line\\)? *\\([0-9]+\\) *\"\\([^\"\n]+\\)\"" cpp (3 2))
+    ;; cc: "file.c", line 10
+    ("\"\\([^\"\n]+\\)\", line +\\([0-9]+\\)\\(:[ \t]+\\(.*\\)\\)?" cc (1 2 4))
+    ;; f77: line 10 of file.c
+    ("line +\\([0-9]+\\) +of +\\([^ \t\n]+\\)\\(:[ \t]+\\(.*\\)\\)?" f77 (2 1 4))
+    ;; perl: ...at file.c line 10.
+    ;; perl: ...at file.c line 10, near "foo"
+    ("^\\(.*\\) at \\([^ \t\n]+\\) line +\\([0-9]+\\)\\(\\.$\\|, \\)"
+     perl (2 3 1))
+    ;; dbx: line 10 in "file.c"
+    ("\\(^\\(.*\\)[ \t]+at \\)?line +\\([0-9]+\\) +[in of file]+ +\"\\([^\"\n]+\\)\""
+     dbx (4 3 2))
+    ;; dbx: "file.c":10
+    ("\"\\([^\"\n]+\\)\":\\([0-9]+\\)" dbx (1 2))
+    ;; centerline: "file.c:10"
+    ("\"\\([^\"\n]+\\):\\([0-9]+\\)\"" centerline (1 2))
+    ;; lint: : file.c(10)
+    (": *\\([^ \t\n)]+\\) *(\\([0-9]+\\))" lint (1 2))
+    ;; lint: file.c(10) :
+    ("\\(^\\|[ \t]\\)\\([^ \t\n)]+\\) *(\\([0-9]+\\)) *:" lint (2 3))
+    ;; lint: ( file.c(10) )
+    ("( +\\([^ \t\n)]+\\) *(\\([0-9]+\\)) +)" lint (1 2))
+    ;; troff: `file.c', line 10
+    ("[\"`']\\([^\"`'\n]+\\)[\"`'], line +\\([0-9]+\\)" troff (1 2))
+    ;; ri: "file.c" 10:
+    ("\"\\([^\"\n]+\\)\" *\\([0-9]+\\):" ri (1 2)) ;;Never heard of ri.
+    ;; mod: File file.c, line 10
+    ("[Ff]ile +\\([^ \t\n]+\\), line +\\([0-9]+\\)" mod (1 2))
+    ;; ksh: file.c[10] :
+    ("\\(^\\|[ \t]\\)\\([^ \t\n)]+\\) *\\[\\([0-9]+\\)\\] *:[ \t]+\\(.*\\)"
+     ksh (2 3 4))
+    ;; shell: file.c: syntax error at line 10
+    ("\\(^\\|[ \t]\\)\\([^ \t\n:]+\\):[ \t]+\\(.*\\)[ \t]+[, at]*line +\\([0-9]+\\)"
+     sh (2 4 3) -1)
+    )
+  "Series of regexps matching file number locations.
+Each list entry is a 3-list of a regexp, a program name, and up to 3 numbers.
+The numbers name regexp fields which will hold the file, line number,
+and associated diagnostic message (if any).
+The program name is a symbol or list of symbols, and
+is returned unexamined from `comint-extract-source-location';
+it should be a guess at who produced the message, e.g., 'cc'.
+
+In the case of multiple matches, `comint-extract-source-location'
+will return the leftmost, longest match of the highest priority.
+The priority of most patterns is 0, but a fourth element on
+the list, if present, specifies a different priority.
+
+The regexps initially stored here are based on the one in compile.el
+\(although the pattern containing 'of' must also contain 'line').
+They are also drawn from the Unix filters 'error' and 'fwarn'.
+The patterns are known to recognize errors from the following
+Un*x language processors:
+  cpp, cc, dbx, lex, f77, Centerline C, sh (Bourne), lint, mod
+The following language processors do not incorporate file names
+in every error message, and so are more difficult to accomodate:
+  yacc, pc, csh
+   ")
+
+(defun comint-extract-source-location (&optional start end commands markers)
+  "Return a 6-list of (file line command diagnostic mstart mend),
+obtained by parsing the current buffer between START and END,
+which default to the bounds of the current line.
+
+Use the list comint-source-location-patterns to guide parsing.
+
+The match returned will be on the latest line containing a match, but
+will be the earliest possible match on that line.
+
+START can also be a string, in which case it inserted in the buffer
+\"*Extract File and Line*\" and parsed there.
+
+COMMANDS is an optional list of pattern types, which has the effect of
+temporarily reducing the list comint-source-location-patterns
+to only those entries which apply to the given commands.
+
+Return NIL if there is no recognizable source location.
+
+MSTART and MEND give the limits of the matched source location.
+
+If MARKERS is true, return no strings, but rather cons cells
+of the form (beg-marker . end-marker).
+"
+  (if (not start)
+      (progn
+	(setq start (save-excursion (beginning-of-line) (point)))
+	(setq end (save-excursion (end-of-line) (point)))))
+  (if (stringp start)
+      (save-excursion
+	(set-buffer (get-buffer-create "*Extract File and Line*"))
+	(erase-buffer)
+	(insert start)
+	(comint-extract-source-location (point-min) (point-max) commands markers))
+    (let ((ptr (if (and (consp commands)
+			(consp (car commands)))
+		   (prog1 commands (setq commands nil))
+		 comint-source-location-patterns))
+	  pat
+	  (found-bol (- (point-min) 1))
+	  (found-prio -999999)
+	  found-beg
+	  found-end
+	  found-pat
+	  found-data
+	  set-found-data)
+      (setq set-found-data
+	    (function (lambda (data)
+			(while found-data
+			  (let ((m (car found-data)))
+			    (if (markerp m) (set-marker m nil)))
+			  (setq found-data (cdr found-data)))
+			(setq found-data data))))
+      (if (and commands (not (listp commands)))
+	  (setq commands (list commands)))
+      (save-excursion
+	(save-restriction
+	  (narrow-to-region start end)
+	  (while ptr
+	    (setq pat (car ptr) ptr (cdr ptr))
+	    (goto-char (point-max))
+	    (if (and (or (null commands)
+			 (if (consp (nth 1 pat))
+			     (member (nth 1 pat) commands)
+			   ;; If (cadr pat) is a list, each list element
+			   ;; is a command that might produce this.
+			   (let ((ptr (nth 1 pat))
+				 (ismem nil))
+			     (while (and ptr (not ismem))
+			       (if (member (car ptr) commands)
+				   (setq ismem t))
+			       (setq ptr (cdr ptr)))
+			     ismem)))
+		     (re-search-backward (nth 0 pat) found-bol t))
+		(let (beg end bol prio)
+		  (setq beg (match-beginning 0))
+		  (setq end (match-end 0))
+		  (beginning-of-line)
+		  (setq bol (point))
+		  (re-search-forward (nth 0 pat))
+		  (if (> (match-beginning 0) beg)
+		      (error "comint-extract-source-location botch"))
+		  (setq beg (match-beginning 0))
+		  (setq end (match-end 0))
+		  (setq prio (or (nth 3 pat) 0))
+		  (if (or (> bol found-bol)
+			  (and (= bol found-bol)
+			       (or (> prio found-prio)
+				   (and (= prio found-prio)
+					(or (< beg found-beg)
+					    (and (= beg found-beg)
+						 (> end found-end)))))))
+		      (progn
+			(setq found-bol bol)
+			(setq found-prio prio)
+			(setq found-beg beg)
+			(setq found-end end)
+			(setq found-pat pat)
+			(funcall set-found-data (match-data)))))))))
+      (and found-data
+	   (let* ((command (nth 1 found-pat))
+		  (fields (nth 2 found-pat))
+		  (f1 (nth 0 fields))
+		  (f2 (nth 1 fields))
+		  (f3 (nth 2 fields))
+		  (get-field
+		   (function
+		    (lambda (fn)
+		      (and fn
+			   (let ((beg (match-beginning fn))
+				 (end (match-end fn)))
+			     (and beg end (> end beg)
+				  (if markers
+				      (cons (copy-marker beg) (copy-marker end))
+				    (buffer-substring beg end)))))))))
+	     (store-match-data found-data)
+	     (funcall set-found-data nil)
+	     (let ((file (funcall get-field f1))
+		   (line (funcall get-field f2))
+		   (diagnostic (funcall get-field f3))
+		   (mstart (match-beginning 0))
+		   (mend (match-end 0)))
+	       ;; (carefully use all match-data before calling string-match)
+	       (list
+		file
+		(if (and (stringp line)
+			 (prog1
+			     (string-match "\\`[0-9]+\\'" line)
+			   (store-match-data found-data)))
+		    (string-to-int line)
+		  line)
+		command
+		diagnostic
+		mstart
+		mend
+		))))
+      )))
+
+;;; Commands for extracting source locations:
+
+(defcustom comint-find-source-code-max-lines 100
+  "*Maximum number of lines to search backward for a source location,
+when using \\[comint-find-source-code\\] with an interactive prefix."
+  :type 'integer
+  :group 'comint-source)
+
+(defcustom comint-find-source-file-hook nil
+  "*Function to call instead of comint-default-find-source-file
+when comint-find-source-code parses out a file name and then wants to
+visit its buffer.  The sole argument is the file name.  The function
+must find the file, setting the current buffer, and return the file
+name.  It may also adjust the file name.  If you change this variable,
+make it buffer local."
+  :type 'function
+  :group 'comint-source)
+
+(defcustom comint-goto-source-line-hook nil
+  "*Function to call instead of comint-default-goto-source-line
+after comint-find-source-code finds a file and then wants to
+go to a line number mentioned in a source location.
+The sole argument is the line number.  The function must
+return the line number, possibly adjusted.  If you change
+this variable, make it buffer local."
+  :type 'function
+  :group 'comint-source)
+
+(defun comint-find-source-code (multi-line)
+  "Search backward from point for a source location.
+If a source location is found in the current line,
+go to that location.
+
+If MULTI-LINE is false (this is the interactive prefix flag),
+then only look for source locations in the current line.
+Otherwise, look within comint-find-source-code-max-lines
+before point.  If a source location is found on a previous line, move
+point to that location, so that another use of \\[comint-find-source-code\\]
+will go to the indicated place.
+
+If no source location is found, then try to extract a filename
+around the point, using comint-extract-current-pathname.
+
+In any case, if the file does not exist, prompt the user for
+a pathname that does.  Sometimes the file's directory needs
+hand adjustment.
+
+This command uses comint-extract-source-location, which is customizable.
+Also, once a source file and line have been extracted, it uses
+comint-find-source-file-hook and comint-goto-source-line-hook
+to interpret them."
+  (interactive "P")
+  (let* ((beg (save-excursion
+		(if multi-line
+		    (forward-line (min 0 (- comint-find-source-code-max-lines)))
+		  (beginning-of-line))
+		(point)))
+	 (end (save-excursion (end-of-line) (point)))
+	 (res (or (comint-extract-source-location beg end)
+		  (let ((file (comint-extract-current-pathname)))
+		    (and file
+			 (list file nil nil nil
+			       (match-beginning 0)
+			       (match-end 0))))
+		  (error "Not sitting on a source location."))))
+    (let ((file (nth 0 res))
+	  (line (nth 1 res))
+	  ;;(cmd (nth 2 res))
+	  (info (nth 3 res))
+	  (mbeg (nth 4 res))
+	  (mend (nth 5 res))
+	  dofind)
+      (setq dofind
+	    (not (and multi-line
+		      mend
+		      (< mend (save-excursion (beginning-of-line) (point))))))
+      (if (not dofind)
+	  (goto-char mbeg)
+	(progn
+	  (setq file
+		(funcall (or comint-find-source-file-hook
+			     'comint-default-find-source-file)
+			 file))
+	  (if line
+	      (setq line
+		    (funcall (or comint-goto-source-line-hook
+				 'comint-default-goto-source-line)
+			     line)))
+	  ))
+      (message "%s%s of %s%s%s"
+	       (if dofind
+		   "" (substitute-command-keys
+		       "Hit \\[comint-find-source-code] for "))
+	       (cond ((null line) "current line")
+		     ((numberp line) (format "line %s" line))
+		     (t line))
+	       (file-name-nondirectory file)
+	       (if info ": " "") (or info "")))))
+
+
+(defun comint-default-find-source-file (file)
+  "Action taken by \\[comint-find-source-code] when find-source-file-hook is nil.
+It calls substitute-in-file-name.  If the file does not exist, it prompts
+for the right pathname, using a similar pathname derived from a nearby
+buffer as a default.  It then calls find-file-other-window and returns the
+amended file name."
+  (setq file (substitute-in-file-name file))
+  (if (not (file-readable-p file))
+      (setq file (comint-fixup-source-file-name file)))
+  (find-file-other-window file)
+  file)
+
+(defun comint-fixup-source-file-name (file)
+  (let (dir ptr nondir bfile res)
+    (setq nondir (file-name-nondirectory file))
+    (setq ptr (buffer-list))
+    (while (and ptr (not dir))
+      (setq bfile (buffer-file-name (car ptr)))
+      (if (and bfile (equal (file-name-nondirectory bfile) nondir))
+	  (setq dir (file-name-directory bfile)
+		file (file-name-nondirectory bfile)))
+      (setq ptr (cdr ptr)))
+    (setq res
+	  (read-file-name "Source file: " dir t nil file))
+    (if (eq res t)
+	(expand-file-name file dir)
+      res)))
+
+(defun comint-default-goto-source-line (line)
+  "Action taken by \\[comint-find-source-code] when goto-source-line-hook is nil.
+It widens & pushes the mark, then does goto-line in the current buffer.
+It returns its line argument."
+  (widen)
+  (setq line (max line 0))
+  (setq line (min line (+ 1 (count-lines (point-min) (point-max)))))
+  (push-mark)
+  (goto-line line)
+  line)
+
 ;; Converting process modes to use comint mode
 ;; ===========================================================================
 ;; The code in the Emacs 19 distribution has all been modified to use comint
@@ -2431,7 +2783,7 @@ Typing SPC flushes the help buffer."
 ;; the old shell package was used to implement a history mechanism,
 ;; but you should think twice before using comint-last-input-start
 ;; for this; the input history ring often does the job better.
-;; 
+;;
 ;; If you are implementing some process-in-a-buffer mode, called foo-mode, do
 ;; *not* create the comint-mode local variables in your foo-mode function.
 ;; This is not modular.  Instead, call comint-mode, and let *it* create the
