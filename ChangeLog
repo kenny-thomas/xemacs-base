@@ -1,3 +1,7 @@
+2002-04-24  Steve Youngs  <youngs@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 1.62 released.
+
 2002-04-01  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* pp.el (pp-to-string): add autoload cookie.
