@@ -2236,13 +2236,10 @@ completions listing is dependent on the value of `comint-completion-autolist'.
 Returns t if successful."
   (interactive)
   (if (comint-match-partial-filename)
-      (let ((directory-sep-char (if (memq system-type '(ms-dos windows-nt))
-				    ?\\
-				  ?/)))
-	(prog2 (or (window-minibuffer-p (selected-window))
-		   (message "Completing file name..."))
-            (or (comint-dynamic-complete-as-username)
-                (comint-dynamic-complete-as-filename))))))
+      (prog2 (or (window-minibuffer-p (selected-window))
+		 (message "Completing file name..."))
+	  (or (comint-dynamic-complete-as-username)
+	      (comint-dynamic-complete-as-filename)))))
 
 (defun comint-dynamic-complete-as-filename ()
   "Dynamically complete at point as a filename.
@@ -2255,12 +2252,18 @@ See `comint-dynamic-complete-filename'.  Returns t if successful."
 	 ;;(file-name-handler-alist nil)
 	 (minibuffer-p (window-minibuffer-p (selected-window)))
 	 (success t)
-	 (dirsuffix (cond ((not comint-completion-addsuffix) "")
-			  ((not (consp comint-completion-addsuffix)) "/")
-			  (t (car comint-completion-addsuffix))))
-	 (filesuffix (cond ((not comint-completion-addsuffix) "")
-			   ((not (consp comint-completion-addsuffix)) " ")
-			   (t (cdr comint-completion-addsuffix))))
+	 (dirsuffix (cond ((not comint-completion-addsuffix)
+			   "")
+			  ((not (consp comint-completion-addsuffix))
+			   (char-to-string directory-sep-char))
+			  (t
+			   (car comint-completion-addsuffix))))
+	 (filesuffix (cond ((not comint-completion-addsuffix)
+			    "")
+			   ((not (consp comint-completion-addsuffix))
+			    " ")
+			   (t
+			    (cdr comint-completion-addsuffix))))
 	 (filename (or (comint-match-partial-filename) ""))
 	 (pathdir (file-name-directory filename))
 	 (pathnondir (file-name-nondirectory filename))
@@ -2272,7 +2275,7 @@ See `comint-dynamic-complete-filename'.  Returns t if successful."
           ((eq completion t)            ; Means already completed "file".
            (insert filesuffix)
            (or minibuffer-p (message "Sole completion")))
-          ((string-equal completion "") ; Means completion on "directory/".
+          ((string-equal completion "") ; Means completion on "directory".
            (comint-dynamic-list-filename-completions))
           (t                            ; Completion string returned.
            (let ((file (concat (file-name-as-directory directory) completion)))
