@@ -1,3 +1,12 @@
+1998-04-29  SL Baur  <steve@altair.xemacs.org>
+
+	* compile.el (compile-internal): Comment out (process-send-eof).
+	From Hrvoje Niksic <hniksic@srce.hr>
+
+1998-04-28  SL Baur  <steve@altair.xemacs.org>
+
+	* shell.el ((not shell-mode-map)): Don't use reader macro.
+
 1998-04-06  Martin Buchholz  <martin@xemacs.org>
 
 	* comint.el: Restore function comint-find-source-code and
