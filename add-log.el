@@ -941,7 +941,6 @@ The following keys are allowed:
 	    (flush-change-log-entries)
 	    ))
 	(finish-up-change-log-buffer)
-	(add-change-log-string "\n")
 	;; return the list of ChangeLog buffers
 	change-log-buffers))))
 

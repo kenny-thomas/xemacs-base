@@ -1,3 +1,14 @@
+2001-03-14  Dr. Volker Zell  <Dr.Volker.Zell@oracle.com>
+
+	* ffap.el (ffap-menu-ask): Add test for ffap-xemacs to fix a
+	'Wrong type argument: eventp t' error.
+
+2001-03-12  Adrian Aichner  <adrian@xemacs.org>
+
+	* add-log.el (patch-to-change-log): Avoid second empty line after
+	ChangeLog addition, which is against current ChangeLog editing
+	practice.
+
 2001-02-05  Steve Youngs  <youngs@xemacs.org>
 
 	* passwd.el (passwd-erase-buffer): Back out Matt's patch.

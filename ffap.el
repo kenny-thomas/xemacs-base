@@ -1464,7 +1464,7 @@ Function CONT is applied to the entry chosen by the user."
   (let (choice)
     (cond
      ;; Emacs mouse:
-     ((and (fboundp 'x-popup-menu) (ffap-mouse-event))
+     ((and (not ffap-xemacs) (fboundp 'x-popup-menu) (ffap-mouse-event))
       (setq choice
 	    (x-popup-menu
 	     t
