@@ -554,11 +554,9 @@ ENDFUN should return the end position (with or without moving point)."
 		 ;; XEmacs change: versions < 21.5.16 have a
 		 ;; pos-visible-in-window-p that takes only 2 parameters
 		 (unless
-		     (or
-		      (and
-		       (eq (function-max-args #'pos-visible-in-window-p) 2)
-		       (pos-visible-in-window-p endpt nil))
-		      (pos-visible-in-window-p endpt nil t))
+		     (if (eq (function-max-args #'pos-visible-in-window-p) 2)
+			 (pos-visible-in-window-p endpt nil)
+		       (pos-visible-in-window-p endpt nil t))
 		   (recenter '(0))))))))
        (defun ,prev-sym (&optional count)
 	 ,(format "Go to the previous COUNT'th %s" (or name base-name))

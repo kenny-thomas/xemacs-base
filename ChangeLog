@@ -1,3 +1,8 @@
+2004-03-26  Ville Skyttä  <scop@xemacs.org>
+
+	* easy-mmode.el (easy-mmode-define-navigation): Call only the
+	version of pos-visible-in-window-p with the correct number of args.
+
 2004-02-16  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 1.85 released.
