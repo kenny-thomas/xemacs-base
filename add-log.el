@@ -1,6 +1,7 @@
 ;;; add-log.el --- change log maintenance commands for Emacs
 
 ;; Copyright (C) 1985, 86, 88, 93, 94, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 2000 Ben Wing.
 
 ;; Keywords: maint
 
@@ -708,6 +709,245 @@ Has a preference of looking backwards."
 	  (get-method-definition-1 ""))
 	(concat get-method-definition-md "]"))))))
 
+;;;###autoload
+(defun patch-to-change-log (devdir &rest cl-keys)
+  "Convert the unified diff in the current buffer into a ChangeLog.
+DEVDIR (queried interactively) specifies that directory that the diff was
+made relative to.  The ChangeLog entries are added to the appropriate
+ChangeLog files (generally in the same directory as the diffed file but
+possibly in a parent directory), which are left as modified Emacs buffers
+but not saved out to disk.  After running this, you should go to the various
+buffers and annotate the entries appropriately.
+
+To work on a region on the current buffer, narrow to that region first.
+
+NOTE: This function handles diff output both from `cvs diff' and just
+running `diff' directly, but *ONLY* unified-format (-u) diffs. #### Someone
+should fix this to handle context diffs as well.
+
+Allowed keys are :my-name, defaulting to (user-login-name), and
+:my-email, defaulting to (user-mail-address)."
+  (interactive "DBase directory of patch: ")
+  (cl-parsing-keywords
+      ((:my-name (user-login-name))
+       (:my-email (user-mail-address)))
+      ()
+    (let* ((font-lock-auto-fontify nil)
+	   (file-re1 "Index: \\(\\S-*\\)")
+	   (file-re2 "^\\+\\+\\+ \\(\\S-*\\)")
+	   (hunk-re "^@@ -[0-9]+,[0-9]+ \\+\\([0-9]+\\),\\([0-9]+\\) @@$")
+	   (basename-re "\\`\\(.*\\)/\\(.*\\)\\'")
+	   (lisp-defun-re "(def[a-z-]* \\([^ \n]+\\)")
+	   (c-token-re "[][_a-zA-Z0-9]+")
+	   (ws-re "\\(\\s-\\|\n\\+\\)*")
+	   (c-multi-token-re (concat c-token-re "\\(" ws-re c-token-re "\\)*"))
+	   (c-defun-re (concat "^+\\(" c-token-re ws-re "\\)*"
+			       "\\(" c-token-re "\\)" ws-re "(" ws-re
+			       "\\("
+			       c-multi-token-re ws-re
+			       "\\(," ws-re c-multi-token-re ws-re "\\)*"
+			       "\\)?" ws-re ")" ws-re "{" ws-re "$"))
+	   (new-defun-re (concat "^+" lisp-defun-re))
+	   (nomore-defun-re (concat "^-" lisp-defun-re))
+	   (done-hash (make-hashtable 20 'equal))
+	   (new-fun-hash (make-hashtable 20 'equal))
+	   (nomore-fun-hash (make-hashtable 20 'equal))
+	   change-log-buffer
+	   file absfile limit current-defun delete-p
+	   dirname basename previous-dirname dirname-relative-to-change-log
+	   all-entries first-file-re-p
+	   )
+
+      (flet ((add-change-log-string
+	      (str)
+	      (with-current-buffer change-log-buffer
+		(goto-char insertion-marker)
+		(insert-before-markers str)))
+
+	     (add-change-log-entry
+	      (filename line fun str)
+	      (let ((entry (cons filename fun)))
+		(unless (or (gethash entry done-hash)
+			    (string-match "\n." str))
+		  ;; (message "%s %S" str (gethash entry done-hash))
+		  (puthash entry t done-hash)
+		  (push (cons str line) all-entries))))
+
+	     (flush-change-log-entries
+	      ()
+	      (setq all-entries (sort all-entries #'cdr-less-than-cdr))
+	      (mapc #'(lambda (entry)
+			(add-change-log-string (car entry)))
+		    all-entries)
+	      (setq all-entries nil))
+
+	     (line-num () (1+ (count-lines (point-min) (point-at-bol))))
+
+	     (finish-up-change-log-buffer
+	      ()
+	      (add-change-log-string "\n")
+	      (with-current-buffer change-log-buffer
+		(goto-char (point-min)))))
+
+	(save-excursion
+	  (goto-char (point-min))
+	  (while (or (prog1 (re-search-forward file-re1 nil t)
+		       (setq first-file-re-p t))
+		     (prog1 (re-search-forward file-re2 nil t)
+		       (setq first-file-re-p nil)))
+	    (setq file (match-string 1))
+	    (if (string-match basename-re file)
+		(setq dirname  (match-string 1 file)
+		      basename (match-string 2 file))
+	      (setq dirname "" basename file))
+	    (setq absfile (expand-file-name file devdir))
+	    (setq limit
+		  (save-excursion (or (re-search-forward
+				       (if first-file-re-p file-re1 file-re2)
+				       nil t)
+				      (point-max))))
+	    (when (not (equal dirname previous-dirname))
+	      (if previous-dirname
+		  (finish-up-change-log-buffer))
+	      (setq previous-dirname dirname)
+	      (setq dirname-relative-to-change-log "")
+	      (setq change-log-buffer
+		    (find-file-noselect
+		     (let (found (newdirname dirname))
+		       ;; look for changelogs, going up the directory hierarchy
+		       (while (not found)
+			 (let ((maybe-found
+				(expand-file-name
+				 "ChangeLog"
+				 (expand-file-name newdirname devdir))))
+			   (if (file-exists-p maybe-found)
+			       (setq found maybe-found)
+			     (setq dirname-relative-to-change-log
+				   ;;(file-relative-name
+				   ;; (expand-file-name BAR FOO)
+				   ;; (expand-file-name ""))
+				   ;;is a tricky but correct way of
+				   ;;constructing FOO/BAR in a
+				   ;;file-system-independent way.
+				   (file-relative-name
+				    (expand-file-name
+				     (file-name-nondirectory newdirname)
+				     dirname-relative-to-change-log)
+				    (expand-file-name "")))
+			     (setq newdirname
+				   (file-name-directory
+				    (directory-file-name newdirname)))
+			     (if (= 0
+				    (length (directory-file-name newdirname)))
+				 (setq found (expand-file-name
+					      "Changelog" devdir))))))
+		       found)))
+	      (setq insertion-marker (point-min-marker change-log-buffer))
+	      (add-change-log-string
+	       (format (concat "%s  " cl-my-name "  <" cl-my-email
+			       ">\n\n")
+		       (iso8601-time-string))))
+	    (setq basename
+		  (file-relative-name
+		   (expand-file-name basename dirname-relative-to-change-log)
+		   (expand-file-name "")))
+
+	    ;; now do each hunk in turn.
+	    (while (re-search-forward hunk-re limit t)
+	      (let* ((hunk-start-line (line-num))
+		     (first-file-line (string-to-int (match-string 1)))
+		     (hunk-limit
+		      (save-excursion (or (and
+					   (re-search-forward hunk-re limit t)
+					   (match-beginning 0))
+					  limit)))
+		     ;; numlines is the number of lines in the hunk, not
+		     ;; the number of file lines affected by the hunk, i.e.
+		     ;; (match-string 2), which is generally less
+		     (numlines (1- (- (save-excursion
+					(goto-char hunk-limit)
+					(line-num))
+				      hunk-start-line))))
+
+		;; do added and/or removed functions.
+		(clrhash new-fun-hash)
+		(clrhash nomore-fun-hash)
+		(save-excursion
+		  (while (re-search-forward new-defun-re hunk-limit t)
+		    (puthash (match-string 1)
+			     (1- (- (line-num) hunk-start-line))
+			     new-fun-hash)))
+		(save-excursion
+		  (while (re-search-forward nomore-defun-re hunk-limit t)
+		    (let ((fun (match-string 1)))
+		      (if (gethash fun new-fun-hash)
+			  (remhash fun new-fun-hash)
+			(puthash fun
+				 (1- (- (line-num) hunk-start-line))
+				 nomore-fun-hash)))))
+		(maphash
+		 #'(lambda (fun val)
+		     (add-change-log-entry
+		      basename
+		      ;; this is not a perfect measure of the actual
+		      ;; file line, but good enough for sorting.
+		      (+ first-file-line val)
+		      fun
+		      (format "\t* %s (%s): New.\n" basename fun)))
+		 new-fun-hash)
+		(maphash
+		 #'(lambda (fun val)
+		     (add-change-log-entry
+		      basename
+		      (+ first-file-line val)
+		      fun
+		      (format "\t* %s (%s): Removed.\n" basename fun)))
+		 nomore-fun-hash)
+	    
+		;; now try to handle what changed.
+		(let (trylines
+		      (trystart t)
+		      (line-in-file first-file-line))
+
+		  ;; accumulate a list of lines to check.  we check
+		  ;; only changed lines, and only the first such line
+		  ;; per blank-line-delimited block (we assume all
+		  ;; functions are preceded by a blank line).
+		  (save-excursion
+		    (dotimes (n numlines)
+		      (forward-line 1)
+		      (if (looking-at ".\n")
+			  (setq trystart t))
+		      (when (not (eq ?  (char-after)))
+			(when trystart
+			  (setq trylines (cons line-in-file trylines))
+			  (setq trystart nil)))
+		      ;; N is not an accurate gauge of the file line,
+		      ;; because of the presence of deleted lines in the
+		      ;; hunk.
+		      (when (not (eq ?- (char-after)))
+			(incf line-in-file))))
+		  (setq trylines (nreverse trylines))
+		  (save-excursion
+		    (let ((already-visiting-p (get-file-buffer absfile)))
+		      (set-buffer (find-file-noselect absfile))
+		      (mapc #'(lambda (n)
+				(goto-line n)
+				(setq current-defun (add-log-current-defun))
+				(add-change-log-entry
+				 basename
+				 (if current-defun n 0)
+				 current-defun
+				 (format (if current-defun
+					     "\t* %s (%s):\n" "\t* %s:\n")
+					 basename current-defun)))
+			    trylines)
+		      (unless already-visiting-p
+			(kill-buffer (current-buffer))))))))
+	    (flush-change-log-entries)
+	    ))
+	(finish-up-change-log-buffer)
+	(add-change-log-string "\n")))))
 
 (provide 'add-log)
 
