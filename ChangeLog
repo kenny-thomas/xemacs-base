@@ -1,3 +1,35 @@
+2003-09-13  Adrian Aichner  <adrian@xemacs.org>
+
+	* compile.el: Partial sync with GNU Emacs compile.el revision
+	1.279.
+	* compile.el (compilation-parse-errors-function): Whitespace
+	cleanup.
+	* compile.el (compilation-error-regexp-alist-alist): Sync up,
+	adding new and simplifying some old expressions.
+	* compile.el (compilation-error-regexp-systems-list): Extend and
+	sort systems alphabetically.
+	* compile.el (compilation-error-screen-columns): Indentation sync.
+	* compile.el (compilation-read-command): Docstring sync.
+	* compile.el (compilation-ask-about-save): Ditto.
+	* compile.el (grep-regexp-alist): Support file names with blanks.
+	* compile.el (grep-find-use-xargs): Docstring fix.
+	* compile.el (compile): Whitespace cleanup.
+	* compile.el (grep-find): Docstring sync.
+	* compile.el (compile-internal): Whitespace cleanup.
+	* compile.el (compilation-setup): Docstring sync.
+	* compile.el (compilation-handle-exit): Docstring sync.
+	* compile.el (compile-error-at-point): Ditto.
+	* compile.el (compilation-next-error): Ditto.
+	* compile.el (compilation-previous-error): Ditto.
+	* compile.el (compilation-next-file): Error message sync (dropping
+	period).
+	* compile.el (kill-compilation): Ditto.
+	* compile.el (compile-goto-error): Ditto.
+	* compile.el (next-error): Docstring sync.
+	* compile.el (previous-error): Ditto.
+	* compile.el (first-error): Ditto.
+	* compile.el (compilation-next-error-locus): Whitespace cleanup.
+
 2003-09-19  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 1.80 released.

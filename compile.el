@@ -1,4 +1,4 @@
-;;; compile.el --- run compiler as inferior of Emacs, parse error messages.
+;;; compile.el --- run compiler as inferior of Emacs, parse error messages
 
 ;; Copyright (C) 1985, 86, 87, 93, 94, 1995, 1996 Free Software Foundation, Inc.
 ;; Copyright (C) 1995 Tinker Systems and INS Engineering Corp.
@@ -74,11 +74,11 @@ it at all.")
 (defvar compilation-old-error-list nil
   "Value of `compilation-error-list' after errors were parsed.")
 
-(defvar compilation-parse-errors-function 'compilation-parse-errors 
+(defvar compilation-parse-errors-function 'compilation-parse-errors
   "Function to call to parse error messages from a compilation.
 It takes args LIMIT-SEARCH and FIND-AT-LEAST.
 If LIMIT-SEARCH is non-nil, don't bother parsing past that location.
-If FIND-AT-LEAST is non-nil, don't bother parsing after finding that 
+If FIND-AT-LEAST is non-nil, don't bother parsing after finding that
 many new errors.
 It should read in the source files which have errors and set
 `compilation-error-list' to a list with an element for each error message
@@ -182,7 +182,7 @@ variable `compilation-error-regexp-alist'."
     ("\\(\\([a-zA-Z]:\\)?[^:( \t\n-]+\\)[:(][ \t]*\\([0-9]+\\)[:) \t]" 1 3)
     )
 
-    ;; Borland C++:
+    ;; Borland C++, C++Builder:
     ;;  Error ping.c 15: Unable to open include file 'sys/types.h'
     ;;  Warning ping.c 68: Call to function 'func' with no prototype
    (borland
@@ -193,7 +193,7 @@ variable `compilation-error-regexp-alist'."
     ;; 4.3BSD lint pass 2
     ;; 	strcmp: variable # of args. llib-lc(359)  ::  /usr/src/foo/foo.c(8)
    (4bsd
-    ("[^\n]*[ \t:]\\([a-zA-Z]?:?[^:( \t\n]+\\)[:(](+[ \t]*\\([0-9]+\\))[:) \t]*$"
+    (".*[ \t:]\\([a-zA-Z]?:?[^:( \t\n]+\\)[:(](+[ \t]*\\([0-9]+\\))[:) \t]*$"
      1 2)
     )
 
@@ -203,15 +203,15 @@ variable `compilation-error-regexp-alist'."
     ;; ("[ \t(]+\\([a-zA-Z]?:?[^:( \t\n]+\\)[:( \t]+\\([0-9]+\\)[:) \t]+" 1 2)
     ;; which is regexp Impressionism - it matches almost anything!
    (4bsd
-    ("[^\n]*([ \t]*\\([a-zA-Z]?:?[^:( \t\n]+\\)[:(][ \t]*\\([0-9]+\\))" 1 2)
+    (".*([ \t]*\\([a-zA-Z]?:?[^:( \t\n]+\\)[:(][ \t]*\\([0-9]+\\))" 1 2)
     )
 
     ;; MIPS lint pass<n>; looks good for SunPro lint also
     ;;  TrimMask (255) in solomon.c may be indistinguishable from TrimMasks (93) in solomon.c due to truncation
    (mips
-    ("[^ \n]+ (\\([0-9]+\\)) in \\([^ \n]+\\)" 2 1)
+    ("[^\n ]+ (\\([0-9]+\\)) in \\([^ \n]+\\)" 2 1)
     ;;  name defined but never used: LinInt in cmap_calc.c(199)
-    ("[^\n]*in \\([^(\n]+\\)(\\([0-9]+\\))$" 1 2)
+    (".*in \\([^(\n]+\\)(\\([0-9]+\\))$" 1 2)
     )
 
     ;; Ultrix 3.0 f77:
@@ -225,14 +225,14 @@ variable `compilation-error-regexp-alist'."
     ;; cc-1020 CC: ERROR File = CUI_App.h, Line = 735
    (sgimipspro
     ("^cc-[0-9]* \\(cc\\|CC\\|f77\\): \\(REMARK\\|WARNING\\|ERROR\\) File = \\(.*\\), Line = \\([0-9]*\\)" 3 4 ))
-    ;;  Error on line 3 of t.f: Execution error unclassifiable statement    
+    ;;  Error on line 3 of t.f: Execution error unclassifiable statement
     ;; Unknown who does this:
     ;;  Line 45 of "foo.c": bloofle undefined
     ;; Absoft FORTRAN 77 Compiler 3.1.3
     ;;  error on line 19 of fplot.f: spelling error?
     ;;  warning on line 17 of fplot.f: data type is undefined for variable d
    (of
-    ("\\(\\|[^\n]* on \\)[Ll]ine[ \t]+\\([0-9]+\\)[ \t]+\
+    ("\\(.* on \\)?[Ll]ine[ \t]+\\([0-9]+\\)[ \t]+\
 of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2)
     )
 
@@ -244,13 +244,25 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2)
     ;;  File "foobar.ml", lines 5-8, characters 20-155: blah blah
     ;; Microtec mcc68k:
     ;;  "foo.c", line 32 pos 1; (E) syntax error; unexpected symbol: "lossage"
-    ;; GNAT (as of July 94): 
+    ;; GNAT (as of July 94):
     ;;  "foo.adb", line 2(11): warning: file name does not match ...
     ;; IBM AIX xlc compiler:
     ;;  "src/swapping.c", line 30.34: 1506-342 (W) "/*" detected in comment.
    (comma
-    ("[^\n]*\"\\([^,\" \n\t]+\\)\", lines? \
+    (".*\"\\([^,\" \n\t]+\\)\", lines? \
 \\([0-9]+\\)\\([\(.]\\([0-9]+\\)\)?\\)?[:., (-]" 1 2 4)
+    )
+
+    ;; Python:
+    ;;  File "foobar.py", line 5, blah blah
+   (python
+    ("^File \"\\([^,\" \n\t]+\\)\", line \\([0-9]+\\)," 1 2)
+    )
+
+    ;; Caml compiler:
+    ;;  File "foobar.ml", lines 5-8, characters 20-155: blah blah
+   (caml
+    ("^File \"\\([^,\" \n\t]+\\)\", lines? \\([0-9]+\\)[-0-9]*, characters? \\([0-9]+\\)" 1 2 3)
     )
 
     ;; MIPS RISC CC - the one distributed with Ultrix:
@@ -258,13 +270,13 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2)
     ;; DEC AXP OSF/1 cc
     ;;  /usr/lib/cmplrs/cc/cfe: Error: foo.c: 1: blah blah 
    ((mips ultrix)
-    ("[^\n]*rror: \\([^,\" \n\t]+\\)[,:] \\(line \\)?\\([0-9]+\\):" 1 3)
+    ("[a-z0-9/]+: \\([eE]rror\\|[wW]arning\\): \\([^,\" \n\t]+\\)[,:] \\(line \\)?\\([0-9]+\\):" 2 4)
     )
 
     ;; IBM AIX PS/2 C version 1.1:
     ;;	****** Error number 140 in line 8 of file errors.c ******
    (aix
-    ("[^\n]*in line \\([0-9]+\\) of file \\([^ \n]+[^. \n]\\)\\.? " 2 1)
+    (".*in line \\([0-9]+\\) of file \\([^ \n]+[^. \n]\\)\\.? " 2 1)
     )
     ;; IBM AIX lint is too painful to do right this way.  File name
     ;; prefixes entire sections rather than being on each line.
@@ -313,11 +325,78 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2)
     ("\\([^( \n\t]+\\)(\\([0-9]+\\):\\([0-9]+\\)) : " 1 2 3)
     )
 
+    ;; IAR Systems C Compiler:
+    ;;  "foo.c",3  Error[32]: Error message
+    ;;  "foo.c",3  Warning[32]: Error message
+   (iar
+    ("\"\\(.*\\)\",\\([0-9]+\\)\\s-+\\(Error\\|Warning\\)\\[[0-9]+\\]:" 1 2)
+    )
+
     ;; Sun ada (VADS, Solaris):
     ;;  /home3/xdhar/rcds_rc/main.a, line 361, char 6:syntax error: "," inserted
    (ada
     ("\\([^, \n\t]+\\), line \\([0-9]+\\), char \\([0-9]+\\)[:., \(-]" 1 2 3)
     )
+
+    ;; Perl -w:
+    ;; syntax error at automake line 922, near "':'"
+    ;; Perl debugging traces
+    ;; store::odrecall('File_A', 'x2') called at store.pm line 90
+   (perl
+    (".* at \\([^ \n]+\\) line \\([0-9]+\\)[,.\n]" 1 2)
+    )
+
+    ;; Oracle pro*c:
+    ;; Semantic error at line 528, column 5, file erosacqdb.pc:
+   (oracle
+    ("Semantic error at line \\([0-9]+\\), column \\([0-9]+\\), file \\(.*\\):"
+     3 1 2)
+    )
+
+    ;; EPC F90 compiler:
+    ;; Error 24 at (2:progran.f90) : syntax error
+   (epc
+    ("Error [0-9]+ at (\\([0-9]*\\):\\([^)\n]+\\))" 2 1)
+    )
+
+    ;; SGI IRIX MipsPro 7.3 compilers:
+    ;; cc-1070 cc: ERROR File = linkl.c, Line = 38
+    (sgimipspro
+     (".*: ERROR File = \\(.+\\), Line = \\([0-9]+\\)" 1 2)
+     (".*: WARNING File = \\(.+\\), Line = \\([0-9]+\\)" 1 2)
+     )
+
+    ;; Sun F90 error messages:
+    ;; cf90-113 f90comp: ERROR NSE, File = Hoved.f90, Line = 16, Column = 3
+    (sun
+     (".* ERROR [a-zA-Z0-9 ]+, File = \\(.+\\), Line = \\([0-9]+\\), Column = \\([0-9]+\\)"
+      1 2 3)
+     )
+
+    ;; RXP - GPL XML validator at http://www.cogsci.ed.ac.uk/~richard/rxp.html:
+    ;; Error: Mismatched end tag: expected </geroup>, got </group>
+    ;; in unnamed entity at line 71 char 8 of file:///home/reto/test/group.xml
+    (rxp
+     ("Error:.*\n.* line \\([0-9]+\\) char \\([0-9]+\\) of file://\\(.+\\)"
+      3 1 2)
+     )
+    ;; Warning: Start tag for undeclared element geroup
+    ;; in unnamed entity at line 4 char 8 of file:///home/reto/test/group.xml
+    (rxp
+     ("Warning:.*\n.* line \\([0-9]+\\) char \\([0-9]+\\) of file://\\(.+\\)"
+      3 1 2)
+     )
+
+    ;; See http://ant.apache.org/faq.html
+    ;; Ant Java: works for jikes
+    (ant
+     ("^\\s-*\\[[^]]*\\]\\s-*\\(.+\\):\\([0-9]+\\):\\([0-9]+\\):[0-9]+:[0-9]+:" 1 2 3)
+     )
+
+    ;; Ant Java: works for javac
+    (ant
+     ("^\\s-*\\[[^]]*\\]\\s-*\\(.+\\):\\([0-9]+\\):" 1 2)
+     )
 
     ;; Ant / cygwin:
     ;; file:G:/foobar/dev/build-myproj.xml:54: Compiler Adapter 'javac' can't be found.
@@ -355,29 +434,59 @@ compilation error regexps should be included in
 the value of this variable for the change to take effect.
 
 The list of known systems is:
-  gnu:      but of course
-  lcc:      Lucid compilers
-  ada:      Ada compilers
-  of:       Using tool that says line xx of foo.c
-  comma:    Using tool that says \"foo.c\", line 12
-  4bsd:     Using 4bsd
-  msft:     Using microsoft
-  borland:  Using Borland
-  mips:     Using Mips
-  sgi:      Using SGI
-  cray:     Using Cray
-  ibm:      IBM C compilers
-  aix:      the operating system
-  ultrix:   the operating system
+  4bsd:       Using 4bsd
+  ada:        Ada compilers
+  aix:        the operating system
+  ant:        Ant Java
+  borland:    Using Borland
+  caml:       Using caml compiler
+  comma:      Using tool that says \"foo.c\", line 12
+  cray:       Using Cray
+  epc:        Using EPC F90 compiler
+  gnu:        but of course
+  iar:        Using IAR systems compiler
+  ibm:        IBM C compilers
+  lcc:        Lucid compilers
+  mips:       Using Mips
+  msft:       Using microsoft
+  of:         Using tool that says line xx of foo.c
+  oracle:     Using Oracle pro*c
+  perl:       perl -w
+  python:     Using python
+  rxp:        Using RPX GPL XML validator
+  sgi:        Using SGI
+  sgimipspro: Using SGI Mipspro 7.3
+  sun:        Using Sun F90 compiler
+  ultrix:     Using DEC unixoid operating system
 
 See also the variable `compilation-error-regexp-alist-alist'."
   :type '(choice (const all)
-		 (set :menu-tag "Pick"
-		      (const gnu) (const lcc) (const ada)
-		      (const of) (const comma) (const 4bsd)
-		      (const msft) (const borland) (const mips)
-		      (const sgi) (const cray) (const ibm)
-		      (const aix) (const ultrix)))
+	  (set :menu-tag "Pick"
+	       (const 4bsd)
+	       (const ada)
+	       (const aix)
+	       (const ant)
+	       (const borland)
+	       (const caml)
+	       (const comma)
+	       (const cray)
+	       (const epc)
+	       (const gnu)
+	       (const iar)
+	       (const ibm)
+	       (const lcc)
+	       (const mips)
+	       (const msft)
+	       (const of)
+	       (const oracle)
+	       (const perl)
+	       (const python)
+	       (const rxp)
+	       (const sgi)
+	       (const sgimipspro)
+	       (const sun)
+	       (const ultrix)
+	       ))
   :set (lambda (symbol value)
          (set-default symbol value)
          (compilation-build-compilation-error-regexp-alist))
@@ -392,24 +501,26 @@ each character occupying one column.
 The default is to use screen columns, which requires that the compilation
 program and Emacs agree about the display width of the characters,
 especially the TAB character."
-:type 'boolean
-:group 'compilation
-:version "20.4")
+  :type 'boolean
+  :group 'compilation
+  :version "20.4")
 
 (defcustom compilation-read-command t
-  "*If not nil, M-x compile reads the compilation command to use.
-Otherwise, M-x compile just uses the value of `compile-command'."
+  "*Non-nil means \\[compile] reads the compilation command to use.
+Otherwise, \\[compile] just uses the value of `compile-command'."
   :type 'boolean
   :group 'compilation)
 
 (defcustom compilation-ask-about-save t
-  "*If not nil, M-x compile asks which buffers to save before compiling.
+  "*Non-nil means \\[compile] asks which buffers to save before compiling.
 Otherwise, it saves all modified buffers without asking."
   :type 'boolean
   :group 'compilation)
 
+;; Note: the character class after the optional drive letter does not
+;; include a space to support file names with blanks.
 (defvar grep-regexp-alist
-  '(("^\\([a-zA-Z]?:?[^:( \t\n]+\\)[:( \t]+\\([0-9]+\\)[:) \t]" 1 2))
+  '(("^\\([a-zA-Z]?:?[^:(\t\n]+\\)[:( \t]+\\([0-9]+\\)[:) \t]" 1 2))
   "Regexp used to match grep hits.  See `compilation-error-regexp-alist'.")
 
 (defcustom grep-command "grep -n "
@@ -431,7 +542,7 @@ Otherwise, it saves all modified buffers without asking."
       'gnu)
   "Whether \\[grep-find] uses the `xargs' utility by default.
 
-If nil, it uses `grep -exec'; if `gnu', it uses `find -print0' and `xargs -0';
+If nil, it uses `find -exec'; if `gnu', it uses `find -print0' and `xargs -0';
 if not nil and not `gnu', it uses `find -print' and `xargs'.
 
 This variable's value takes effect when `compile.el' is loaded
@@ -573,7 +684,7 @@ Then start the next one.
 The name used for the buffer is actually whatever is returned by
 the function in `compilation-buffer-name-function', so you can set that
 to a function that generates a unique name."
-  (interactive 
+  (interactive
    (if (or compilation-read-command current-prefix-arg)
        ;; XEmacs change
        (list (read-shell-command "Compile command: "
@@ -588,7 +699,7 @@ to a function that generates a unique name."
   (save-some-buffers (not compilation-ask-about-save) nil)
   (compile-internal compile-command "No more errors"))
 
-;;; run compile with the default command line
+;; run compile with the default command line
 (defun recompile ()
   "Re-compile the program including the current buffer."
   (interactive)
@@ -634,7 +745,8 @@ easily repeat a grep command."
 
 ;;;###autoload
 (defun grep-find (command-args)
-  "Run grep via find, with user-specified args, and collect output in a buffer.
+  "Run grep via find, with user-specified args COMMAND-ARGS.
+Collect output in a buffer.
 While find runs asynchronously, you can use the \\[next-error] command
 to find the text that grep hits refer to.
 
@@ -762,7 +874,6 @@ Returns the compilation buffer created."
 	;; Change its default-directory to the directory where the compilation
 	;; will happen, and insert a `cd' command to indicate this.
 	(set-buffer outbuf)
-
 	(setq buffer-read-only nil)
 	(buffer-disable-undo (current-buffer))
 	(erase-buffer)
@@ -805,7 +916,7 @@ Returns the compilation buffer created."
 	      ;; Causes problems; please investigate before using:
 	      ;(process-send-eof proc)
 	      (set-marker (process-mark proc) (point) outbuf)
-	      (setq compilation-in-progress 
+	      (setq compilation-in-progress
 		    (cons proc compilation-in-progress)))
 	  ;; No asynchronous processes available.
 	  (display-message
@@ -1031,8 +1142,8 @@ Runs `compilation-mode-hook' with `run-hooks' (which see)."
               (goto-char e)
               (goto-char p))))))
 
-;; Prepare the buffer for the compilation parsing commands to work.
 (defun compilation-setup ()
+  "Prepare the buffer for the compilation parsing commands to work."
   ;; Make the buffer's mode line show process state.
   (setq mode-line-process '(":%s"))
   (set (make-local-variable 'compilation-error-list) nil)
@@ -1109,8 +1220,8 @@ See `compilation-mode'.
 		'view-minor-mode
 		compilation-minor-mode)
 
-;; Write msg in the current buffer and hack its mode-line-process.
 (defun compilation-handle-exit (process-status exit-status msg)
+  "Write msg in the current buffer and hack its mode-line-process."
   (let ((buffer-read-only nil)
 	(status (if compilation-exit-message-function
 		    (funcall compilation-exit-message-function
@@ -1214,8 +1325,8 @@ Just inserts the text, but uses `insert-before-markers'."
 	    (run-hooks 'compilation-filter-hook)
 	    (set-marker (process-mark proc) (point)))))))
 
-;; Return the cdr of compilation-old-error-list for the error containing point.
 (defun compile-error-at-point ()
+  "Return the cdr of `compilation-old-error-list' for error containing point."
   (compile-reinitialize-errors nil (point))
   (let ((errors compilation-old-error-list))
     (while (and errors
@@ -1231,10 +1342,12 @@ Just inserts the text, but uses `insert-before-markers'."
 
 (defun compilation-next-error (n)
   "Move point to the next error in the compilation buffer.
+Prefix arg N says how many error messages to move forwards (or
+backwards, if negative).
 Does NOT find the source line like \\[next-error]."
   (interactive "p")
   (or (compilation-buffer-p (current-buffer))
-      (error "Not in a compilation buffer."))
+      (error "Not in a compilation buffer"))
   (setq compilation-last-buffer (current-buffer))
 
   (let ((errors (compile-error-at-point)))
@@ -1258,6 +1371,8 @@ Does NOT find the source line like \\[next-error]."
 
 (defun compilation-previous-error (n)
   "Move point to the previous error in the compilation buffer.
+Prefix arg N says how many error messages to move backwards (or
+forwards, if negative).
 Does NOT find the source line like \\[next-error]."
   (interactive "p")
   (compilation-next-error (- n)))
@@ -1284,7 +1399,7 @@ Does NOT find the source line like \\[next-error]."
   "Move point to the next error for a different file than the current one."
   (interactive "p")
   (or (compilation-buffer-p (current-buffer))
-      (error "Not in a compilation buffer."))
+      (error "Not in a compilation buffer"))
   (setq compilation-last-buffer (current-buffer))
 
   (let ((reversed (< n 0))
@@ -1320,7 +1435,7 @@ Does NOT find the source line like \\[next-error]."
 				  ;; Parse some more.
 				  (compile-reinitialize-errors nil nil 2)
 				  (setq errors compilation-error-list)))
-			      (error "%s is the last erring file" 
+			      (error "%s is the last erring file"
 				     (compilation-error-filedata-file-name
 				      filedata))))))
 	(setq errors (cdr errors)))
@@ -1341,14 +1456,13 @@ Does NOT find the source line like \\[next-error]."
   (interactive "p")
   (compilation-next-file (- n)))
 
-
 (defun kill-compilation ()
   "Kill the process made by the \\[compile] command."
   (interactive)
   (let ((buffer (compilation-find-buffer)))
     (if (get-buffer-process buffer)
 	(interrupt-process (get-buffer-process buffer))
-      (error "The compilation process is not running."))))
+      (error "The compilation process is not running"))))
 
 
 ;; Parse any new errors in the compilation buffer,
@@ -1428,7 +1542,7 @@ Use this command in a compilation log buffer.  Sets the mark at point there.
 other kinds of prefix arguments are ignored."
   (interactive "P")
   (or (compilation-buffer-p (current-buffer))
-      (error "Not in a compilation buffer."))
+      (error "Not in a compilation buffer"))
   (setq compilation-last-buffer (current-buffer))
   (compile-reinitialize-errors (consp argp) (point))
 
@@ -1505,21 +1619,25 @@ other kinds of prefix arguments are ignored."
 ;;;###autoload
 (defun next-error (&optional argp)
   "Visit next compilation error message and corresponding source code.
-This operates on the output from the \\[compile] command.
-If all preparsed error messages have been processed,
-the error message buffer is checked for new ones.
 
-A prefix arg specifies how many error messages to move;
+If all the error messages parsed so far have been processed already,
+the message buffer is checked for new ones.
+
+A prefix ARGP specifies how many error messages to move;
 negative means move back to previous error messages.
-Just C-u as a prefix means reparse the error message buffer
+Just \\[universal-argument] as a prefix means reparse the error message buffer
 and start at the first error.
 
-\\[next-error] normally applies to the most recent compilation started,
-but as long as you are in the middle of parsing errors from one compilation
-output buffer, you stay with that compilation output buffer.
+\\[next-error] normally uses the most recently started compilation or
+grep buffer.  However, it can operate on any buffer with output from
+the \\[compile] and \\[grep] commands, or, more generally, on any
+buffer in Compilation mode or with Compilation Minor mode enabled.  To
+specify use of a particular buffer for error messages, type
+\\[next-error] in that buffer.
 
-Use \\[next-error] in a compilation output buffer to switch to
-processing errors from that compilation.
+Once \\[next-error] has chosen the buffer for error messages,
+it stays with that buffer until you use it in some other buffer which
+uses Compilation mode or Compilation Minor mode.
 
 See variables `compilation-parse-errors-function' and
 \`compilation-error-regexp-alist' for customization ideas."
@@ -1537,7 +1655,11 @@ See variables `compilation-parse-errors-function' and
 ;;;###autoload
 (defun previous-error (&optional argp)
   "Visit previous compilation error message and corresponding source code.
-This operates on the output from the \\[compile] command."
+
+A prefix ARGP specifies how many error messages to move;
+negative means move forward to next error messages.
+
+This operates on the output from the \\[compile] and \\[grep] commands."
   (interactive "P")
   (next-error (cond ((null argp) -1)
 		    ((numberp argp) (- argp))
@@ -1545,7 +1667,7 @@ This operates on the output from the \\[compile] command."
 
 ;;;###autoload
 (defun first-error ()
-  "Reparse the error message buffer and start at the first error
+  "Reparse the error message buffer and start at the first error.
 Visit corresponding source code.
 This operates on the output from the \\[compile] command."
   (interactive)
@@ -1564,7 +1686,7 @@ marker at the location in the source code indicated by the error message.
 Optional first arg MOVE says how many error messages to move forwards (or
 backwards, if negative); default is 1.  Optional second arg REPARSE, if
 non-nil, says to reparse the error message buffer and reset to the first
-error (plus MOVE - 1).  If optional third argument SILENT is non-nil, return 
+error (plus MOVE - 1).  If optional third argument SILENT is non-nil, return
 nil instead of raising an error if there are no more errors.
 
 The current buffer should be the desired compilation output buffer."
@@ -1576,7 +1698,7 @@ The current buffer should be the desired compilation output buffer."
       (save-excursion
 	(set-buffer compilation-last-buffer)
 	;; compilation-error-list points to the "current" error.
-	(setq next-errors 
+	(setq next-errors
 	      (if (> move 0)
 		  (nthcdr (1- move)
 			  compilation-error-list)
@@ -1615,7 +1737,7 @@ The current buffer should be the desired compilation output buffer."
 				   (and (get-buffer-process (current-buffer))
 					(eq (process-status
 					     (get-buffer-process
-							     (current-buffer)))
+					      (current-buffer)))
 					    'run)
 					" yet")))))
 	      (setq compilation-error-list (cdr next-errors))
@@ -1681,10 +1803,10 @@ The current buffer should be the desired compilation output buffer."
 					       (re-search-backward "[\n\C-m]"
 								   nil 'end
 								   (- lines))
-                                             (re-search-forward "[\n\C-m]"
-                                                                nil 'end
-                                                                lines))
-                                         (forward-line lines))
+					     (re-search-forward "[\n\C-m]"
+								nil 'end
+								lines))
+					 (forward-line lines))
 				       (if (and column (> column 1))
 					   (if columns
 					       (move-to-column (1- column))
