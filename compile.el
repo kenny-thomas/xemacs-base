@@ -214,6 +214,10 @@ variable `compilation-error-regexp-alist'."
    ((sgi ultrix)
     ("\\(cfe\\|fort\\): [^:\n]*: \\([^ \n]*\\), line \\([0-9]+\\):" 2 3)
     )
+    ;; SGI Mipspro 7.3 compilers
+    ;; cc-1020 CC: ERROR File = CUI_App.h, Line = 735
+   (sgimipspro
+    ("^cc-[0-9]* \\(cc\\|CC\\|f77\\): \\(REMARK\\|WARNING\\|ERROR\\) File = \\(.*\\), Line = \\([0-9]*\\)" 3 4 ))
     ;;  Error on line 3 of t.f: Execution error unclassifiable statement    
     ;; Unknown who does this:
     ;;  Line 45 of "foo.c": bloofle undefined
