@@ -538,4 +538,6 @@ If argument is nil or an empty string, cancel for all functions."
       (set-buffer standard-output)
       (help-mode))))
 
+(provide 'debug)
+
 ;;; debug.el ends here

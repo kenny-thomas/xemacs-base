@@ -163,4 +163,6 @@ to future sessions."
    (insert "(put '" (symbol-name command) " 'disabled t)\n")
    (save-buffer)))
 
+(provide 'novice)
+
 ;;; novice.el ends here

@@ -17,7 +17,7 @@
 # the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
 
-VERSION = 1.07
+VERSION = 1.08
 PACKAGE = xemacs-base
 PKG_TYPE = regular
 REQUIRES =
@@ -27,9 +27,9 @@ ELCS = add-log.elc advice.elc annotations.elc assoc.elc case-table.elc \
 	chistory.elc comint.elc comint-xemacs.elc compile.elc debug.elc \
 	ebuff-menu.elc echistory.elc ehelp.elc edmacro.elc electric.elc \
 	enriched.elc env.elc facemenu.elc helper.elc imenu.elc \
-	iso-syntax.elc macros.elc novice.elc outline.elc passwd.elc pp.elc \
-	regi.elc ring.elc shell.elc skeleton.elc sort.elc thing.elc \
-	time-stamp.elc timezone.elc xbm-button.elc xpm-button.elc
+	iso-syntax.elc macros.elc novice.elc outline.elc overlay.elc \
+	passwd.elc pp.elc regi.elc ring.elc shell.elc skeleton.elc sort.elc \
+	thing.elc time-stamp.elc timezone.elc xbm-button.elc xpm-button.elc
 
 include ../../XEmacs.rules
 

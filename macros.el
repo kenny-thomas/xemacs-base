@@ -223,4 +223,6 @@ and then select the region of un-tablified names and use
       (set-marker end-marker nil)
       (set-marker next-line-marker nil))))
 
+(provide 'macros)
+
 ;;; macros.el ends here
