@@ -307,7 +307,7 @@ into the buffer's input ring.  See also `comint-magic-space' and
 This variable supplies a default for `comint-input-autoexpand',
 for Shell mode only."
   :type '(choice (const nil) (const input) (const history))
-  :type 'shell)
+  :group 'shell)
 
 (defvar shell-dirstack nil
   "List of directories saved by pushd in this buffer's shell.
