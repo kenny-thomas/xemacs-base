@@ -981,6 +981,7 @@ Turning the mode on runs the normal hook `compilation-shell-minor-mode-hook'."
       (let ((mode-line-process))
 	(compilation-setup)
 	(run-hooks 'compilation-shell-minor-mode-hook)
+	(make-local-variable 'current-menubar)
 	(add-submenu nil
 		     (cons compilation-shell-minor-mode-menubar-menu-name
 			   (cdr compilation-shell-minor-mode-menubar-menu))))
