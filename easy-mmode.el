@@ -151,15 +151,9 @@ Optional KEYMAP is the default (defvar) keymap bound to the mode keymap.
        ;; define the toggle and the hooks
        ,(macroexpand `(easy-mmode-define-toggle ,mode ,doc)) ; toggle and hooks
 
-       ;; update the mode-bar
-       (or (assq ',mode minor-mode-alist)
-	   (setq minor-mode-alist
-		 (cons (list ',mode ,lighter) minor-mode-alist)))
-
-       ;; update the minor-mode-map
-       (or (assq ',mode minor-mode-map-alist)
-	   (setq minor-mode-map-alist 
-		 (cons (cons ',mode ,(intern keymap-name)) minor-mode-map-alist)))) ))
+       ;; XEmacs change: use the API to add the keymap to minor-mode-alist
+       ;; and add the modeline indicator.
+       (add-minor-mode ',mode ,lighter ,(intern keymap-name) t ',mode))))
 
 ;;;
 ;;; easy-mmode-defmap

@@ -1,3 +1,8 @@
+2002-09-11  Evgeny Roubinchtein <zhenya@sdf.lonestar.org>
+
+	* easy-mmode.el (define-minor-mode): Use add-minor-mode to add
+	the keymap to minor-mode-alist and add the modeline indicator.
+
 2002-09-11  Simon Josefsson  <jas@extundo.com>
 
 	* time-stamp.el (time-stamp-hhmmss): New function.
