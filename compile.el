@@ -769,7 +769,7 @@ easily repeat a find command."
     (grep command-args)))
 
 ;; XEmacs addition
-(defalias find-grep grep-find)
+(defalias 'find-grep 'grep-find)
 
 ;; XEmacs addition: all grep-all-files stuff
 
