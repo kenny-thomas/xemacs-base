@@ -1,3 +1,8 @@
+2002-01-28  David A. Panariti  <panariti@mediaone.net>
+
+	* ffap.el (ffap-url-regexp):
+	Changed http to https? to allow https urls to be recognized.
+
 2002-01-23  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* env.el: synched with FSF 21.1.50:
