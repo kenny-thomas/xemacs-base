@@ -307,39 +307,35 @@ characters are typed.  There's not currently a way around this."
 (defvar passwd-face-data nil)
 (defun passwd-secure-display ()
   ;; Inverts the screen - used to indicate secure input, like xterm.
-  (cond
-   (passwd-invert-frame-when-keyboard-grabbed
+  (when passwd-invert-frame-when-keyboard-grabbed
     (setq passwd-face-data
-	  (delq nil (mapcar (function
-			     (let ((fg (face-foreground-instance 
-					face (selected-frame) nil 
-					'no-fallback))
-				   (bg (face-background-instance
-					face (selected-frame) nil
-					'no-fallback)))
-			       (if (and fg bg)
-				   (list face fg bg)
-				 nil))))
-		(face-list)
-		)))
+	  (delq nil (mapcar
+		     (lambda (face)
+		       (let ((fg (face-foreground-instance 
+				  face (selected-frame) nil 
+				  'no-fallback))
+			     (bg (face-background-instance
+				  face (selected-frame) nil
+				  'no-fallback)))
+			 (if (and fg bg)
+			     (list face fg bg)
+			   nil)))
+		     (face-list))))
     (let ((rest passwd-face-data))
       (while rest
 	(set-face-foreground (nth 0 (car rest)) (nth 2 (car rest)) (selected-frame))
 	(set-face-background (nth 0 (car rest)) (nth 1 (car rest)) (selected-frame))
 	(setq rest (cdr rest))))))
-  nil)
 
 (defun passwd-insecure-display ()
   ;; Undoes the effect of `passwd-secure-display'.
-  (cond
-   (passwd-invert-frame-when-keyboard-grabbed
+  (when passwd-invert-frame-when-keyboard-grabbed
     (while passwd-face-data
       (set-face-foreground (nth 0 (car passwd-face-data))
 			   (nth 1 (car passwd-face-data)) (selected-frame))
       (set-face-background (nth 0 (car passwd-face-data))
 			   (nth 2 (car passwd-face-data)) (selected-frame))
-      (setq passwd-face-data (cdr passwd-face-data)))
-    nil)))
+      (setq passwd-face-data (cdr passwd-face-data)))))
 
 (defun passwd-grab-keyboard ()
   (cond ((not (and (fboundp 'x-grab-keyboard) ; lemacs 19.10+

@@ -1,3 +1,9 @@
+1999-12-04  Jan Vroonhof  <vroonhof@math.ethz.ch>
+
+	* passwd.el (passwd-secure-display): Fix missing (lambda line. Don't
+	use single condition cond for clarity.
+	(passwd-insecure-display): ditto.
+
 1999-12-05  Andreas Jaeger  <aj@suse.de>
 
 	* debug.el (debug): Replace obsolete allocate-event with
