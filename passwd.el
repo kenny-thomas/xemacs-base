@@ -160,42 +160,54 @@ Some steps you can take to prevent the password from being copied around:
   (save-excursion
     (let ((input (get-buffer-create " *password*"))
 	  (passwd-history-posn 0)
+	  (read-passwd nil)
 	  passwd-history)
       (if (listp prompt)
 	  (setq passwd-history prompt
 		default (cdr (car passwd-history))))
-      (set-buffer input)
-      (buffer-disable-undo input)
-      (use-local-map read-passwd-map)
-      (unwind-protect
-	  (progn
-	    (if (passwd-grab-keyboard)
-		(passwd-secure-display))
-	    (read-passwd-1 input prompt nil default)
-	    (set-buffer input)
+      (if (should-use-dialog-box-p)
+	  (condition-case ()
+	      (popup-dialog-box (list 'built-in 'password
+				      default
+				      (lambda (pass)
+					(setq read-passwd pass))
+				      :prompt (or (car-safe prompt) prompt)
+				      :verify confirm))
+	    (error nil)))
+      (if read-passwd
+	  read-passwd
+	(set-buffer input)
+	(buffer-disable-undo input)
+	(use-local-map read-passwd-map)
+	(unwind-protect
+	    (progn
+	      (if (passwd-grab-keyboard)
+		  (passwd-secure-display))
+	      (read-passwd-1 input prompt nil default)
+	      (set-buffer input)
 
-	    (if (not confirm)
-		(buffer-string)
-	      (let ((ok nil)
-		    passwd)
-		(while (not ok)
-		  (set-buffer input)
-		  (setq passwd (buffer-string))
-		  (read-passwd-1 input prompt "[Retype to confirm]")
-		  (if (passwd-compare-string-to-buffer passwd input)
-		      (setq ok t)
-		    (fillarray passwd 0)
-		    (setq passwd nil)
-		    (beep)
-		    (read-passwd-1 input prompt "[Mismatch. Start over]")
-		    ))
-		passwd)))
-	;; protected
-	(passwd-ungrab-keyboard)
-	(passwd-insecure-display)
-	(passwd-kill-buffer input)
-	(message "")
-	))))
+	      (if (not confirm)
+		  (buffer-string)
+		(let ((ok nil)
+		      passwd)
+		  (while (not ok)
+		    (set-buffer input)
+		    (setq passwd (buffer-string))
+		    (read-passwd-1 input prompt "[Retype to confirm]")
+		    (if (passwd-compare-string-to-buffer passwd input)
+			(setq ok t)
+		      (fillarray passwd 0)
+		      (setq passwd nil)
+		      (beep)
+		      (read-passwd-1 input prompt "[Mismatch. Start over]")
+		      ))
+		  passwd)))
+	  ;; protected
+	  (passwd-ungrab-keyboard)
+	  (passwd-insecure-display)
+	  (passwd-kill-buffer input)
+	  (message "")
+	  )))))
 
 
 (defun read-passwd-1 (buffer prompt &optional prompt2 default)
@@ -336,31 +348,37 @@ Some steps you can take to prevent the password from being copied around:
       (setq passwd-face-data (cdr passwd-face-data)))))
 
 (defun passwd-grab-keyboard ()
-  (cond ((not (and (fboundp 'x-grab-keyboard) ; lemacs 19.10+
-		   (eq 'x (if (fboundp 'frame-type)
-			      (frame-type (selected-frame))
-			    (frame-live-p (selected-frame))))))
-	 nil)
-	((x-grab-keyboard)
-	 t)
-	(t
-	 (message "Unable to grab keyboard - waiting a second...")
-	 (sleep-for 1)
-	 (cond ((x-grab-keyboard)
-		(message "Keyboard grabbed on second try.")
-		t)
-	       (t
-		(beep)
-		(message "WARNING: keyboard is insecure (unable to grab!)")
-		(sleep-for 3)
-		nil)))))
+  ;; It is officially time to give up on lemacs 19.10
+  ;; and just deal with device types.
+  (let ((lock-func (case (frame-type)
+		     (x
+		      'x-grab-keyboard)
+		     (gtk
+		      'gtk-grab-keyboard)
+		     (otherwise
+		      nil))))
+    (if (not lock-func)
+	;; There is nothing we can do...
+	nil
+      (if (funcall lock-func)
+	  ;; Grabbed it, hooray!
+	  t
+	(message "Unable to grab keyboard - waiting a second...")
+	(sleep-for 1)
+	(if (funcall lock-func)
+	    (progn
+	      (message "Keyboard grabbed on second try.")
+	      t)
+	  (beep)
+	  (message "WARNING: keyboard is insecure (unable to grab!)")
+	  (sleep-for 3)
+	  nil)))))
 
 (defun passwd-ungrab-keyboard ()
-  (if (and (fboundp 'x-ungrab-keyboard) ; lemacs 19.10+
-	   (eq 'x (if (fboundp 'frame-type)
-		      (frame-type (selected-frame))
-		    (frame-live-p (selected-frame)))))
-      (x-ungrab-keyboard)))
+  (case (frame-type)
+    (x (x-ungrab-keyboard))
+    (gtk (gtk-ungrab-keyboard))
+    (otherwise nil)))
 
 ;; v18 compatibility
 (or (fboundp 'buffer-disable-undo)
