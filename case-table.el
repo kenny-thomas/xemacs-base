@@ -40,29 +40,30 @@
 (defun describe-buffer-case-table ()
   "Describe the case table of the current buffer."
   (interactive)
-  (let ((ch 0))
+  (let ((buffer (current-buffer))
+	(ch 0))
     (with-displaying-help-buffer
      (lambda ()
        (set-buffer standard-output)
        (while (< ch 256)
-         (cond ((/= ch (downcase ch))
-                (insert (text-char-description ch))
-                (indent-to 16)
-                (insert "uppercase, matches "
-                        (text-char-description (downcase ch))
-                        "\n"))
-               ((/= ch (upcase ch))
-                (insert (text-char-description ch))
-                (indent-to 16)
-                (insert "lowercase, matches "
-                        (text-char-description (upcase ch))
-                        "\n"))
-;;	      (t
-;;	       (insert (text-char-description ch))
-;;	       (indent-to 16)
-;;	       (insert "case-invariant\n"))
-	      )
-         (setq ch (1+ ch)))))))
+	 (cond ((/= ch (downcase ch buffer))
+		(insert (text-char-description ch))
+		(indent-to 16)
+		(insert "uppercase, matches "
+			(text-char-description (downcase ch))
+			"\n"))
+	       ((/= ch (upcase ch buffer))
+		(insert (text-char-description ch))
+		(indent-to 16)
+		(insert "lowercase, matches "
+			(text-char-description (upcase ch))
+			"\n"))
+	       ;;	      (t
+	       ;;	       (insert (text-char-description ch))
+	       ;;	       (indent-to 16)
+	       ;;	       (insert "case-invariant\n"))
+	       )
+	 (setq ch (1+ ch)))))))
 
 (defun invert-case (count)
   "Change the case of the character just after point and move over it.

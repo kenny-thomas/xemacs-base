@@ -1,3 +1,8 @@
+2000-06-04  Mike Sperber <mike@xemacs.org>
+
+	* case-table.el (describe-buffer-case-table): Fix to use case
+	tables of actual buffer in question.
+
 2000-06-05  Ben Wing  <ben@xemacs.org>
 
 	* macros.el (assign-last-kbd-macro-to-key): new function;
