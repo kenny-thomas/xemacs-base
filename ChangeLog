@@ -1,3 +1,12 @@
+2003-03-09  Ben Wing  <ben@xemacs.org>
+
+	* Makefile (PACKAGE_SUPPRESS): New.
+	Add a PACKAGE_SUPPRESS value for use with new package-suppress
+	support, since _pkg.el is auto-generated.
+	Delete explicit compile:: and binkit: rules.
+	Don't add custom-load.elc to the list of generated elc's.
+	Delete blank HTML_FILES, HTML_DEP.
+
 2003-01-18  Rendhalver [Peter Brown]  <rendhalver@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 1.75 released.
