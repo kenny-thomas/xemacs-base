@@ -694,6 +694,7 @@ Returns the compilation buffer created."
 	(save-window-excursion
 	  (select-window outwin)
 	  (goto-char (point-max)))
+	(setq outwin (display-buffer outbuf))
 	
 	;; XEmacs change
 	(compilation-mode name-of-mode)

@@ -1,3 +1,8 @@
+2002-11-25  Mike Sperber <mike@xemacs.org>
+
+	* compile.el (compile-internal): Re-set `outwin' because it may
+	have changed after `save-window-excursion'.
+
 2002-11-24  David A. Panariti  <davep.xemacs@meduseld.net>
 
 	* shell.el (shell-directory-tracker): Added check for a
