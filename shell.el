@@ -193,6 +193,12 @@ This is used for directory tracking and does not do a perfect job."
   :type 'regexp
   :group 'shell)
 
+(defcustom shell-command-separator-regexp "[;&|\n \t]*"
+  "*Regexp to match what separates commands within a pipeline.
+This is used for directory tracking and does not do a perfect job."
+:type 'regexp
+:group 'shell)
+
 (defcustom shell-completion-execonly t
   "*If non-nil, use executable files only for completion candidates.
 This mirrors the optional behavior of tcsh.
@@ -666,7 +672,9 @@ Environment variables are expanded, see function `substitute-in-file-name'."
   (if shell-dirtrackp
       ;; We fail gracefully if we think the command will fail in the shell.
       (condition-case chdir-failure
-	  (let ((start (progn (string-match "^[; \t]*" str) ; skip whitespace
+	  (let ((start (progn (string-match
+			       (concat "^" shell-command-separator-regexp)
+			       str) ; skip whitespace
 			      (match-end 0)))
 		end cmd arg1)
 	    (while (string-match shell-command-regexp str start)
@@ -704,7 +712,9 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 			      ;; what `shell-dirtrack-process-other-func'
 			      ;; will want to do with it
 			      arg1)))
-	      (setq start (progn (string-match "[; \t]*" str end) ; skip again
+	      (setq start (progn (string-match
+				  shell-command-separator-regexp str end)
+				 ;; skip again
 				 (match-end 0)))))
 	(error "Couldn't cd"))))
 

@@ -1,3 +1,10 @@
+2003-06-07  Ilya N. Golubev  <gin@mo.msk.ru>
+
+	* shell.el (shell-directory-tracker): Make regexp used for
+	skipping to next command correspond to one used for command
+	itself.
+	(shell-command-separator-regexp): New variable.
+
 2003-04-29  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 1.77 released.
