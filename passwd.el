@@ -156,12 +156,7 @@ Some steps you can take to prevent the password from being copied around:
  - do not pass it as an argument to a shell command - anyone will be
    able to see it if they run `ps' at the right time.
 
-Note that the password will be temporarily recoverable with the `view-lossage'
-command.  This data will not be overwritten until another hundred or so 
-characters are typed.  You can temporarily disable recording key strokes
-by binding `inhibit-input-event-recording' to t."
-
-
+"
   (save-excursion
     (let ((input (get-buffer-create " *password*"))
 	  (passwd-history-posn 0)
@@ -213,6 +208,7 @@ by binding `inhibit-input-event-recording' to t."
       (let* ((minibuffer-completion-table nil)
 	     (cursor-in-echo-area t)
 	     (echo-keystrokes 0)
+	     (inhibit-input-event-recording t)
 	     (key (passwd-read-key-sequence
 		   (concat (if (listp prompt)
 			       (car (nth passwd-history-posn passwd-history))

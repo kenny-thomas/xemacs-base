@@ -1670,6 +1670,7 @@ applications."
 	  (echo-keystrokes 0)
 	  (cursor-in-echo-area t)
 	  (message-log-max nil)		;turn of logging in GNU Emacs
+	  (inhibit-input-event-recording t) ; and XEmacs
 	  (done nil))
       (while (not done)
 	(if stars
