@@ -665,7 +665,7 @@ Has a preference of looking backwards."
 		     (buffer-substring (match-beginning 1)
 				       (match-end 1))))
 		((eq major-mode 'perl-mode)
-		 (if (re-search-backward "^sub[ \t]+\\([^ \t\n]+\\)" nil t)
+		 (if (re-search-backward "^sub[ \t]+\\([^( \t\n]+\\)" nil t)
 		     (buffer-substring (match-beginning 1)
 				       (match-end 1))))
 		((eq major-mode 'autoconf-mode)

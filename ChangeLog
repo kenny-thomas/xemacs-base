@@ -1,3 +1,8 @@
+2003-01-12  Robert Bihlmeyer <robbe@orcus.priv.at>
+
+	* add-log.el (add-log-current-defun): add ( to ender for perl
+        functions.
+
 2003-01-13  Rendhalver [Peter Brown]  <rendhalver@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 1.74 released.
