@@ -802,7 +802,7 @@ Returns t for rescan and otherwise a position number."
 		 t))))
 
 (defun imenu--create-menu-1 (title list)
-  (cons title (mapcar 'imenu--create-menu-2 list)))
+  (cons title (mapcar 'imenu--create-menu-2 (delq nil list))))
 
 (defun imenu--mouse-menu (index-alist event &optional title)
   "Let the user select from a buffer index from a mouse menu.

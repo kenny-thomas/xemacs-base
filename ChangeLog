@@ -1,3 +1,7 @@
+1998-11-30  Hrvoje Niksic  <hniksic@srce.hr>
+
+	* imenu.el (imenu--create-menu-1): Handle empty menu.
+
 1998-12-05  SL Baur  <steve@altair.xemacs.org>
 
 	* timezone.el (timezone-zone-to-minute): Make function match
