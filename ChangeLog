@@ -1,3 +1,7 @@
+2004-11-26  Norbert Koch  <viteno@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 1.92 released.
+
 2004-11-26  Steve Youngs  <steve@youngs.au.com>
 
 	* add-log.el (change-log-date-face): XEmacs doesn't have the
