@@ -204,7 +204,7 @@ Understands the following styles:
 		  ;; What does a three digit year mean?
 		  (setq yr (- yr 100)))
 		(setq year (format "%d%02d"
-				   (if (< yr 70)
+				   (if (< yr 69)
 				       20
 				     19)
 				   yr))))
