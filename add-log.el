@@ -184,7 +184,7 @@ The same line in new format looks like this:
     (forward-line 1)))
 
 (defun change-log-name ()
-  (or change-log-default-name "ChangeLog"))port
+  (or change-log-default-name "ChangeLog"))
 
 ;;;###autoload
 (defun prompt-for-change-log-name ()
@@ -725,11 +725,11 @@ NOTE: This function handles diff output both from `cvs diff' and just
 running `diff' directly, but *ONLY* unified-format (-u) diffs. #### Someone
 should fix this to handle context diffs as well.
 
-Allowed keys are :my-name, defaulting to (user-login-name), and
+Allowed keys are :my-name, defaulting to (user-full-name), and
 :my-email, defaulting to (user-mail-address)."
   (interactive "DBase directory of patch: ")
   (cl-parsing-keywords
-      ((:my-name (user-login-name))
+      ((:my-name (user-full-name))
        (:my-email (user-mail-address)))
       ()
     (let* ((font-lock-auto-fontify nil)

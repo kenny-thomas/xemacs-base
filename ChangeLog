@@ -1,3 +1,10 @@
+2000-07-08  Adrian Aichner  <aichner@ecf.teradyne.com>
+
+	* add-log.el (change-log-name): Remove outta-space port.
+	* add-log.el (patch-to-change-log): Use (user-full-name) instead
+	of (user-login-name) following the standard established by
+	`add-change-log-entry'.
+
 2000-06-12  Ben Wing  <ben@xemacs.org>
 
 	* add-log.el (patch-to-change-log): New function.
