@@ -794,6 +794,7 @@ or *grep* buffers."
 (defun grep-menu-filter (menu)
   (compile-menu-filter-1 menu grep-history "Grep History" 'grep))
 
+;;;###autoload
 (defun compilation-mode (&optional name-of-mode)
   "Major mode for compilation log buffers.
 \\<compilation-mode-map>To visit the source for a line-numbered error,
