@@ -36,7 +36,7 @@ ELCS = add-log.elc advice.elc annotations.elc assoc.elc case-table.elc \
 	iso-syntax.elc macros.elc novice.elc outline.elc \
 	passwd.elc pp.elc regexp-opt.elc regi.elc ring.elc shell.elc \
 	skeleton.elc sort.elc thing.elc time-stamp.elc timezone.elc \
-	xbm-button.elc xpm-button.elc tq.elc easy-mmode.elc
+	xbm-button.elc xpm-button.elc tq.elc easy-mmode.elc field.elc
 
 DATA_FILES = etc/enriched.doc
 DATA_DEST = .
