@@ -1,3 +1,7 @@
+2001-02-05  Steve Youngs  <youngs@xemacs.org>
+
+	* passwd.el (passwd-erase-buffer): Back out Matt's patch.
+
 2001-01-24  Matt Tucker  <tuck@whistlingfish.net>
 
 	* passwd.el (passwd-erase-buffer): Temporarily disable font-lock

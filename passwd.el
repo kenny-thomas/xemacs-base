@@ -281,9 +281,7 @@ Some steps you can take to prevent the password from being copied around:
   ;; passwd might have been typed and backspaced over.)
   (interactive)
   (widen)
-  ;; This runs much faster if font-lock is disabled
-  (let ((s (* (buffer-size) 3))
-	(font-lock-mode nil))
+  (let ((s (* (buffer-size) 3)))
     (erase-buffer)
     (while (> s 0)
       (insert ?\000)
