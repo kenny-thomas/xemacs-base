@@ -1,3 +1,7 @@
+2004-12-22  Norbert Koch  <viteno@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 1.94 released.
+
 2004-12-18  Ilya N. Golubev  <gin@mo.msk.ru>
 
 	* add-log.el (add-change-log-entry): Use `point-at-eol',
