@@ -86,7 +86,7 @@ This function works by modifying `process-environment'."
 	   (if (eq oldhist setenv-history)
 	       (setq setenv-history (cdr setenv-history))
 	     (setcdr setenv-history (cdr (cdr setenv-history)))))
-       ;; Here finally we specify the args to give call setenv with.
+       ;; Here finally we specify the args to call setenv with.
        (list var newval))))
   (if unset (setq value nil))
   (if (string-match "=" variable)

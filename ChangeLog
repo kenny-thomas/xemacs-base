@@ -1,3 +1,7 @@
+2000-11-07  Martin Buchholz <martin@xemacs.org>
+
+	* env.el: Doc fix.
+
 2000-11-06  Martin Buchholz  <martin@xemacs.org>
 
 	* add-log.el (patch-to-change-log):
