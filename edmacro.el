@@ -5,7 +5,7 @@
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;;         Hrvoje Niksic <hniksic@srce.hr>  -- XEmacs rewrite
 ;; Maintainer: Hrvoje Niksic <hniksic@srce.hr>
-;; Version: 3.19
+;; Version: 3.20
 ;; Keywords: abbrev, internal
 
 ;; This file is part of XEmacs.
@@ -223,11 +223,6 @@ The result will be a vector of keystrokes."
   (if (stringp start)
       (edmacro-parse-keys start)
     (setq last-kbd-macro (edmacro-parse-keys (buffer-substring start end)))))
-
-;;;###autoload
-(defmacro kbd (keys)
-  "Convert KEYS to the internal Emacs key representation."
-  (read-kbd-macro keys))
 
 ;;;###autoload
 (defun format-kbd-macro (&optional macro verbose)

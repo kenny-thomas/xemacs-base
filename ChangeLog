@@ -1,3 +1,12 @@
+1998-05-15  SL Baur  <steve@altair.xemacs.org>
+
+	* thing.el (thing-symbol): Fix for boundary condition.
+	From Michael Ernst <mernst@cs.washington.edu>
+
+1998-05-14  Hrvoje Niksic  <hniksic@srce.hr>
+
+	* edmacro.el (kbd): Removed.
+
 1998-04-29  SL Baur  <steve@altair.xemacs.org>
 
 	* compile.el (compile-internal): Comment out (process-send-eof).

@@ -173,7 +173,11 @@ message and returns `nil'."
 
 (defun thing-symbol (here)
   "Return start and end of symbol at HERE."
-  (cond ((memq (char-syntax (char-after here)) '(?_ ?w))
+  (cond ((or (memq (char-syntax (char-after here)) '(?_ ?w))
+             (and
+              (memq (char-syntax (char-before here)) '(?_ ?w))
+              ;; point is at the end of a symbol; look from inside the symbol
+              (setq here (1- here))))
          (setq *last-thing* 'symbol)
          (let ((end (scan-sexps here 1)))
            (if end
