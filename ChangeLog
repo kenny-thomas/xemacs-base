@@ -1,3 +1,7 @@
+2004-10-22  Norbert Koch  <viteno@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 1.89 released.
+
 2004-09-07  Jerry James  <james@xemacs.org>
 
 	* Makefile (ELCS): Add timer-funcs.el and realphabetize.
