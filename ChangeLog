@@ -1,3 +1,8 @@
+1999-12-27  Yoshiki Hayashi  <t90553@mail.ecc.u-tokyo.ac.jp>
+
+	* passwd.el (read-passwd): Document how to disable recording
+	key strokes.
+
 1999-12-04  Jan Vroonhof  <vroonhof@math.ethz.ch>
 
 	* passwd.el (passwd-secure-display): Fix missing (lambda line. Don't

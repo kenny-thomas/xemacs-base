@@ -158,7 +158,9 @@ Some steps you can take to prevent the password from being copied around:
 
 Note that the password will be temporarily recoverable with the `view-lossage'
 command.  This data will not be overwritten until another hundred or so 
-characters are typed.  There's not currently a way around this."
+characters are typed.  You can temporarily disable recording key strokes
+by binding `inhibit-input-event-recording' to t."
+
 
   (save-excursion
     (let ((input (get-buffer-create " *password*"))
