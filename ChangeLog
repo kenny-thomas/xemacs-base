@@ -1,3 +1,8 @@
+2000-10-03  Yoshiki Hayashi  <yoshiki@xemacs.org>
+
+	* macros.el (kbd-macro-query): Use next-command-event
+	instead of read-char-exclusive.
+
 2000-10-08  Adrian Aichner  <adrian@xemacs.org>
 
 	* add-log.el (patch-to-change-log): Honor variables

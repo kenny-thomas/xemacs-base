@@ -130,9 +130,9 @@ Your options are: \\<query-replace-map>
 			    (defining-kbd-macro nil))
                        (message "%s" msg)
 		       ;; XEmacs: avoid `read-char'.
-                       (read-char-exclusive)))
+                       (next-command-event)))
                 def)
-	    (setq key (vector key))
+	    (setq key (events-to-keys (vector key)))
 	    (setq def (lookup-key query-replace-map key))
 	    (cond ((eq def 'act)
 		   (setq loop nil))
