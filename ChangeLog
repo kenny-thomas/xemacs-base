@@ -1,3 +1,7 @@
+2002-08-05  Rendhalver [Peter Brown]  <rendhalver@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 1.67 released.
+
 2002-08-04  Simon Josefsson  <jas@extundo.com>
 
 	* passwd.el (read-passwd): Redisplay.
