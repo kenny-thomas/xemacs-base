@@ -1647,25 +1647,32 @@ bTo BUFFER : ")
 	   (true-file-name (file-name-nondirectory filename))
 	   (buffer (get-buffer true-file-name)) 
 	   fi thisdir fmts name)
-      ;; first see if buffer is there already
-      (if (compare-file-to-buffer buffer filename)
-	  (switch-to-buffer buffer)
-	(progn
-	  (if (file-name-absolute-p filename)
-	      ;; The file name is absolute.  Use its explicit directory as
-	      ;; the first in the search path, and strip it from FILENAME.
-	      (setq filename (abbreviate-file-name (expand-file-name filename))
-		    dirs (cons (file-name-directory filename) dirs)
-		    filename (file-name-nondirectory filename)))
-	  ;; Now search the path.
-	  (while (and dirs (null buffer))
-	    (setq thisdir (or (car dirs) dir)
-		  fmts formats)
-	    ;; For each directory, try each format string.
-	    (while (and fmts (null buffer))
-	      (setq name (expand-file-name (format (car fmts) filename) thisdir)
-		    buffer (and (file-exists-p name)
-				(find-file-noselect name))
+      (flet ((push-file-name-history (name)
+	       (setq file-name-history
+		     (if minibuffer-history-uniquify
+			 (cons name (remove name file-name-history))
+		       (cons name file-name-history)))))
+	;; first see if buffer is there already
+	(if (compare-file-to-buffer buffer filename)
+	    (switch-to-buffer buffer)
+	  (progn
+	    (if (file-name-absolute-p filename)
+		;; The file name is absolute.  Use its explicit directory as
+		;; the first in the search path, and strip it from FILENAME.
+		(setq filename (abbreviate-file-name (expand-file-name filename))
+		      dirs (cons (file-name-directory filename) dirs)
+		      filename (file-name-nondirectory filename)))
+	    ;; Now search the path.
+	    (while (and dirs (null buffer))
+	      (setq thisdir (or (car dirs) dir)
+		    fmts formats)
+	      ;; For each directory, try each format string.
+	      (while (and fmts (null buffer))
+		(setq name (expand-file-name (format (car fmts) filename) thisdir)
+		      buffer (and (file-exists-p name)
+				  (progn
+				    (push-file-name-history name)
+				    (find-file-noselect name)))
 		    fmts (cdr fmts)))
 	    (setq dirs (cdr dirs)))
 	  (or buffer
@@ -1685,7 +1692,9 @@ bTo BUFFER : ")
 		  (if (file-directory-p name)
 		    (setq name (expand-file-name filename name)))
 		  (and (file-exists-p name)
-		       (find-file-noselect name)))))))))
+		       (progn
+			 (push-file-name-history name)
+			 (find-file-noselect name)))))))))))
 
 ;; Set compilation-error-list to nil, and unchain the markers that point to the
 ;; error messages and their text, so that they no longer slow down gap motion.

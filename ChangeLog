@@ -1,3 +1,8 @@
+2000-05-22  Karl M. Hegbloom  <karlheg@debian.org>
+
+	* compile.el (compilation-find-file): push newly visited file
+	names on file-name-history
+
 2000-04-05  Karl M. Hegbloom  <karlheg@debian.org>
 
 	* comint.el (comint-password-prompt-regexp): Make the space in
