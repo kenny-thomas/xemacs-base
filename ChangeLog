@@ -1,3 +1,11 @@
+2002-05-02  Ville Skyttä  <ville.skytta@xemacs.org>
+
+	* easy-mmode.el: Partial sync with GNU Emacs 21.2.
+	(define-minor-mode): New.
+	(easy-mmode-define-navigation): Ditto.
+	(easy-mmode-defmap): Ditto.
+	(easy-mmode-set-keymap-parents): Ditto.
+
 2002-05-02  Steve Youngs  <youngs@xemacs.org>
 
 	* Makefile (ELCS): Add easy-mmode.elc.
