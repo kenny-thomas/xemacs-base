@@ -725,14 +725,25 @@ NOTE: This function handles diff output both from `cvs diff' and just
 running `diff' directly, but *ONLY* unified-format (-u) diffs. #### Someone
 should fix this to handle context diffs as well.
 
-Allowed keys are :my-name, defaulting to
- (or add-log-full-name (user-full-name)),
-and :my-email, defaulting to
- (or add-log-mailing-address (user-mail-address))."
+The following keys are allowed:
+- :my-name defines the name to use in ChangeLog entries
+  (defaults to `(or add-log-full-name (user-full-name))'),
+- :my-email defines the email address to use in ChangeLog entries
+  (defaults to `(or add-log-mailing-address (user-mail-address))'),
+- :keep-source-files prevents `patch-to-changelog' from killing the source
+  file buffers after the ChangeLog skeleton is created
+  (defaults to nil),
+- :extent-property instructs `patch-to-changelog' to create extents
+  containing the newly created ChangeLog entries, with that property set
+  (defaults to nil),
+- :extent-property-value is used in conjunction with :extent-property to
+  specify a value for the extent property
+  (defaults to nil)."
   (interactive "DBase directory of patch: ")
   (cl-parsing-keywords
       ((:my-name (or add-log-full-name (user-full-name)))
-       (:my-email (or add-log-mailing-address (user-mail-address))))
+       (:my-email (or add-log-mailing-address (user-mail-address)))
+       :keep-source-files :extent-property :extent-property-value)
       ()
     (let* ((font-lock-auto-fontify nil)
 	   (file-re1 "Index: \\(\\S-*\\)")
@@ -754,7 +765,7 @@ and :my-email, defaulting to
 	   (done-hash (make-hashtable 20 'equal))
 	   (new-fun-hash (make-hashtable 20 'equal))
 	   (nomore-fun-hash (make-hashtable 20 'equal))
-	   change-log-buffer
+	   change-log-buffer change-log-buffers
 	   file absfile limit current-defun delete-p
 	   dirname basename previous-dirname dirname-relative-to-change-log
 	   all-entries first-file-re-p
@@ -787,6 +798,7 @@ and :my-email, defaulting to
 
 	     (finish-up-change-log-buffer
 	      ()
+	      (push change-log-buffer change-log-buffers)
 	      (add-change-log-string "\n")
 	      (with-current-buffer change-log-buffer
 		(goto-char (point-min)))))
@@ -819,6 +831,12 @@ and :my-email, defaulting to
                  (with-temp-buffer
                    (cd dirname)
                    (find-change-log))))
+	      (when cl-extent-property
+		(with-current-buffer change-log-buffer
+		  (set-extent-properties (make-extent (point-min) (point-min))
+		    `(end-open nil
+                      ,cl-extent-property ,cl-extent-property-value))
+		  ))
 	      (setq insertion-marker (point-min-marker change-log-buffer))
 	      (add-change-log-string
 	       (format (concat "%s  " cl-my-name "  <" cl-my-email
@@ -880,7 +898,7 @@ and :my-email, defaulting to
 		      fun
 		      (format "\t* %s (%s): Removed.\n" basename fun)))
 		 nomore-fun-hash)
-	    
+
 		;; now try to handle what changed.
 		(let (trylines
 		      (trystart t)
@@ -919,12 +937,14 @@ and :my-email, defaulting to
 					     "\t* %s (%s):\n" "\t* %s:\n")
 					 basename current-defun)))
 			    trylines)
-		      (unless already-visiting-p
+		      (unless (or already-visiting-p cl-keep-source-files)
 			(kill-buffer (current-buffer))))))))
 	    (flush-change-log-entries)
 	    ))
 	(finish-up-change-log-buffer)
-	(add-change-log-string "\n")))))
+	(add-change-log-string "\n")
+	;; return the list of ChangeLog buffers
+	change-log-buffers))))
 
 (provide 'add-log)
 
