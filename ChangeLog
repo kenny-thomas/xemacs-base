@@ -1,3 +1,7 @@
+2000-10-05  Martin Buchholz  <martin@xemacs.org>
+
+	* *: Mega typo fix.
+
 2000-10-03  Barry Wilkes  <bew@bcs.org.uk>
 
 	* compile.el: Added ;;;###autoload for grep-find

@@ -724,7 +724,7 @@ kpathsea, a library used by some versions of TeX."
 
 (defun ffap-locate-file (file &optional nosuffix path dir-ok)
   ;; The Emacs 20 version of locate-library could almost replace this,
-  ;; except it does not let us overrride the suffix list.  The
+  ;; except it does not let us override the suffix list.  The
   ;; compression-suffixes search moved to ffap-file-exists-string.
   "A generic path-searching function, mimics `load' by default.
 Returns path to file that \(load FILE\) would load, or nil.

@@ -199,7 +199,7 @@ terminated by a newline."
 		     bit-count (1+ bit-count)))
 	      ((= char ?\n)
 	       (setq height (1+ height))))
-	;; output octet whenever we have retrived 8 bits or when
+	;; output octet whenever we have retrieved 8 bits or when
 	;; a newline is encountered.
 	(cond ((or (= bit-count 8) (= char ?\n))
 	       (save-excursion
