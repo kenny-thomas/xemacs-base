@@ -586,6 +586,7 @@ easily repeat a grep command."
 			  (cons msg code)))
 		 (cons msg code))))))))
 
+;;;###autoload
 (defun grep-find (command-args)
   "Run grep via find, with user-specified args, and collect output in a buffer.
 While find runs asynchronously, you can use the \\[next-error] command

@@ -1,3 +1,7 @@
+2000-10-03  Barry Wilkes  <bew@bcs.org.uk>
+
+	* compile.el: Added ;;;###autoload for grep-find
+
 2000-08-15  Adrian Aichner  <aichner@ecf.teradyne.com>
 
 	* add-log.el (patch-to-change-log): Re-word docstring.  Fix hangup
