@@ -3,6 +3,11 @@
 	* compile.el (compilation-error-regexp-alist-alist): add regexp
 	suitable for ant errors.
 
+2003-03-22  Vasily Korytov  <deskpot@myrealbox.com>
+
+	* outline.el (outline-mode-hook): Add a (defvar ...), so this
+	variable is documented.
+
 2003-03-09  Ben Wing  <ben@xemacs.org>
 
 	* Makefile (PACKAGE_SUPPRESS): New.

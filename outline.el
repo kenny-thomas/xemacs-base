@@ -214,6 +214,10 @@ in the file it applies to.")
     ("\\[\\([A-Z][A-Za-z]+\\)*[0-9]+\\]" . font-lock-type-face))
   "Additional expressions to highlight in Outline mode.")
 
+;;; #+XEmacs
+(defvar outline-mode-hook nil
+  "Hook to run when entering outline-mode.")
+
 ;;;###autoload
 (defun outline-mode ()
   "Set major mode for editing outlines with selective display.
