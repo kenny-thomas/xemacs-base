@@ -1,3 +1,12 @@
+2004-12-18  Ilya N. Golubev  <gin@mo.msk.ru>
+
+	* add-log.el (add-change-log-entry): Use `point-at-eol',
+	`point-at-bol' instead of `line-end-position',
+	`line-beginning-position', which are not defined in current 21.4.
+	(add-log-current-defun): Ditto.
+	(match-string-no-properties): Copy from 21.5 `subr.el', for use in
+	current 21.4.
+
 2004-12-07  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 1.93 released.

@@ -559,7 +559,7 @@ non-nil, otherwise in local time."
 	   (goto-char (match-beginning 0))
 	   ;; Delete excess empty lines; make just 2.
 	   (while (and (not (eobp)) (looking-at "^\\s *$"))
-	     (delete-region (point) (line-beginning-position 2)))
+	     (delete-region (point) (point-at-bol 2)))
 	   (insert-char ?\n 2)
 	   (forward-line -2)
 	   (indent-relative-maybe))
@@ -568,7 +568,7 @@ non-nil, otherwise in local time."
 	   (while (looking-at "\\sW")
 	     (forward-line 1))
 	   (while (and (not (eobp)) (looking-at "^\\s *$"))
-	     (delete-region (point) (line-beginning-position 2)))
+	     (delete-region (point) (point-at-bol 2)))
 	   (insert-char ?\n 3)
 	   (forward-line -2)
 	   (indent-to left-margin)
@@ -599,7 +599,7 @@ non-nil, otherwise in local time."
 		 (> fill-column (+ (current-column) (length defun) 4)))
 	    (progn (delete-region (point) pos) (insert ", "))
 	  (if (looking-at "):")
-	      (delete-region (+ 1 (point)) (line-end-position)))
+	      (delete-region (+ 1 (point)) (point-at-eol)))
 	  (goto-char pos)
 	  (insert "("))
 	(set-marker pos nil))
@@ -730,6 +730,21 @@ Prefix arg means justify as well."
 (defvar add-log-tex-like-modes
     '(TeX-mode plain-TeX-mode LaTeX-mode plain-tex-mode latex-mode)
   "*Modes that look like TeX to `add-log-current-defun'.")
+
+(defun-when-void match-string-no-properties (num &optional string)
+  "Return string of text matched by last search, without text properties.
+NUM specifies which parenthesized expression in the last regexp.
+ Value is nil if NUMth pair didn't match, or there were less than NUM pairs.
+Zero means the entire text matched by the whole regexp or whole string.
+STRING should be given if the last search was by `string-match' on STRING."
+  (if (match-beginning num)
+      (if string
+	  (let ((result
+		 (substring string (match-beginning num) (match-end num))))
+	    (set-text-properties 0 (length result) nil result)
+	    result)
+	(buffer-substring-no-properties (match-beginning num)
+					(match-end num)))))
 
 ;;;###autoload
 (defun add-log-current-defun ()
@@ -903,7 +918,7 @@ Has a preference of looking backwards."
 		       (goto-char (match-beginning 0))
 		       (buffer-substring-no-properties
 			(1+ (point))	; without initial backslash
-			(line-end-position)))))
+			(point-at-eol)))))
 		((eq major-mode 'texinfo-mode)
 		 (if (re-search-backward "^@node[ \t]+\\([^,\n]+\\)" nil t)
 		     (match-string-no-properties 1)))
