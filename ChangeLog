@@ -65,7 +65,7 @@
 
 	* Makefile (VERSION): XEmacs package 1.70 released.
 
-2002-09-30  Ville Skyttä  <ville.skytta@xemacs.org>
+2002-09-30  Ville Skyttä  <scop@xemacs.org>
 
 	* add-log.el: Add autoloaded auto-mode-alist associations.
 
@@ -118,7 +118,7 @@
 
 	* Makefile (VERSION): XEmacs package 1.64 released.
 
-2002-06-22  Ville Skyttä  <ville.skytta@xemacs.org>
+2002-06-22  Ville Skyttä  <scop@xemacs.org>
 
 	* compile.el: Partial sync with GNU Emacs 21.2.
 	(compilation-error-screen-columns): New.
@@ -132,7 +132,7 @@
 
 	* Makefile (VERSION): XEmacs package 1.63 released.
 
-2002-05-02  Ville Skyttä  <ville.skytta@xemacs.org>
+2002-05-02  Ville Skyttä  <scop@xemacs.org>
 
 	* easy-mmode.el: Partial sync with GNU Emacs 21.2.
 	(define-minor-mode): New.
@@ -158,7 +158,7 @@
 
 	* Makefile (VERSION): 1.61 released.
 
-2002-03-25  Ville Skyttä  <ville.skytta@xemacs.org>
+2002-03-25  Ville Skyttä  <scop@xemacs.org>
 
 	* regexp-opt.el: Partial synch with GNU Emacs 21.2.
 	(regexp-opt): Handle PAREN with value 'words.
