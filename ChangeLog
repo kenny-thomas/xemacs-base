@@ -1,3 +1,8 @@
+2000-01-19  Yoshiki Hayashi  <yoshiki@xemacs.org>
+
+	* passwd.el (passwd-insecure-display): Remove face
+	property set by passwd-secure-display.
+
 2000-01-18  Martin Buchholz  <martin@xemacs.org>
 
 	* comint.el (comint-mode): Add autoload cookie.

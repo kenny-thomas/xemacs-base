@@ -333,10 +333,10 @@ by binding `inhibit-input-event-recording' to t."
   ;; Undoes the effect of `passwd-secure-display'.
   (when passwd-invert-frame-when-keyboard-grabbed
     (while passwd-face-data
-      (set-face-foreground (nth 0 (car passwd-face-data))
-			   (nth 1 (car passwd-face-data)) (selected-frame))
-      (set-face-background (nth 0 (car passwd-face-data))
-			   (nth 2 (car passwd-face-data)) (selected-frame))
+      (remove-face-property (nth 0 (car passwd-face-data))
+			    'foreground (selected-frame))
+      (remove-face-property (nth 0 (car passwd-face-data))
+			    'background (selected-frame))
       (setq passwd-face-data (cdr passwd-face-data)))))
 
 (defun passwd-grab-keyboard ()
