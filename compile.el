@@ -672,8 +672,8 @@ Returns the compilation buffer created."
 	  ; (setq mode-line-process ":run")
 	  ; (force-mode-line-update)
 	  (sit-for 0)			;; Force redisplay
-	  (let ((status (call-process shell-file-name nil outbuf nil "-c"
-				      command))))
+	  (let ((status (call-process shell-file-name nil outbuf nil
+				      shell-command-switch command))))
 	  (display-message
 	   'progress
 	   (format "Executing `%s'...done" command))))

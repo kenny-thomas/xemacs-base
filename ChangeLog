@@ -1,3 +1,8 @@
+1999-03-26  Adrian Aichner  <aichner@ecf.teradyne.com>
+
+	* compile.el (compile-internal): Use `shell-command-switch'
+	instead of a hard-coded "-c" switch.
+
 1998-11-30  Hrvoje Niksic  <hniksic@srce.hr>
 
 	* imenu.el (imenu--create-menu-1): Handle empty menu.
