@@ -1,3 +1,7 @@
+2002-06-27  Steve Youngs  <youngs@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 1.65 released.
+
 2002-06-26  Steve Youngs  <youngs@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 1.64 released.
