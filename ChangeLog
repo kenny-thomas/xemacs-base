@@ -1,3 +1,7 @@
+2000-02-16  Yoshiki Hayashi  <yoshiki@xemacs.org>
+
+	* compile.el: Delete garbage.
+
 2000-02-12  Andreas Jaeger  <aj@suse.de>
 
 	* compile.el (compilation-set-window-height): Did not take into

@@ -1649,46 +1649,6 @@ bTo BUFFER : ")
 		  (and (file-exists-p name)
 		       (find-file-noselect name)))))))))
 
-
-  (or formats (setq formats '("%s")))
-  (let ((dirs compilation-search-path)
-	buffer thisdir fmts name)
-    (if (file-name-absolute-p filename)
-	;; The file name is absolute.  Use its explicit directory as
-	;; the first in the search path, and strip it from FILENAME.
-	(setq filename (abbreviate-file-name (expand-file-name filename))
-	      dirs (cons (file-name-directory filename) dirs)
-	      filename (file-name-nondirectory filename)))
-    ;; Now search the path.
-    (while (and dirs (null buffer))
-      (setq thisdir (or (car dirs) dir)
-	    fmts formats)
-      ;; For each directory, try each format string.
-      (while (and fmts (null buffer))
-	(setq name (expand-file-name (format (car fmts) filename) thisdir)
-	      buffer (and (file-exists-p name)
-			  (find-file-noselect name))
-	      fmts (cdr fmts)))
-      (setq dirs (cdr dirs)))
-    (or buffer
-	;; The file doesn't exist.
-	;; Ask the user where to find it.
-	;; If he hits C-g, then the next time he does
-	;; next-error, he'll skip past it.
-	(let* ((pop-up-windows t)
-	       (w (display-buffer (marker-buffer marker))))
-	  (set-window-point w marker)
-	  (set-window-start w marker)
-	  (let ((name (expand-file-name
-		       (read-file-name
-			(format "Find this error in: (default %s) "
-				filename)
-			dir filename t))))
-	    (if (file-directory-p name)
-		(setq name (expand-file-name filename name)))
-	    (and (file-exists-p name)
-		 (find-file-noselect name)))))))
-
 ;; Set compilation-error-list to nil, and unchain the markers that point to the
 ;; error messages and their text, so that they no longer slow down gap motion.
 ;; This would happen anyway at the next garbage collection, but it is better to
