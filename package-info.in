@@ -1,0 +1,10 @@
+(xemacs-base
+  (version VERSION
+   description "Fundamental XEmacs support, you almost certainly need this."
+   filename FILENAME
+   md5sum MD5SUM
+   size SIZE
+   provides (add-log advice annotations assoc case-table chistory comint-xemacs comint compile edmacro ehelp electric enriched env facemenu helper imenu iso-syntax outline passwd pp regi ring shell skeleton sort thing time-stamp timezone xbm-button xpm-button)
+   requires (REQUIRES)
+   type regular
+))

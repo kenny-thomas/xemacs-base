@@ -1,0 +1,63 @@
+1998-01-11  SL Baur  <steve@altair.xemacs.org>
+
+	* Makefile (VERSION): Updated package build procedure.
+
+1998-01-09  Karl M. Hegbloom  <karlheg@bittersweet.inetarena.com>
+
+	* annotations.el (annotations-in-region): Rewrote the
+	`map-extents' call to use the newer interface.
+
+1998-01-05  Karl M. Hegbloom  <karlheg@bittersweet.inetarena.com>
+
+	* ring.el (ring-remove): Optimize by moveing duplicated function
+	call out of the loop into a let.  Varref is faster than a function
+	call, thus the codepath is reduced and the loop will execute more
+	quickly.
+
+1998-01-01  SL Baur  <steve@altair.xemacs.org>
+
+	* Makefile: Added skeleton.el.
+
+1997-12-24  SL Baur  <steve@altair.xemacs.org>
+
+	* Makefile: Add comint-xemacs.el and shell.el.
+
+1997-12-23  SL Baur  <steve@altair.xemacs.org>
+
+	* Makefile: Added ebuff-menu.el, echistory.el, ehelp.el,
+	electrict.el and helper.el.
+	Also added chistory.el, iso-syntax.el and time-stamp.el.
+
+	* xemacs-base 1.01 is released.
+
+	* add-log.el (change-log): Remove `(require 'fortran)'.
+
+	* imenu.el: New file.
+
+	* annotations.el: Commentary changes.
+	* assoc.el: Ditto.
+	* comint.el: Ditto.
+	* compile.el: Ditto.
+	* debug.el: Ditto.
+	* enriched.el: Ditto.
+	* env.el: Ditto.
+	* facemenu.el: Ditto.
+	* macros.el: Ditto.
+	* novice.el: Ditto.
+	* outline.el: Ditto.
+	* passwd.el: Ditto.
+	* pp.el: Ditto.
+	* regi.el: Ditto.
+	* ring.el: Ditto.
+	* sort.el: Ditto.
+	* thing.el: Ditto.
+	* timezone.el: Ditto.
+	* xbm-button.el: Ditto.
+
+	* Makefile: Add in:  add-log.el, compile.el, imenu.el, outline.el
+
+1997-12-20  SL Baur  <steve@altair.xemacs.org>
+
+	* Makefile: Created.
+
+
