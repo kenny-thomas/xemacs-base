@@ -1,3 +1,14 @@
+2004-12-06  Ben Wing  <ben@xemacs.org>
+
+	* Makefile (PACKAGE_SUPPRESS):
+	Conditionalize package-suppress forms on existence of
+	`package-suppress', not any particular version.
+
+	* add-log.el (font-lock):
+	Require font-lock, since we make use of font-lock faces in
+	calls to set-face-parent upon loading, and faces are not
+	automatically autoloaded if we do it this way.
+
 2004-11-26  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 1.92 released.

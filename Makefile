@@ -26,8 +26,8 @@ REQUIRES =
 CATEGORY = standard
 
 PACKAGE_SUPPRESS = \
-  (package-suppress 'xemacs-base \"regexp-opt\" '(emacs-version>= 21 5 11)) \
-  (package-suppress 'xemacs-base \"easy-mmode\" '(emacs-version>= 21 5 11))
+  (package-suppress 'xemacs-base \"regexp-opt\" '(fboundp 'package-suppress)) \
+  (package-suppress 'xemacs-base \"easy-mmode\" '(fboundp 'package-suppress))
 
 ELCS = add-log.elc advice.elc annotations.elc assoc.elc case-table.elc \
 	chistory.elc comint.elc comint-xemacs.elc compile.elc debug.elc \

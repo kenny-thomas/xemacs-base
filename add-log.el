@@ -34,6 +34,8 @@
 (eval-when-compile
   (require 'timezone))
 
+(require 'font-lock)
+
 (defgroup change-log nil
   "Change log maintenance"
   :group 'tools
