@@ -1,3 +1,8 @@
+2004-06-28  Fily~ Zolt~n  <zoltan.filyo@multipolaris.hu>
+
+	* compile.el (compilation-error-regexp-alist-alist): Enhance
+	regexp to grasp Borland C++ Builder 6.0 syntax.
+
 2004-06-18  Jerry James  <james@xemacs.org>
 
 	* easy-mmode.el (easy-mmode-define-syntax): Replace call to

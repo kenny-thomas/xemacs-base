@@ -185,9 +185,12 @@ variable `compilation-error-regexp-alist'."
     ;; Borland C++, C++Builder:
     ;;  Error ping.c 15: Unable to open include file 'sys/types.h'
     ;;  Warning ping.c 68: Call to function 'func' with no prototype
+    ;; Or with Borland C++ Builder 6.0:
+    ;;  Error E2209 ping.c 15: Unable to open include file 'sys/types.h'
+    ;;  Warning W8065 ping.c 68: Call to function 'func' with no prototype
    (borland
-    ("\\(Error\\|Warning\\) \\([a-zA-Z]?:?[^:( \t\n]+\\)\
- \\([0-9]+\\)\\([) \t]\\|:[^0-9\n]\\)" 2 3)
+    ("\\(Error\\|Warning\\) \\([EW][0-9]+ \\)?\\([a-zA-Z]?:?[^:( \t\n]+\\)\
+ \\([0-9]+\\)\\([) \t]\\|:[^0-9\n]\\)" 3 4)
     )
 
     ;; 4.3BSD lint pass 2
