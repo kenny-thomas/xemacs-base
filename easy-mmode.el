@@ -58,13 +58,12 @@
 
 (eval-when-compile (require 'cl))
 
-;;; This file uses three functions that did not exist or had fewer arguments
-;;; in some versions of XEmacs: propertize, replace-regexp-in-string, and
-;;; pos-visible-in-window-p.  We provide these functions here for such
-;;; XEmacsen.
+;;; This file uses two functions that did not exist in some versions of
+;;; XEmacs: propertize and replace-regexp-in-string.  We provide these
+;;; functions here for such XEmacsen.
 ;;;
-;;; FIXME: These function definitions should go into the future package, once
-;;; that package exists.
+;;; FIXME: These function definitions should go into the future or
+;;; forward-compat package, once that package exists.
 
 ;; XEmacs <= 21.4 does not have propertize, but XEmacs >= 21.5 dumps it (it is
 ;; defined in subr.el).  Therefore, it is either defined regardless of what
@@ -133,21 +132,6 @@ and replace a sub-expression, e.g.
 	  ;; Reconstruct a string from the pieces.
 	  (setq matches (cons (substring string start l) matches)) ; leftover
 	  (apply #'concat (nreverse matches))))))
-
-;; XEmacs < 2.5.16 has a version of pos-visible-in-window-p that takes only 2
-;; arguments.  The third argument, PARTIALLY, can be ignored safely, with the
-;; caveat that there may some visible glitches on a partially visible last
-;; line.  This is a builtin function, so we don't need to load anything.
-(when (eq (function-max-args #'pos-visible-in-window-p) 2)
-  (fset 'pos-visible-in-window-p
-	`(lambda (&optional pos window partially)
-	   "Returns t if position POS is currently on the frame in WINDOW.
-Returns nil if that position is scrolled vertically out of view.
-If a character is only partially visible, nil is returned, unless the
-optional argument PARTIALLY is non-nil.
-POS defaults to point in WINDOW's buffer; WINDOW, to the selected window."
-	   (funcall ,(symbol-function 'pos-visible-in-window-p) pos window))))
-
 
 (defun easy-mmode-pretty-mode-name (mode &optional lighter)
   "Turn the symbol MODE into a string intended for the user.
@@ -567,7 +551,14 @@ ENDFUN should return the end position (with or without moving point)."
 				  ,(if endfun `(,endfun)
 				     `(re-search-forward ,re nil t 2)))
 				(point-max))))
-		 (unless (pos-visible-in-window-p endpt nil t)
+		 ;; XEmacs change: versions < 21.5.16 have a
+		 ;; pos-visible-in-window-p that takes only 2 parameters
+		 (unless
+		     (or
+		      (and
+		       (eq (function-max-args #'pos-visible-in-window-p) 2)
+		       (pos-visible-in-window-p endpt nil))
+		      (pos-visible-in-window-p endpt nil t))
 		   (recenter '(0))))))))
        (defun ,prev-sym (&optional count)
 	 ,(format "Go to the previous COUNT'th %s" (or name base-name))
