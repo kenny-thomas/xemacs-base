@@ -1,3 +1,15 @@
+2002-11-24  David A. Panariti  <davep.xemacs@meduseld.net>
+
+	* shell.el (shell-directory-tracker): Added check for a
+	`shell-dirtrack-other-regexp' which when matched calls
+	`shell-dirtrack-process-other-func'.  This allows for arbitrary
+	user processing of directory changing commands.
+
+        (shell-dirtrack-other-regexp): Added defcustom for the regexp.
+
+        (shell-dirtrack-process-other-func): Added defcustom for the
+        function to call.
+
 2002-10-29  Rendhalver [Peter Brown]  <rendhalver@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 1.71 released.
