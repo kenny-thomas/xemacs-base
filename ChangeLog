@@ -1,3 +1,7 @@
+2000-02-21  Andreas Jaeger  <aj@suse.de>
+
+	* compile.el (grep-find-use-xargs): Move defvar before usage.
+
 2000-02-14  Barry Wilkes  <bew@bcs.org.uk>
 
 	* compile.el : Added grep-find command (+ associated variables)

@@ -393,6 +393,9 @@ Otherwise, it saves all modified buffers without asking."
   :type 'string
   :group 'compilation)
 
+;; The system null device. (Should reference NULL_DEVICE from C.)
+(defvar grep-null-device "/dev/null" "The system null device.")
+
 (defvar grep-find-use-xargs
   (if (equal (call-process "find" nil nil nil
 			   grep-null-device "-print0")
@@ -545,9 +548,6 @@ to a function that generates a unique name."
   (interactive)
   (save-some-buffers (not compilation-ask-about-save) nil)
   (compile-internal compile-command "No more errors"))
-
-;; The system null device. (Should reference NULL_DEVICE from C.)
-(defvar grep-null-device "/dev/null" "The system null device.")
 
 ;;;###autoload
 (defun grep (command-args)
