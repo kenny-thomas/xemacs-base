@@ -1,3 +1,7 @@
+2003-04-26  Norbert Koch  <viteno@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 1.76 released.
+
 2003-03-24  Andy Piper  <andy@xemacs.org>
 
 	* compile.el (compilation-error-regexp-alist-alist): add regexp
