@@ -318,6 +318,12 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2)
    (ada
     ("\\([^, \n\t]+\\), line \\([0-9]+\\), char \\([0-9]+\\)[:., \(-]" 1 2 3)
     )
+
+    ;; Ant / cygwin:
+    ;; file:G:/foobar/dev/build-myproj.xml:54: Compiler Adapter 'javac' can't be found.
+   (ant
+    ("file:\\(\\([a-zA-Z]:\\)?[^:(\t\n]+\\):[ \t]*\\([0-9]+\\)[: \t]" 1 3)
+    )
    )
   "Alist of (system regexp-alist) for building
 `compilation-error-regexp-alist'.  SYSTEM is either a system identifier,

@@ -1,3 +1,8 @@
+2003-03-24  Andy Piper  <andy@xemacs.org>
+
+	* compile.el (compilation-error-regexp-alist-alist): add regexp
+	suitable for ant errors.
+
 2003-03-09  Ben Wing  <ben@xemacs.org>
 
 	* Makefile (PACKAGE_SUPPRESS): New.
