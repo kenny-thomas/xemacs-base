@@ -326,8 +326,8 @@ characters are typed.  There's not currently a way around this."
 			      )))
     (let ((rest passwd-face-data))
       (while rest
-	(set-face-foreground (nth 0 (car rest)) (nth 2 (car rest)))
-	(set-face-background (nth 0 (car rest)) (nth 1 (car rest)))
+	(set-face-foreground (nth 0 (car rest)) (nth 2 (car rest)) (selected-frame))
+	(set-face-background (nth 0 (car rest)) (nth 1 (car rest)) (selected-frame))
 	(setq rest (cdr rest))))))
   nil)
 
@@ -337,9 +337,9 @@ characters are typed.  There's not currently a way around this."
    (passwd-invert-frame-when-keyboard-grabbed
     (while passwd-face-data
       (set-face-foreground (nth 0 (car passwd-face-data))
-			   (nth 1 (car passwd-face-data)))
+			   (nth 1 (car passwd-face-data)) (selected-frame))
       (set-face-background (nth 0 (car passwd-face-data))
-			   (nth 2 (car passwd-face-data)))
+			   (nth 2 (car passwd-face-data)) (selected-frame))
       (setq passwd-face-data (cdr passwd-face-data)))
     nil)))
 

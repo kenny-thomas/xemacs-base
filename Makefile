@@ -17,7 +17,7 @@
 # the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
 
-VERSION = 1.20
+VERSION = 1.21
 AUTHOR_VERSION =
 MAINTAINER = XEmacs Development Team <xemacs-beta@xemacs.org>
 PACKAGE = xemacs-base
@@ -39,4 +39,4 @@ all:: $(ELCS) auto-autoloads.elc custom-load.elc
 
 srckit: srckit-std
 
-binkit: binkit-sourceonly
+binkit: binkit-sourcedata

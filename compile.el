@@ -404,12 +404,11 @@ nil as an element means to try the default directory."
 Sometimes it is useful for files to supply local values for this variable.
 You might also use mode hooks to specify it in certain modes, like this:
 
-    (setq c-mode-hook
-      '(lambda () (or (file-exists-p \"makefile\") (file-exists-p \"Makefile\")
-		      (progn (make-local-variable 'compile-command)
-			     (setq compile-command
-				    (concat \"make -k \"
-					    buffer-file-name))))))"
+    (add-hook 'c-mode-common-hook
+	      (lambda ()
+		(or (file-exists-p \"makefile\") (file-exists-p \"Makefile\")
+		    (set (make-local-variable 'compile-command)
+			 (concat \"make -k \" buffer-file-name)))))"
   :type 'string
   :group 'compilation)
 

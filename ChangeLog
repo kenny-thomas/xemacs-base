@@ -1,3 +1,15 @@
+1998-07-02  Hrvoje Niksic  <hniksic@srce.hr>
+
+	* compile.el (compile-command): Docstring fix: use `add-hook' to
+	modify hook value.
+
+1998-07-01  Carsten Leonhardt  <leo@arioch.oche.de>
+
+	* passwd.el (passwd-secure-display): Invert colors only in current 
+	frame. This avoids messing up the colors in tty frames while
+	working in X frames.
+	(passwd-insecure-display): Ditto.
+
 1998-05-15  SL Baur  <steve@altair.xemacs.org>
 
 	* thing.el (thing-symbol): Fix for boundary condition.
