@@ -578,10 +578,11 @@ Otherwise, one argument `-i' is passed to the shell.
 					       (symbol-value xargs-name)
 					     '("-i")))))
 	   (shell-mode))))
-  (pop-to-buffer buffer)
-  (if shell-multiple-shells
-      (rename-buffer (generate-new-buffer-name "*shell*")))
-  ))
+  (prog1
+      buffer
+    (pop-to-buffer buffer)
+    (if shell-multiple-shells
+	(rename-buffer (generate-new-buffer-name "*shell*"))))))
 
 ;;; Don't do this when shell.el is loaded, only while dumping.
 ;;;###autoload (add-hook 'same-window-buffer-names "*shell*")

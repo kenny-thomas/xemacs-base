@@ -41,18 +41,22 @@
   "Describe the case table of the current buffer."
   (interactive)
   (let ((buffer (current-buffer))
-	(ch 0))
+	(i 0)
+	ch)
     (with-displaying-help-buffer
      (lambda ()
        (set-buffer standard-output)
-       (while (< ch 256)
-	 (cond ((/= ch (downcase ch buffer))
+       (while (< i 256)
+	 (setq ch (int-to-char i))
+	 (cond ((eq (upcase ch) (downcase ch))
+		nil)
+	       ((eq ch (downcase ch buffer))
 		(insert (text-char-description ch))
 		(indent-to 16)
 		(insert "uppercase, matches "
 			(text-char-description (downcase ch))
 			"\n"))
-	       ((/= ch (upcase ch buffer))
+	       ((eq ch (upcase ch buffer))
 		(insert (text-char-description ch))
 		(indent-to 16)
 		(insert "lowercase, matches "
@@ -63,7 +67,7 @@
 	       ;;	       (indent-to 16)
 	       ;;	       (insert "case-invariant\n"))
 	       )
-	 (setq ch (1+ ch)))))))
+	 (setq i (1+ i)))))))
 
 (defun invert-case (count)
   "Change the case of the character just after point and move over it.
@@ -87,11 +91,16 @@ Negative arg inverts characters before point but does not move."
 
 (defun set-case-syntax-delims (l r table)
   "Make characters L and R a matching pair of non-case-converting delimiters.
-Sets the entries for L and R in standard-case-table,
+TABLE is a case-table object.
+Sets the entries for L and R in TABLE,
 standard-syntax-table, and text-mode-syntax-table to indicate
 left and right delimiters."
-  (aset (car table) l l)
-  (aset (car table) r r)
+  (if (functionp 'put-case-table-pair)
+      (progn
+	(put-case-table-pair l l table)
+	(put-case-table-pair r r table))
+    (aset (car table) l l)
+    (aset (car table) r r))
   (modify-syntax-entry l (concat "(" (char-to-string r) "  ")
 		       (standard-syntax-table))
   (modify-syntax-entry l (concat "(" (char-to-string r) "  ")
@@ -103,11 +112,14 @@ left and right delimiters."
 
 (defun set-case-syntax-pair (uc lc table)
   "Make characters UC and LC a pair of inter-case-converting letters.
+TABLE is a case-table object.
 Sets the entries for characters UC and LC in
-standard-case-table, standard-syntax-table, and
+TABLE, standard-syntax-table, and
 text-mode-syntax-table to indicate an (uppercase, lowercase)
 pair of letters."
-  (aset (car table) uc lc)
+  (if (functionp 'put-case-table-pair)
+      (put-case-table-pair uc lc table)
+    (aset (car table) uc lc))
   (modify-syntax-entry lc "w   " (standard-syntax-table))
   (modify-syntax-entry lc "w   " text-mode-syntax-table)
   (modify-syntax-entry uc "w   " (standard-syntax-table))
@@ -115,10 +127,13 @@ pair of letters."
 
 (defun set-case-syntax (c syntax table)
   "Make characters C case-invariant with syntax SYNTAX.
-Sets the entries for character C in standard-case-table,
+TABLE is a case-table object.
+Sets the entries for character C in TABLE,
 standard-syntax-table, and text-mode-syntax-table to indicate this.
 SYNTAX should be \" \", \"w\", \".\" or \"_\"."
-  (aset (car table) c c)
+  (if (functionp 'put-case-table-pair)
+      (put-case-table-pair c c table)
+    (aset (car table) c c))
   (modify-syntax-entry c syntax (standard-syntax-table))
   (modify-syntax-entry c syntax text-mode-syntax-table))
 

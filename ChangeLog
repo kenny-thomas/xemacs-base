@@ -1,3 +1,15 @@
+2000-12-06  Karl M. Hegbloom  <karlheg@debian.org>
+
+	* shell.el (shell): Return the buffer so callers may use it.
+
+2000-12-04  Yoshiki Hayashi  <yoshiki@xemacs.org>
+
+	* case-table.el: Use new API when available.
+
+2000-12-04  Yoshiki Hayashi  <yoshiki@xemacs.org>
+
+	* case-table.el: Use new API when available.
+
 2000-11-09  Volker Franz <volker.franz@tuebingen.mpg.de>
 
 	* comint.el (comint-send-input): Extracted function
