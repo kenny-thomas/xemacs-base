@@ -1,3 +1,11 @@
+1998-08-21  Greg Klanderman  <greg@alphatech.com>
+
+	* comint.el (comint-dynamic-complete-filename): do user name
+	completion too (~user).
+	(comint-dynamic-complete-as-username): new function.
+	(comint-dynamic-list-filename-completions): handle user name
+	completions too.
+
 1998-08-06  Michael Sperber [Mr. Preprocessor]  <sperber@informatik.uni-tuebingen.de>
 
 	* etc/enriched.doc: Put doc changes for XEmacs version back in.

@@ -2231,7 +2231,8 @@ Returns t if successful."
 				  ?/)))
 	(prog2 (or (window-minibuffer-p (selected-window))
 		   (message "Completing file name..."))
-	    (comint-dynamic-complete-as-filename)))))
+            (or (comint-dynamic-complete-as-username)
+                (comint-dynamic-complete-as-filename))))))
 
 (defun comint-dynamic-complete-as-filename ()
   "Dynamically complete at point as a filename.
@@ -2284,6 +2285,60 @@ See `comint-dynamic-complete-filename'.  Returns t if successful."
                     (comint-dynamic-list-filename-completions))
                    (t
                     (or minibuffer-p (message "Partially completed")))))))
+    success))
+
+
+(defun comint-dynamic-complete-as-username ()
+  "Attempt to dynamically complete at point as a ~username.
+See `comint-dynamic-complete-filename'.  Returns t if successful."
+  (let* ((completion-ignore-case (memq system-type '(ms-dos windows-nt)))
+	 (completion-ignored-extensions comint-completion-fignore)
+	 ;; If we bind this, it breaks remote directory tracking in rlogin.el.
+	 ;; I think it was originally bound to solve file completion problems,
+	 ;; but subsequent changes may have made this unnecessary.  sm.
+	 ;;(file-name-handler-alist nil)
+	 (minibuffer-p (window-minibuffer-p (selected-window)))
+	 (success t)
+	 (dirsuffix (cond ((not comint-completion-addsuffix) "")
+			  ((not (consp comint-completion-addsuffix)) "/")
+			  (t (car comint-completion-addsuffix))))
+	 (filename (or (comint-match-partial-filename) ""))
+	 (pathdir (file-name-directory filename))
+	 (pathnondir (file-name-nondirectory filename)))
+    (if (and (fboundp 'user-name-completion-1)
+             (string-match "^[~]" pathnondir)
+             (not pathdir))
+        (let* ((user (substring pathnondir 1))
+               (compl+uniq (user-name-completion-1 user))
+               (completion (car compl+uniq))
+               (uniq (cdr compl+uniq)))
+          (cond ((null completion)
+                 (if minibuffer-p (ding) (message "No completions of %s" filename))
+                 (setq success nil))
+                ((eq completion t)           ; Means already completed "file".
+                 (insert dirsuffix)
+                 (or minibuffer-p (message "Sole completion")))
+                (t                           ; Completion string returned.
+                 (let ((file (concat "~" completion)))
+                   (insert (comint-quote-filename
+                            (substring file (length pathnondir))))
+                   (cond (uniq
+                          ;; We inserted a unique completion.
+                          (insert dirsuffix)
+                          (or minibuffer-p (message "Completed")))
+                         ((and comint-completion-recexact comint-completion-addsuffix
+                               (string-equal pathnondir file)
+                               (file-exists-p file))
+                          ;; It's not unique, but user wants shortest match.
+                          (insert dirsuffix)
+                          (or minibuffer-p (message "Completed shortest")))
+                         ((or comint-completion-autolist
+                              (string-equal pathnondir file))
+                          ;; It's not unique, list possible completions.
+                          (comint-dynamic-list-filename-completions))
+                         (t
+                          (or minibuffer-p (message "Partially completed"))))))))
+      (setq success nil))
     success))
 
 
@@ -2361,13 +2416,26 @@ See also `comint-dynamic-complete-filename'."
 	 ;;(file-name-handler-alist nil)
 	 (filename (or (comint-match-partial-filename) ""))
 	 (pathdir (file-name-directory filename))
-	 (pathnondir (file-name-nondirectory filename))
-	 (directory (if pathdir (comint-directory pathdir) default-directory))
-	 (completions (file-name-all-completions pathnondir directory)))
-    (if (not completions)
-	(message "No completions of %s" filename)
-      (comint-dynamic-list-completions
-       (mapcar 'comint-quote-filename completions)))))
+	 (pathnondir (file-name-nondirectory filename)))
+    (if (and (fboundp 'user-name-all-completions)
+             (string-match "^[~]" pathnondir)
+             (not pathdir))
+        ;; ~username completion
+        (let* ((user (substring pathnondir 1))
+               (completions (user-name-all-completions user)))
+          (if (not completions)
+              (message "No completions of %s" filename)
+            (comint-dynamic-list-completions
+             (mapcar 'comint-quote-filename
+                     (mapcar #'(lambda (p) (concat "~" p))
+                             completions)))))
+      ;; normal file completion
+      (let* ((directory (if pathdir (comint-directory pathdir) default-directory))
+             (completions (file-name-all-completions pathnondir directory)))
+        (if (not completions)
+            (message "No completions of %s" filename)
+          (comint-dynamic-list-completions
+           (mapcar 'comint-quote-filename completions)))))))
 
 
 ;;;###autoload
