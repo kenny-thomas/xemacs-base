@@ -259,7 +259,7 @@ This mirrors the optional behavior of tcsh."
   :type '(repeat (string :tag "Argument"))
   :group 'shell)
 
-(defcustom explicit-bash-args '("--login")
+(defcustom explicit-bash-args '("-i")
   "*List of arguments to pass to \"bash\" on startup in `shell-mode'."
   :type '(repeat (string :tag "Argument"))
   :group 'shell)

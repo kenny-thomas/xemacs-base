@@ -1,3 +1,14 @@
+1998-02-24  Greg Klanderman  <greg@alphatech.com>
+
+	* compile.el (compile-internal): save and restore the selected
+	window in addition to the current buffer as display-buffer may
+	create a new frame if the buffer is a special-display buffer.
+
+1998-02-21  Karl M. Hegbloom  <karlheg@bittersweet.inetarena.com>
+
+	* shell.el (explicit-bash-args): Bash 1.14 doesn't support
+	`--login', so use the equivalent and more standard `-i' instead.
+
 1998-02-16  SL Baur  <steve@altair.xemacs.org>
 
 	* compile.el (compilation-mode): Autoload.
