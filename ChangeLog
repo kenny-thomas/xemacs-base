@@ -1,3 +1,13 @@
+2000-02-12  Andreas Jaeger  <aj@suse.de>
+
+	* compile.el (compilation-set-window-height): Did not take into
+	account left/right toolbars when checking that window was not
+	split horizontally.
+	Patch by Sean MacLennan <seanm@storm.ca>.
+	(compilation-find-file): Check if there's an existing buffer first.
+	(compare-file-to-buffer): New.
+	Patch by Jason Kim <jason@meta4.net>.
+
 2000-01-19  Yoshiki Hayashi  <yoshiki@xemacs.org>
 
 	* passwd.el (passwd-insecure-display): Remove face

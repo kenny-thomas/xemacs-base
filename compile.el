@@ -689,7 +689,13 @@ Returns the compilation buffer created."
 ;; Set the height of WINDOW according to compilation-window-height.
 (defun compilation-set-window-height (window)
   (and compilation-window-height
-       (= (window-width window) (frame-width (window-frame window)))
+       ;; Check if the window is split horizontally.
+       ;; Emacs checks window width versus frame-width:
+       ;;   (= (window-width window) (frame-width (window-frame window)))
+       ;; But XEmacs must take into account a possible left or right
+       ;; toolbar:
+       (and (window-leftmost-p (selected-window))
+	    (window-rightmost-p (selected-window)))
        ;; If window is alone in its frame, aside from a minibuffer,
        ;; don't change its height.
        (not (eq window (frame-root-window (window-frame window))))
@@ -1574,6 +1580,23 @@ Selects a window with point at SOURCE, with another window displaying ERROR."
 	  (goto-char (cdr next-error))))))
     
 
+;; helper routine to compilation-find-file
+(defun compare-file-to-buffer (filename buffer)
+  "compare BUFFER to FILENAME and see if they are really the same. Returns nil
+if not, BUFFER if they are"
+  (interactive "FCompare FILE : 
+bTo BUFFER : ")
+  ;; (print (format "%s %s " buffer filename))
+  (if (and (stringp filename) (bufferp buffer))
+      (save-excursion
+	(set-buffer buffer)
+	(if (equal (file-truename (buffer-file-name))
+		   (file-truename filename))
+	    buffer
+	  nil))
+    nil)
+)
+
 ;; Find a buffer for file FILENAME.
 ;; Search the directories in compilation-search-path.
 ;; A nil in compilation-search-path means to try the
@@ -1581,6 +1604,52 @@ Selects a window with point at SOURCE, with another window displaying ERROR."
 ;; If FILENAME is not found at all, ask the user where to find it.
 ;; Pop up the buffer containing MARKER and scroll to MARKER if we ask the user.
 (defun compilation-find-file (marker filename dir &rest formats)
+    (or formats (setq formats '("%s")))
+    (let* ((dirs compilation-search-path)
+	   (true-file-name (file-name-nondirectory filename))
+	   (buffer (get-buffer true-file-name)) 
+	   fi thisdir fmts name)
+      ;; first see if buffer is there already
+      (if (compare-file-to-buffer buffer filename)
+	  (switch-to-buffer buffer)
+	(progn
+	  (if (file-name-absolute-p filename)
+	      ;; The file name is absolute.  Use its explicit directory as
+	      ;; the first in the search path, and strip it from FILENAME.
+	      (setq filename (abbreviate-file-name (expand-file-name filename))
+		    dirs (cons (file-name-directory filename) dirs)
+		    filename (file-name-nondirectory filename)))
+	  ;; Now search the path.
+	  (while (and dirs (null buffer))
+	    (setq thisdir (or (car dirs) dir)
+		  fmts formats)
+	    ;; For each directory, try each format string.
+	    (while (and fmts (null buffer))
+	      (setq name (expand-file-name (format (car fmts) filename) thisdir)
+		    buffer (and (file-exists-p name)
+				(find-file-noselect name))
+		    fmts (cdr fmts)))
+	    (setq dirs (cdr dirs)))
+	  (or buffer
+	      ;; The file doesn't exist.
+	      ;; Ask the user where to find it.
+	      ;; If he hits C-g, then the next time he does
+	      ;; next-error, he'll skip past it.
+	      (let* ((pop-up-windows t)
+		     (w (display-buffer (marker-buffer marker))))
+		(set-window-point w marker)
+		(set-window-start w marker)
+		(let ((name (expand-file-name
+			     (read-file-name
+			      (format "Find this error in: (default %s) "
+				      filename)
+			      dir filename t))))
+		  (if (file-directory-p name)
+		    (setq name (expand-file-name filename name)))
+		  (and (file-exists-p name)
+		       (find-file-noselect name)))))))))
+
+
   (or formats (setq formats '("%s")))
   (let ((dirs compilation-search-path)
 	buffer thisdir fmts name)
