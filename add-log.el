@@ -762,46 +762,47 @@ The following keys are allowed:
 			       "\\)?" ws-re ")" ws-re "{" ws-re "$"))
 	   (new-defun-re (concat "^+" lisp-defun-re))
 	   (nomore-defun-re (concat "^-" lisp-defun-re))
-	   (done-hash (make-hashtable 20 'equal))
-	   (new-fun-hash (make-hashtable 20 'equal))
-	   (nomore-fun-hash (make-hashtable 20 'equal))
-	   change-log-buffer change-log-buffers
-	   file absfile limit current-defun delete-p
-	   dirname basename previous-dirname dirname-relative-to-change-log
+	   (done-hash       (make-hash-table :size 20 :test 'equal))
+	   (new-fun-hash    (make-hash-table :size 20 :test 'equal))
+	   (nomore-fun-hash (make-hash-table :size 20 :test 'equal))
+	   change-log-buffer change-log-buffers change-log-directory
+	   file absfile limit current-defun
+	   dirname basename previous-dirname
 	   all-entries first-file-re-p
 	   )
 
-      (flet ((add-change-log-string
-	      (str)
-	      (with-current-buffer change-log-buffer
-		(goto-char insertion-marker)
-		(insert-before-markers str)))
+      (flet
+	  ((add-change-log-string
+	    (str)
+	    (with-current-buffer change-log-buffer
+	      (goto-char insertion-marker)
+	      (insert-before-markers str)))
 
-	     (add-change-log-entry
-	      (filename line fun str)
-	      (let ((entry (cons filename fun)))
-		(unless (or (gethash entry done-hash)
-			    (string-match "\n." str))
-		  ;; (message "%s %S" str (gethash entry done-hash))
-		  (puthash entry t done-hash)
-		  (push (cons str line) all-entries))))
+	   (add-entry
+	    (filename line fun str)
+	    (let ((entry (cons filename fun)))
+	      (unless (or (gethash entry done-hash)
+			  (string-match "\n." str))
+		;; (message "%s %S" str (gethash entry done-hash))
+		(puthash entry t done-hash)
+		(push (cons str line) all-entries))))
 
-	     (flush-change-log-entries
-	      ()
-	      (setq all-entries (sort all-entries #'cdr-less-than-cdr))
-	      (mapc #'(lambda (entry)
-			(add-change-log-string (car entry)))
-		    all-entries)
-	      (setq all-entries nil))
+	   (flush-change-log-entries
+	    ()
+	    (setq all-entries (sort all-entries #'cdr-less-than-cdr))
+	    (mapc #'(lambda (entry)
+		      (add-change-log-string (car entry)))
+		  all-entries)
+	    (setq all-entries nil))
 
-	     (line-num () (1+ (count-lines (point-min) (point-at-bol))))
+	   (line-num () (1+ (count-lines (point-min) (point-at-bol))))
 
-	     (finish-up-change-log-buffer
-	      ()
-	      (push change-log-buffer change-log-buffers)
-	      (add-change-log-string "\n")
-	      (with-current-buffer change-log-buffer
-		(goto-char (point-min)))))
+	   (finish-up-change-log-buffer
+	    ()
+	    (push change-log-buffer change-log-buffers)
+	    (add-change-log-string "\n")
+	    (with-current-buffer change-log-buffer
+	      (goto-char (point-min)))))
 
 	(save-excursion
 	  (goto-char (point-min))
@@ -824,28 +825,26 @@ The following keys are allowed:
 	      (if previous-dirname
 		  (finish-up-change-log-buffer))
 	      (setq previous-dirname dirname)
-	      (setq dirname-relative-to-change-log "")
 	      (setq change-log-buffer
-                (find-file-noselect
-                 ;; APA: find a change-log relative to current directory.
-                 (with-temp-buffer
-                   (cd dirname)
-                   (find-change-log))))
+		    (find-file-noselect
+		     ;; APA: find a change-log relative to current directory.
+		     (with-temp-buffer
+		       (cd (expand-file-name dirname devdir))
+		       (find-change-log))))
+	      (setq change-log-directory
+		    (with-current-buffer change-log-buffer default-directory))
 	      (when cl-extent-property
 		(with-current-buffer change-log-buffer
-		  (set-extent-properties (make-extent (point-min) (point-min))
-		    `(end-open nil
-                      ,cl-extent-property ,cl-extent-property-value))
-		  ))
+		  (set-extent-properties
+		   (make-extent (point-min) (point-min))
+		   (list 'end-open nil
+			 cl-extent-property cl-extent-property-value))))
 	      (setq insertion-marker (point-min-marker change-log-buffer))
 	      (add-change-log-string
 	       (format (concat "%s  " cl-my-name "  <" cl-my-email
 			       ">\n\n")
 		       (iso8601-time-string))))
-	    (setq basename
-		  (file-relative-name
-		   (expand-file-name basename dirname-relative-to-change-log)
-		   (expand-file-name "")))
+	    (setq basename (file-relative-name absfile change-log-directory))
 
 	    ;; now do each hunk in turn.
 	    (while (re-search-forward hunk-re limit t)
@@ -882,7 +881,7 @@ The following keys are allowed:
 				 nomore-fun-hash)))))
 		(maphash
 		 #'(lambda (fun val)
-		     (add-change-log-entry
+		     (add-entry
 		      basename
 		      ;; this is not a perfect measure of the actual
 		      ;; file line, but good enough for sorting.
@@ -892,7 +891,7 @@ The following keys are allowed:
 		 new-fun-hash)
 		(maphash
 		 #'(lambda (fun val)
-		     (add-change-log-entry
+		     (add-entry
 		      basename
 		      (+ first-file-line val)
 		      fun
@@ -929,7 +928,7 @@ The following keys are allowed:
 		      (mapc #'(lambda (n)
 				(goto-line n)
 				(setq current-defun (add-log-current-defun))
-				(add-change-log-entry
+				(add-entry
 				 basename
 				 (if current-defun n 0)
 				 current-defun

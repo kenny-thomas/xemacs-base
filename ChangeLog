@@ -1,3 +1,10 @@
+2000-11-06  Martin Buchholz  <martin@xemacs.org>
+
+	* add-log.el (patch-to-change-log):
+	- Patch doesn't have to be in the same directory as source.
+	- Use make-hash-table, not make-hashtable
+	- Don't confusingly overload name `add-change-log-entry'.
+
 2000-10-15  Björn Torkelsson  <torkel@hpc2n.umu.se>
 
 	* debug.el (toggle-debug-on-error): New
