@@ -1289,7 +1289,7 @@ which may actually result in an url rather than a filename."
  (if (boundp 'PC-completion-as-file-name-predicate)
      ;; modern version of complete.el, just set the variable:
      (setq PC-completion-as-file-name-predicate 'ffap-complete-as-file-p)
-   (require 'advice)
+   (eval-when-compile (require 'advice))
    (defadvice PC-do-completion (around ffap-fix act)
      "Work with ffap."
      (let ((minibuffer-completion-table
