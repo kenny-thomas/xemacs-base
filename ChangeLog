@@ -1,3 +1,7 @@
+2003-01-06  Ville Skyttä  <scop@xemacs.org>
+
+	* add-log.el: Make auto-mode-alist modifications autoload-only.
+
 2003-01-03  Rendhalver [Peter Brown]  <rendhalver@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 1.73 released.
