@@ -712,7 +712,7 @@ Has a preference of looking backwards."
 ;;;###autoload
 (defun patch-to-change-log (devdir &rest cl-keys)
   "Convert the unified diff in the current buffer into a ChangeLog.
-DEVDIR (queried interactively) specifies that directory that the diff was
+DEVDIR (queried interactively) specifies the directory the diff was
 made relative to.  The ChangeLog entries are added to the appropriate
 ChangeLog files (generally in the same directory as the diffed file but
 possibly in a parent directory), which are left as modified Emacs buffers
@@ -812,36 +812,11 @@ Allowed keys are :my-name, defaulting to (user-full-name), and
 	      (setq previous-dirname dirname)
 	      (setq dirname-relative-to-change-log "")
 	      (setq change-log-buffer
-		    (find-file-noselect
-		     (let (found (newdirname dirname))
-		       ;; look for changelogs, going up the directory hierarchy
-		       (while (not found)
-			 (let ((maybe-found
-				(expand-file-name
-				 "ChangeLog"
-				 (expand-file-name newdirname devdir))))
-			   (if (file-exists-p maybe-found)
-			       (setq found maybe-found)
-			     (setq dirname-relative-to-change-log
-				   ;;(file-relative-name
-				   ;; (expand-file-name BAR FOO)
-				   ;; (expand-file-name ""))
-				   ;;is a tricky but correct way of
-				   ;;constructing FOO/BAR in a
-				   ;;file-system-independent way.
-				   (file-relative-name
-				    (expand-file-name
-				     (file-name-nondirectory newdirname)
-				     dirname-relative-to-change-log)
-				    (expand-file-name "")))
-			     (setq newdirname
-				   (file-name-directory
-				    (directory-file-name newdirname)))
-			     (if (= 0
-				    (length (directory-file-name newdirname)))
-				 (setq found (expand-file-name
-					      "Changelog" devdir))))))
-		       found)))
+                (find-file-noselect
+                 ;; APA: find a change-log relative to current directory.
+                 (with-temp-buffer
+                   (cd dirname)
+                   (find-change-log))))
 	      (setq insertion-marker (point-min-marker change-log-buffer))
 	      (add-change-log-string
 	       (format (concat "%s  " cl-my-name "  <" cl-my-email
