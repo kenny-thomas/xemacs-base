@@ -1,3 +1,7 @@
+2003-10-29  Norbert Koch  <viteno@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 1.82 released.
+
 2003-10-20  Ville Skyttä  <scop@xemacs.org>
 
 	* regexp-opt.el: API + returned regexp compatibility sync with
