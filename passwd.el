@@ -308,22 +308,20 @@ characters are typed.  There's not currently a way around this."
 (defun passwd-secure-display ()
   ;; Inverts the screen - used to indicate secure input, like xterm.
   (cond
-   ((and passwd-invert-frame-when-keyboard-grabbed
-	 (fboundp 'set-face-foreground))
+   (passwd-invert-frame-when-keyboard-grabbed
     (setq passwd-face-data
 	  (delq nil (mapcar (function
-			     (lambda (face)
-			       (let ((fg (face-foreground face))
-				     (bg (face-background face)))
-				 (if (or fg bg)
-				     (if (fboundp 'color-name)
-					 (list face
-					       (color-name fg)
-					       (color-name bg))
-				       (list face fg bg))
-				   nil))))
-			    (face-list)
-			      )))
+			     (let ((fg (face-foreground-instance 
+					face (selected-frame) nil 
+					'no-fallback))
+				   (bg (face-background-instance
+					face (selected-frame) nil
+					'no-fallback)))
+			       (if (and fg bg)
+				   (list face fg bg)
+				 nil))))
+		(face-list)
+		)))
     (let ((rest passwd-face-data))
       (while rest
 	(set-face-foreground (nth 0 (car rest)) (nth 2 (car rest)) (selected-frame))
