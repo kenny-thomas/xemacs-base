@@ -411,11 +411,32 @@ Runs `change-log-mode-hook'."
   (use-local-map change-log-mode-map)
   (set (make-local-variable 'fill-paragraph-function)
        'change-log-fill-paragraph)
-  ;; Let each entry behave as one paragraph:
-  ;; We really do want "^" in paragraph-start below: it is only the lines that
-  ;; begin at column 0 (despite the left-margin of 8) that we are looking for.
-  (set (make-local-variable 'paragraph-start) "\\s *$\\|\f\\|^\\<")
-  (set (make-local-variable 'paragraph-separate) "\\s *$\\|\f\\|^\\<")
+  ;; Lines containing only a change descriptor:
+  ;;
+  ;; * add-log.el (change-log-mode):
+  ;;
+  ;; separate paragraphs and are not part of them.  Lines containing a
+  ;; change descriptor followed by text are the start of a paragraph,
+  ;; and filled with the text following.  This caters to both styles
+  ;; of annotations, e.g.
+
+; 	* func-menu.el (fume-function-name-regexp-make): Use `\s_' symbol
+; 	class instead of hardcoded `_' and `/' characters.
+
+  ;; and
+
+; 	* func-menu.el (fume-function-name-regexp-make):
+; 	Use `\s_' symbol class instead of hardcoded `_' and `/'
+; 	characters.
+
+  ;; We really do want "^" in paragraph-start below: it is only the
+  ;; lines that begin at column 0 (despite the left-margin of
+  ;; 8) that we are looking for.
+  (let ((change-descriptor "\\*\\s +\\S +\\(\\s +(\\S +)\\)?:"))
+    (set (make-local-variable 'paragraph-start)
+	 (concat "\\s *$\\|\f\\|^\\<\\|" change-descriptor))
+    (set (make-local-variable 'paragraph-separate)
+	 (concat "\\s *$\\|\f\\|^\\<\\|" change-descriptor "\\s *$")))
   ;; Let all entries for one day behave as one page.
   ;; Match null string on the date-line so that the date-line
   ;; is grouped with what follows.
@@ -944,7 +965,8 @@ The following keys are allowed:
 			(kill-buffer (current-buffer))))))))
 	    (flush-change-log-entries)
 	    ))
-	(finish-up-change-log-buffer)
+	(if change-log-buffer ;; the patch might be totally blank.
+	    (finish-up-change-log-buffer))
 	;; return the list of ChangeLog buffers
 	change-log-buffers))))
 
