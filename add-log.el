@@ -1024,6 +1024,14 @@ The following keys are allowed:
 	;; return the list of ChangeLog buffers
 	change-log-buffers))))
 
+;; XEmacs additions
+;;;###autoload
+(add-to-list
+ 'auto-mode-alist '("[Cc]hange.?[Ll]og?\\(?:.[0-9]+\\)?\\'" . change-log-mode))
+;;;###autoload
+(add-to-list
+ 'auto-mode-alist '("\\$CHANGE_LOG\\$\\.TXT" . change-log-mode))
+
 (provide 'add-log)
 
 ;;; add-log.el ends here
