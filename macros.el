@@ -54,6 +54,16 @@ editor command."
       (error "No command name given"))
   (fset symbol last-kbd-macro))
 
+;;;###autoload
+(defun assign-last-kbd-macro-to-key (key)
+  "Assign to a key sequence the last keyboard macro defined.
+Argument KEY is anything acceptable to `define-key'.."
+  (interactive
+   (list (read-key-sequence "Key sequence for last kbd macro: ")))
+  (or last-kbd-macro
+      (error "No keyboard macro defined"))
+  (global-set-key key last-kbd-macro))
+
 ;;; Moved here from edmacro.el:
 
 ;;;###autoload
