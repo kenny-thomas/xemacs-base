@@ -1,3 +1,11 @@
+1998-01-16  Greg Klanderman  <greg@alphatech.com (Greg Klanderman)>
+
+	* add-log.el (prompt-for-change-log-name): use find-change-log to
+	find the default by searching upwards from the current directory
+	for a ChangeLog file.  Change the read-file-name prompt to present 
+	user with the default, with point at the end of the directory
+	component. 
+
 1998-01-17  SL Baur  <steve@altair.xemacs.org>
 
 	* Makefile (ELCS): Add overlay.elc.

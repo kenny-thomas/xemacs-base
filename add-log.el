@@ -154,10 +154,12 @@ If nil, use local time.")
 ;;;###autoload
 (defun prompt-for-change-log-name ()
   "Prompt for a change log name."
-  (let* ((default (change-log-name))
+  (let* ((default (find-change-log))
 	 (name (expand-file-name
-		(read-file-name (format "Log file (default %s): " default)
-				nil default))))
+		(read-file-name "Log file: "
+                                (file-name-directory default)
+                                default nil
+                                (file-name-nondirectory default)))))
     ;; Handle something that is syntactically a directory name.
     ;; Look for ChangeLog or whatever in that directory.
     (if (string= (file-name-nondirectory name) "")
