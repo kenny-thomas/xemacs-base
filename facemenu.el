@@ -90,7 +90,7 @@
 ;; There is at present no way to display what the faces look like in
 ;; the menu itself.
 ;;
-;; `list-faces-display' shows the faces in a different order than
+;; `edit-faces' shows the faces in a different order than
 ;; this menu, which could be confusing.  I do /not/ sort the list
 ;; alphabetically, because I like the default order: it puts the most
 ;; basic, common fonts first.
@@ -269,7 +269,7 @@ May also be `t' meaning to use `facemenu-add-face-function'."
 	 "---"
 	 ["Remove Properties" facemenu-remove-props t]
 	 ["List Properties" list-text-properties-at t]
-	 ["Display Faces" list-faces-display t]
+	 ["Display Faces" edit-faces t]
 	 ["Display Colors" list-colors-display t])))
 
 ;;;###autoload

@@ -276,7 +276,8 @@ The function `annotation-glyph' returns the current glyph."
       (error "%s is not an annotation" annotation)
     (progn
       (if (not layout)
-	  (setq layout (extent-layout annotation))) ; #### `extent-layout' is obsolete
+	  (setq layout (or (extent-begin-glyph-layout annotation)
+			   (extent-end-glyph-layout annotation))))
       (if (or (eq side 'right)
 	      (and (not (eq side 'left))
 		   (eq (annotation-side annotation) 'right)))

@@ -1,3 +1,10 @@
+1998-07-12  SL Baur  <steve@altair.xemacs.org>
+
+	* facemenu.el (facemenu-update-facemenu-menu): Kill
+	list-faces-display.
+
+	* annotations.el (set-annotation-glyph): Kill extent-layout.
+
 1998-07-02  Hrvoje Niksic  <hniksic@srce.hr>
 
 	* compile.el (compile-command): Docstring fix: use `add-hook' to
