@@ -1,3 +1,8 @@
+2000-01-12  Kirill 'Big K' Katsnelson  <kkm@dtmx.com>
+
+	* add-log.el (add-log-current-defun-function): Changed :type of
+	this defcustom to the correct one, 'function.
+
 2000-01-10  Didier Verna  <didier@xemacs.org>
 
 	* annotations.el (set-annotation-glyph): preserve layout and side
