@@ -38,6 +38,7 @@
 ;;;###autoload
 (defalias 'pprint 'pp)
 
+;;;###autoload
 (defun pp-to-string (object)
   "Return a string containing the pretty-printed representation of OBJECT,
 any Lisp object.  Quoting characters are used when needed to make output
