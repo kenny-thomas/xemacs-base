@@ -17,7 +17,7 @@
 # the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
 
-VERSION = 1.23
+VERSION = 1.24
 AUTHOR_VERSION =
 MAINTAINER = XEmacs Development Team <xemacs-beta@xemacs.org>
 PACKAGE = xemacs-base
@@ -33,7 +33,12 @@ ELCS = add-log.elc advice.elc annotations.elc assoc.elc case-table.elc \
 	passwd.elc pp.elc regi.elc ring.elc shell.elc skeleton.elc sort.elc \
 	thing.elc time-stamp.elc timezone.elc xbm-button.elc xpm-button.elc
 
+DATA_FILES = etc/enriched.doc
+DATA_DEST = .
+
 include ../../XEmacs.rules
+
+GENERATED += custom-load.elc
 
 all:: $(ELCS) auto-autoloads.elc custom-load.elc
 
