@@ -1,3 +1,7 @@
+2003-09-20  Steve Youngs  <youngs@xemacs.org>
+
+	* compile.el (grep-null-device): Add missing quote.
+
 2003-09-13  Adrian Aichner  <adrian@xemacs.org>
 
 	* compile.el: Partial sync with GNU Emacs compile.el revision

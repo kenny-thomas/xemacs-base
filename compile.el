@@ -532,7 +532,7 @@ Otherwise, it saves all modified buffers without asking."
 ;; #### Backward compatibility hack; recent (21.4.x and 21.5.x) XEmacsen
 ;; have `null-device', but 21.1 may not.
 (defvar grep-null-device
-  (if (boundp null-device) null-device "/dev/null")
+  (if (boundp 'null-device) null-device "/dev/null")
   "The system null device.")
 
 (defvar grep-find-use-xargs
