@@ -1,3 +1,10 @@
+2002-03-14  David A. Panariti  <panariti@attbi.com>
+
+	* comint.el (comint-strip-ctrl-m):
+	Added a check to make sure whichever of comint-last-input-end or
+	comint-last-input-start that is used has a valid position.  This
+	allows comint-strip-ctrl-m to be used with gdb-mode.
+
 2002-01-28  David A. Panariti  <panariti@mediaone.net>
 
 	* ffap.el (ffap-url-regexp):
