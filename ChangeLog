@@ -1,5 +1,9 @@
 2001-04-21  Ben Wing  <ben@xemacs.org>
 
+	* sort.el: need autoload for sort-regexp-fields-numerically.
+
+2001-04-21  Ben Wing  <ben@xemacs.org>
+
 	* add-log.el (change-log-mode):
 	Fix paragraph filling to correctly handle descriptor lines
 	(those beginning with e.g. * add-log.el (change-log-mode):).

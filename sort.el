@@ -460,6 +460,7 @@ sRegexp specifying key within record: \nr")
 		   nil
 		   comparefun)))))
 
+;;;###autoload
 (defun sort-regexp-fields-numerically (reverse record-regexp key-regexp
 					       beg end)
   "Sort the region numerically as specified by RECORD-REGEXP and KEY.
