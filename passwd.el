@@ -207,6 +207,7 @@ Some steps you can take to prevent the password from being copied around:
 	  (passwd-insecure-display)
 	  (passwd-kill-buffer input)
 	  (message "")
+          (sit-for 0)
 	  )))))
 
 
