@@ -2481,8 +2481,6 @@ Typing SPC flushes the help buffer."
 
 ;;; Utility functions:
 ;;; comint-extract-source-location	Parse source loc. from buffer or string.
-;;; comint-extract-current-pathname	Extract potential pathname around point.
-;;; comint-match-partial-pathname	Match a potential pathname before point.
 
 (defconst comint-source-location-patterns
   '(;; grep (and cpp): file.c: 10:
@@ -2726,7 +2724,7 @@ point to that location, so that another use of \\[comint-find-source-code\\]
 will go to the indicated place.
 
 If no source location is found, then try to extract a filename
-around the point, using comint-extract-current-pathname.
+around the point, using ffap-next-guess.
 
 In any case, if the file does not exist, prompt the user for
 a pathname that does.  Sometimes the file's directory needs
@@ -2744,11 +2742,15 @@ to interpret them."
 		(point)))
 	 (end (save-excursion (end-of-line) (point)))
 	 (res (or (comint-extract-source-location beg end)
-		  (let ((file (comint-extract-current-pathname)))
-		    (and file
-			 (list file nil nil nil
-			       (match-beginning 0)
-			       (match-end 0))))
+		  (save-excursion
+		    (save-restriction
+		      (narrow-to-region beg end)
+		      (goto-char (point-min))
+		      (let ((file (ffap-next-guess)))
+			(and file
+			     (list file nil nil nil
+				   (match-beginning 0)
+				   (match-end 0))))))
 		  (error "Not sitting on a source location."))))
     (let ((file (nth 0 res))
 	  (line (nth 1 res))

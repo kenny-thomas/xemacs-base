@@ -316,6 +316,7 @@ For a fancy alternative, get ffap-url.el."
 (defvar ffap-string-at-point-region '(1 1)
   "List (BEG END), last region returned by `ffap-string-at-point'.")
 
+;;;###autoload
 (defun ffap-next-guess (&optional back lim)
   "Move point to next file or URL, and return it as a string.
 If nothing is found, leave point at limit and return nil.
