@@ -131,6 +131,9 @@ If nil, use local time.")
 		  (t "%c%02d"))
 	    sign hh mm ss)))
 
+;; Autoload this, because it can be generally useful.  It should
+;; probably be moved to another file, though.
+;;;###autoload
 (defun iso8601-time-string ()
   (if change-log-time-zone-rule
       (let ((tz (getenv "TZ"))
@@ -144,6 +147,40 @@ If nil, use local time.")
 	       (iso8601-time-zone now)))
 	  (set-time-zone-rule tz)))
     (format-time-string "%Y-%m-%d")))
+
+;;;###autoload
+(defun add-log-convert ()
+  "Convert the current buffer from the old ChangeLog format to new.
+The old ChangeLogs (before XEmacs 20.2) were created with attribution
+lines looking like this:
+
+Mon Feb 10 22:20:16 1997  Hrvoje Niksic  <hniksic@srce.hr>
+
+The same line in new format looks like this:
+
+1997-02-10  Hrvoje Niksic  <hniksic@srce.hr>"
+  (interactive)
+  (while (re-search-forward "^[^\t\n]+[0-9]+  " nil t)
+    (beginning-of-line)
+    ;; Some ChangeLogs contain interspersed old and new format.  If
+    ;; this is old format, just skip it.
+    (unless (save-match-data
+	      (looking-at "[0-9-]+ "))
+      (let* ((date (cdr (split-string (buffer-substring
+				       (point)
+				       (progn
+					 (re-search-forward "  [^0-9]")
+					 (goto-char (match-beginning 0)))))))
+	     (month (1+ (position (car date)
+				  '("Jan" "Feb" "Mar" "Apr" "May" "Jun"
+				    "Jul" "Aug" "Sep" "Oct" "Nov" "Dec")
+				  :test 'equal)))
+	     (day (string-to-number (cadr date)))
+	     (year (string-to-number (cadddr date))))
+	(delete-region (point-at-bol) (- (search-forward "  ") 2))
+	(beginning-of-line)
+	(insert (format "%d-%02d-%02d" year month day))))
+    (forward-line 1)))
 
 (defun change-log-name ()
   (or change-log-default-name

@@ -1,3 +1,15 @@
+1997-12-18  Hrvoje Niksic  <hniksic@srce.hr>
+
+	* add-log.el (add-log-convert): New function.
+
+1998-01-22  Karl M. Hegbloom  <karlheg@bittersweet.inetarena.com>
+
+	* compile.el (compilation-minor-mode): Use `add-minor-mode' for
+	`compilation-minor-mode', and put an autoload cookie there.
+	(compilation-minor-mode-map): Also need to autoload the
+ 	minor-mode-map.
+	(compilation-minor-mode): ... and the variable.
+
 1998-01-24  SL Baur  <steve@altair.xemacs.org>
 
 	* Makefile (VERSION): Update to package standards 1.0.

@@ -693,6 +693,7 @@ Returns the compilation buffer created."
 				    (window-height))))
 	     (select-window w))))))
 
+;;;###autoload
 (defvar compilation-minor-mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-name map 'compilation-minor-mode-map)
@@ -867,19 +868,12 @@ Runs `compilation-mode-hook' with `run-hooks' (which see)."
   (add-hook 'mouse-track-click-hook 'compile-mouse-maybe-goto-error)
   )
 
+;;;###autoload
 (defvar compilation-minor-mode nil
   "Non-nil when in compilation-minor-mode.
 In this minor mode, all the error-parsing commands of the
 Compilation major mode are available.")
 (make-variable-buffer-local 'compilation-minor-mode)
-
-(or (assq 'compilation-minor-mode minor-mode-alist)
-    (setq minor-mode-alist (cons '(compilation-minor-mode " Compilation")
-				 minor-mode-alist)))
-(or (assq 'compilation-minor-mode minor-mode-map-alist)
-    (setq minor-mode-map-alist (cons (cons 'compilation-minor-mode
-					   compilation-minor-mode-map)
-				     minor-mode-map-alist)))
 
 ;;;###autoload
 (defun compilation-minor-mode (&optional arg)
@@ -894,6 +888,13 @@ See `compilation-mode'.
       (progn
 	(compilation-setup)
 	(run-hooks 'compilation-minor-mode-hook))))
+
+;;;###autoload
+(add-minor-mode 'compilation-minor-mode
+		" CMPL"
+		compilation-minor-mode-map
+		'view-minor-mode
+		compilation-minor-mode)
 
 ;; Write msg in the current buffer and hack its mode-line-process.
 (defun compilation-handle-exit (process-status exit-status msg)
