@@ -1,3 +1,8 @@
+2001-05-20  Adrian Aichner  <adrian@xemacs.org>
+
+	* compile.el (compilation-setup): Properly make
+	`mouse-track-click-hook' local in compile.el.
+
 2001-05-13  Adrian Aichner  <adrian@xemacs.org>
 
 	* compile.el (compilation-setup): Add

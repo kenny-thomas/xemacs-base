@@ -949,8 +949,8 @@ Runs `compilation-mode-hook' with `run-hooks' (which see)."
   ;; XEmacs change: highlight lines, install menubar.
   (require 'mode-motion)
   (setq mode-motion-hook 'compilation-mode-motion-hook)
-  (add-hook 'mouse-track-click-hook 'compile-mouse-maybe-goto-error)
-  )
+  (make-local-hook 'mouse-track-click-hook)
+  (add-hook 'mouse-track-click-hook 'compile-mouse-maybe-goto-error t t))
 
 ;;;###autoload
 (defvar compilation-shell-minor-mode nil
