@@ -517,6 +517,12 @@ Otherwise, it saves all modified buffers without asking."
   :type 'boolean
   :group 'compilation)
 
+(defcustom compilation-ask-about-kill t
+  "*If not nil, M-x compile asks to kill a running compilation.
+Otherwise, it kills it without asking."
+  :type 'boolean
+  :group 'compilation)
+
 ;; Note: the character class after the optional drive letter does not
 ;; include a space to support file names with blanks.
 (defvar grep-regexp-alist
@@ -842,9 +848,11 @@ Returns the compilation buffer created."
       (let ((comp-proc (get-buffer-process (current-buffer))))
 	(if comp-proc
 	    (if (or (not (eq (process-status comp-proc) 'run))
-		    (yes-or-no-p
-		     (format "A %s process is running; kill it? "
-			     name-of-mode)))
+                    (or
+                     (not compilation-ask-about-kill)
+                     (yes-or-no-p
+                      (format "A %s process is running; kill it? "
+                              name-of-mode))))
 		(condition-case ()
 		    (progn
 		      (interrupt-process comp-proc)

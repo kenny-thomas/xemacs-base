@@ -1,3 +1,11 @@
+2003-11-28  Robert Widhopf <mailspam3@robf.de>
+
+	* compile.el (compilation-ask-about-kill): Added new variable
+	allowing to kill a running compilation without being bothered by a
+	question if you really want to kill it.
+	
+	* compile.el (compile-internal): honor `compilation-ask-about-kill'
+
 2003-10-29  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 1.82 released.
