@@ -124,10 +124,10 @@ first will be printed into the backtrace buffer."
 	(let ((last-command nil)
 	      (this-command nil)
 	      (unread-command-event nil)
-	      (last-input-event (allocate-event))
+	      (last-input-event (make-event))
 	      (last-input-char -1)
 	      (last-input-time nil)
-	      (last-command-event (allocate-event))
+	      (last-command-event (make-event))
 	      (last-command-char -1)
 	      overriding-local-map
 	      load-read-function
