@@ -92,6 +92,12 @@ nil means compute the name with `(concat \"*\" (downcase major-mode) \"*\")'."
   :type 'function
   :group 'compilation)
 
+;; XEmacs change
+(defcustom compilation-shell-minor-mode-menubar-menu-name "Errors"
+  "*Name of the menubar menu which displays error-navigation items."
+  :type 'string
+  :group 'compilation)
+
 ;;;###autoload
 (defcustom compilation-finish-function nil
   "*Function to call when a compilation process finishes.
@@ -763,6 +769,17 @@ Returns the compilation buffer created."
     map)
   "Keymap for `compilation-minor-mode'.")
 
+;;;###autoload
+(defvar compilation-shell-minor-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\M-\C-m" 'compile-goto-error)
+    (define-key map "\M-\C-n" 'compilation-next-error)
+    (define-key map "\M-\C-p" 'compilation-previous-error)
+    (define-key map "\M-{" 'compilation-previous-file)
+    (define-key map "\M-}" 'compilation-next-file)
+    map)
+  "Keymap for `compilation-shell-minor-mode'.")
+
 (defvar compilation-mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parents map (list compilation-minor-mode-map))
@@ -792,6 +809,17 @@ or *grep* buffers."
 	 ;; But don't parse it now!
 	 (or (not (null compilation-error-list))
 	     (< compilation-parsing-end (point-max))))))
+
+;; XEmacs change
+(defvar compilation-shell-minor-mode-menubar-menu
+  '("Errors"
+    :filter compile-menu-filter
+    ["Stop"		comint-interrupt-subjob t]
+    "---"
+    ["First Error"	first-error		(compilation-errors-exist-p)]
+    ["Previous Error"	previous-error		(compilation-errors-exist-p)]
+    ["Next Error" 	next-error		(compilation-errors-exist-p)]
+    ))
 
 (defvar Compilation-mode-popup-menu
   '("Compilation Mode Commands"
@@ -926,11 +954,44 @@ Runs `compilation-mode-hook' with `run-hooks' (which see)."
   )
 
 ;;;###autoload
+(defvar compilation-shell-minor-mode nil
+  "Non-nil when in compilation-shell-minor-mode.
+In this minor mode, all the error-parsing commands of the
+Compilation major mode are available but bound to keys that don't
+collide with Shell mode.")
+(make-variable-buffer-local 'compilation-shell-minor-mode)
+
+;;;###autoload
 (defvar compilation-minor-mode nil
   "Non-nil when in compilation-minor-mode.
 In this minor mode, all the error-parsing commands of the
 Compilation major mode are available.")
 (make-variable-buffer-local 'compilation-minor-mode)
+
+;;;###autoload
+(defun compilation-shell-minor-mode (&optional arg)
+  "Toggle compilation shell minor mode.
+With arg, turn compilation mode on if and only if arg is positive.
+See `compilation-mode'.
+Turning the mode on runs the normal hook `compilation-shell-minor-mode-hook'."
+  (interactive "P")
+  (if (setq compilation-shell-minor-mode (if (null arg)
+					     (null compilation-shell-minor-mode)
+					   (> (prefix-numeric-value arg) 0)))
+      (let ((mode-line-process))
+	(compilation-setup)
+	(run-hooks 'compilation-shell-minor-mode-hook)
+	(add-submenu nil
+		     (cons compilation-shell-minor-mode-menubar-menu-name
+			   (cdr compilation-shell-minor-mode-menubar-menu))))
+    (delete-menu-item (list compilation-shell-minor-mode-menubar-menu-name))))
+
+;;;###autoload
+(add-minor-mode 'compilation-shell-minor-mode
+		" Shell-Compile"
+		compilation-shell-minor-mode-map
+		'view-minor-mode
+		compilation-shell-minor-mode)
 
 ;;;###autoload
 (defun compilation-minor-mode (&optional arg)
@@ -1070,7 +1131,8 @@ Just inserts the text, but uses `insert-before-markers'."
 (defsubst compilation-buffer-p (buffer)
   (save-excursion
     (set-buffer buffer)
-    (or compilation-minor-mode (eq major-mode 'compilation-mode))))
+    (or compilation-shell-minor-mode compilation-minor-mode
+	(eq major-mode 'compilation-mode))))
 
 (defun compilation-next-error (n)
   "Move point to the next error in the compilation buffer.
