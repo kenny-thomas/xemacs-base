@@ -3,8 +3,8 @@
 ;; Copyright (C) 1993, 1994, 1997 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
-;;         Hrvoje Niksic <hniksic@srce.hr>  -- XEmacs rewrite
-;; Maintainer: Hrvoje Niksic <hniksic@srce.hr>
+;;         Hrvoje Niksic <hniksic@xemacs.org>  -- XEmacs rewrite
+;; Maintainer: Hrvoje Niksic <hniksic@xemacs.org>
 ;; Version: 3.20
 ;; Keywords: abbrev, internal
 

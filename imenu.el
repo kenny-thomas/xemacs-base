@@ -4,8 +4,8 @@
 
 ;; Author: Ake Stenhoff <etxaksf@aom.ericsson.se>
 ;;	   Lars Lindberg <lli@sypro.cap.se>
-;; Adapted-by: Hrvoje Niksic <hniksic@srce.hr>
-;; Maintainer: Hrvoje Niksic <hniksic@srce.hr>
+;; Adapted-by: Hrvoje Niksic <hniksic@xemacs.org>
+;; Maintainer: Hrvoje Niksic <hniksic@xemacs.org>
 ;; Created: 8 Feb 1994
 ;; Keywords: tools
 

@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1994 Free Software Foundation, Inc.
 
-;; Author: Jamie Zawinski <jwz@netscape.com>
+;; Author: Jamie Zawinski <jwz@jwz.org>
 ;; Maintainer: XEmacs Development Team
 ;; Keywords: comm, extensions
 
@@ -31,11 +31,11 @@
 ;;  Sun Jun 12 04:19:30 1994 by sandy on ibm550.sissa.it
 ;;    Added support for password histories and (provide 'passwd)
 ;;    (jwz says: this "history" thing is completely undocumented, you loser!)
-;; 2-Jan-95 (mon); 4:13 AM by jwz@netscape.com
+;; 2-Jan-95 (mon); 4:13 AM by jwz@jwz.org
 ;;    Fixed Sandy's extreme keymap bogosity.  Made it invert the screen when
 ;;    reading securely (this could be better; maybe use red text or something
 ;;    instead...)
-;; 9-Jul-95 (fri); 4:55 AM by jwz@netscape.com
+;; 9-Jul-95 (fri); 4:55 AM by jwz@jwz.org
 ;;    Made it work with XEmacs 19.12.
 ;; 7-Jul-95 by cthomp@cs.uiuc.edu
 ;;    Added variable to control inverting frame when keyboard grabbed

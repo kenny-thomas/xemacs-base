@@ -154,11 +154,11 @@ If nil, use local time.")
 The old ChangeLogs (before XEmacs 20.2) were created with attribution
 lines looking like this:
 
-Mon Feb 10 22:20:16 1997  Hrvoje Niksic  <hniksic@srce.hr>
+Mon Feb 10 22:20:16 1997  Hrvoje Niksic  <hniksic@xemacs.org>
 
 The same line in new format looks like this:
 
-1997-02-10  Hrvoje Niksic  <hniksic@srce.hr>"
+1997-02-10  Hrvoje Niksic  <hniksic@xemacs.org>"
   (interactive)
   (while (re-search-forward "^[^\t\n]+[0-9]+  " nil t)
     (beginning-of-line)
