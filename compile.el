@@ -417,8 +417,12 @@ Otherwise, it saves all modified buffers without asking."
   :type 'string
   :group 'compilation)
 
-;; The system null device. (Should reference NULL_DEVICE from C.)
-(defvar grep-null-device "/dev/null" "The system null device.")
+;; The system null device.
+;; #### Backward compatibility hack; recent (21.4.x and 21.5.x) XEmacsen
+;; have `null-device', but 21.1 may not.
+(defvar grep-null-device
+  (if (boundp null-device) null-device "/dev/null")
+  "The system null device.")
 
 (defvar grep-find-use-xargs
   (if (equal (call-process "find" nil nil nil

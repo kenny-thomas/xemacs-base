@@ -1,3 +1,7 @@
+2003-09-19  Stephen J. Turnbull  <stephen@xemacs.org>
+
+	* compile.el (grep-null-device): Use null-device if bound.
+
 2003-06-11  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 1.78 released.
