@@ -51,7 +51,7 @@ to a tcp server on another machine."
 				     (process-name process)))))))
     (set-process-filter process
 			`(lambda (proc string)
-			   (tq-filter '(, tq) string)))
+			   (tq-filter ',tq string)))
     tq))
 
 ;;; accessors

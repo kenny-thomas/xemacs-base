@@ -1,3 +1,7 @@
+2005-04-04  Adrian Aichner  <adrian@xemacs.org>
+
+	* tq.el (tq-create): Sync tq.el with GNU Emacs tq.el<1.18>.
+
 2005-03-05  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 1.96 released.
