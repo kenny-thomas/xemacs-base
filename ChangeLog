@@ -1,3 +1,10 @@
+2003-10-20  Ville Skyttä  <scop@xemacs.org>
+
+	* regexp-opt.el: API + returned regexp compatibility sync with
+	GNU Emacs 21.3.  The major backwards-incompatible change is that
+	the shy/non-shy argument has been dropped from `regexp-opt',
+	`regexp-opt-depth' and `regexp-opt-group'.
+
 2003-09-20  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 1.81 released.
