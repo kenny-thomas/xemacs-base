@@ -106,8 +106,7 @@
 
 ;;; Provide some binding for startup:
 ;;;###autoload(autoload 'facemenu-keymap "facemenu" nil t 'keymap)
-;;;###autoload
-(define-key ctl-x-map "F" 'facemenu-keymap)
+;;;###autoload(define-key ctl-x-map "F" 'facemenu-keymap)
 
 (defgroup facemenu nil
   "Create a face menu for interactively adding fonts to text."
