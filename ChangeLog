@@ -1,3 +1,16 @@
+2004-11-26  Steve Youngs  <steve@youngs.au.com>
+
+	* add-log.el (change-log-date-face): XEmacs doesn't have the
+	`:inherit' keyword for faces so use `make-face' and
+	`set-face-parent'. 
+	(change-log-name-face): Ditto.
+	(change-log-email-face): Ditto.
+	(change-log-file-face): Ditto.
+	(change-log-list-face): Ditto.
+	(change-log-conditionals-face): Ditto.
+	(change-log-function-face): Ditto.
+	(change-log-acknowledgement-face): Ditto.
+
 2004-11-23  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 1.91 released.

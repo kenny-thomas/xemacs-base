@@ -163,53 +163,39 @@ Note: The search is conducted only within 10%, at the beginning of the file."
   :type '(repeat regexp)
   :group 'change-log)
 
-(defface change-log-date-face
-  '((t (:inherit font-lock-string-face)))
-  "Face used to highlight dates in date lines."
-  :version "21.1"
-  :group 'change-log)
+;; XEmacs change: In the GNU/Emacs version these are all `defface's,
+;; but they use the `:inherit' keyword which doesn't exist in XEmacs.
+(make-face 'change-log-date-face
+	   "Face used to highlight dates in date lines.")
+(set-face-parent 'change-log-date-face 'font-lock-string-face)
 
-(defface change-log-name-face
-  '((t (:inherit font-lock-constant-face)))
-  "Face for highlighting author names."
-  :version "21.1"
-  :group 'change-log)
+(make-face 'change-log-name-face
+	   "Face for highlighting author names.")
+(set-face-parent 'change-log-name-face 'font-lock-constant-face)
 
-(defface change-log-email-face
-  '((t (:inherit font-lock-variable-name-face)))
-  "Face for highlighting author email addresses."
-  :version "21.1"
-  :group 'change-log)
+(make-face 'change-log-email-face
+	   "Face for highlighting author email addresses.")
+(set-face-parent 'change-log-email-face 'font-lock-variable-name-face)
 
-(defface change-log-file-face
-  '((t (:inherit font-lock-function-name-face)))
-  "Face for highlighting file names."
-  :version "21.1"
-  :group 'change-log)
+(make-face 'change-log-file-face
+	   "Face for highlighting file names.")
+(set-face-parent 'change-log-file-face 'font-lock-function-name-face)
 
-(defface change-log-list-face
-  '((t (:inherit font-lock-keyword-face)))
-  "Face for highlighting parenthesized lists of functions or variables."
-  :version "21.1"
-  :group 'change-log)
+(make-face 'change-log-list-face
+	   "Face for highlighting parenthesized lists of functions or variables.")
+(set-face-parent 'change-log-list-face 'font-lock-keyword-face)
 
-(defface change-log-conditionals-face
-  '((t (:inherit font-lock-variable-name-face)))
-  "Face for highlighting conditionals of the form `[...]'."
-  :version "21.1"
-  :group 'change-log)
+(make-face 'change-log-conditionals-face
+	   "Face for highlighting conditionals of the form `[...]'.")
+(set-face-parent 'change-log-conditionals-face 'font-lock-variable-name-face)
 
-(defface change-log-function-face
-  '((t (:inherit font-lock-variable-name-face)))
-  "Face for highlighting items of the form `<....>'."
-  :version "21.1"
-  :group 'change-log)
+(make-face 'change-log-function-face
+	   "Face for highlighting items of the form `<....>'.")
+(set-face-parent 'change-log-function-face 'font-lock-variable-name-face)
 
-(defface change-log-acknowledgement-face
-  '((t (:inherit font-lock-comment-face)))
-  "Face for highlighting acknowledgments."
-  :version "21.1"
-  :group 'change-log)
+(make-face 'change-log-acknowledgement-face
+	   "Face for highlighting acknowledgments.")
+(set-face-parent 'change-log-acknowledgement-face 'font-lock-comment-face)
 
 (defvar change-log-font-lock-keywords
   '(;;
