@@ -17,7 +17,7 @@
 ;; General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with XEmacs; see the file COPYING.  If not, write to the 
+;; along with XEmacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
@@ -183,10 +183,7 @@ The same line in new format looks like this:
     (forward-line 1)))
 
 (defun change-log-name ()
-  (or change-log-default-name
-      (if (eq system-type 'vax-vms) 
-	  "$CHANGE_LOG$.TXT"
-	"ChangeLog")))
+  (or change-log-default-name "ChangeLog"))port
 
 ;;;###autoload
 (defun prompt-for-change-log-name ()
@@ -218,7 +215,7 @@ If 'change-log-default-name' is nil, behave as though it were 'ChangeLog'
 \(or whatever we use on this operating system).
 
 If 'change-log-default-name' contains a leading directory component, then
-simply find it in the current directory.  Otherwise, search in the current 
+simply find it in the current directory.  Otherwise, search in the current
 directory and its successive parents for a file so named.
 
 Once a file is found, `change-log-default-name' is set locally in the
@@ -255,7 +252,7 @@ current buffer to the complete file name."
 			     (not (string= (file-name-directory file1)
 					   parent-dir))))
 	    ;; Move up to the parent dir and try again.
-	    (setq file1 (expand-file-name 
+	    (setq file1 (expand-file-name
 			 (file-name-nondirectory (change-log-name))
 			 parent-dir)))
 	  ;; If we found a change log in a parent, use that.
@@ -372,7 +369,7 @@ never append to an existing entry.  Today's date is calculated according to
 	  (undo-boundary)
 	  (insert (if (save-excursion
 			(beginning-of-line 1)
-			(looking-at "\\s *$")) 
+			(looking-at "\\s *$"))
 		      ""
 		    " ")
 		  "(" defun "): "))
@@ -649,6 +646,10 @@ Has a preference of looking backwards."
 		 (if (re-search-backward "^sub[ \t]+\\([^ \t\n]+\\)" nil t)
 		     (buffer-substring (match-beginning 1)
 				       (match-end 1))))
+		((eq major-mode 'autoconf-mode)
+		 (if (re-search-backward "^\\(\\(m4_\\)?define\\|A._DEFUN\\)(\\[?\\([A-Za-z0-9_]+\\)" nil t)
+		     (buffer-substring (match-beginning 3)
+				       (match-end 3))))
                 ((eq major-mode 'fortran-mode)
                  ;; must be inside function body for this to work
                  (beginning-of-fortran-subprogram)
@@ -686,7 +687,7 @@ Has a preference of looking backwards."
 ;; followed by the string END; move to the end of that match.
 (defun get-method-definition-1 (end)
   (setq get-method-definition-md
-	(concat get-method-definition-md 
+	(concat get-method-definition-md
 		(buffer-substring (match-beginning 1) (match-end 1))
 		end))
   (goto-char (match-end 0)))
