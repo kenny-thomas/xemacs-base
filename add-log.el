@@ -873,8 +873,10 @@ The following keys are allowed:
 		 (format (concat "%s  " cl-my-name "  <" cl-my-email
 				 ">\n\n")
 			 (iso8601-time-string)))))
-	    (setq basename (file-relative-name absfile change-log-directory))
-
+            ;; APA: Standardize on / in ChangeLog entry paths.
+            (let ((directory-sep-char ?/))
+              (setq basename
+                    (file-relative-name absfile change-log-directory)))
 	    ;; now do each hunk in turn.
 	    (unless cl-dry-run
 	      (while (re-search-forward hunk-re limit t)
