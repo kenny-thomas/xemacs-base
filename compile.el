@@ -2,6 +2,7 @@
 
 ;; Copyright (C) 1985, 86, 87, 93, 94, 1995, 1996 Free Software Foundation, Inc.
 ;; Copyright (C) 1995 Tinker Systems and INS Engineering Corp.
+;; Copyright (C) 2001 Ben Wing.
 
 ;; Author: Roland McGrath <roland@prep.ai.mit.edu>
 ;; Maintainer: XEmacs Development Team
@@ -436,6 +437,24 @@ by influencing the default value for the variable `grep-find-command'.")
 		 (+ 22 (length grep-command)))))
   "The default find command for \\[grep-find].")
 
+;; XEmacs addition: all grep-all-files stuff
+
+(defvar grep-all-files-history nil)
+
+(defcustom grep-all-files-omitted-expressions
+  '("*~" "#*" ".#*" ",*" "*.elc" "*.obj" "*.o" "*.exe" "*.dll" "*.lib" "*.a"
+    "*.dvi" "*.class" "*.bin" "*.orig" "*.rej")
+  "List of expressions matching files to be omitted in `grep-all-files-...'.
+Each entry should be a simple name or a shell wildcard expression."
+  :type '(repeat string)
+  :group 'compilation)
+
+(defcustom grep-all-files-omitted-directories '("CVS" "RCS" "SCCS")
+  "List of directories not to recurse into in `grep-all-files-...'.
+Each entry should be a simple name or a shell wildcard expression."
+  :type '(repeat string)
+  :group 'compilation)
+
 ;;;###autoload
 (defcustom compilation-search-path '(nil)
   "*List of directories to search for source files named in error messages.
@@ -617,6 +636,59 @@ easily repeat a find command."
 			       grep-find-command 'grep-find-history)))
   (let ((grep-null-device nil))		; see grep
     (grep command-args)))
+
+;; XEmacs addition: all grep-all-files stuff
+
+(defun construct-grep-all-files-command (find-segment grep-segment)
+  (let ((omit-annoying
+	 (mapconcat #'(lambda (wildcard)
+			(concat "-name '" wildcard "' -or "))
+		    grep-all-files-omitted-expressions
+		    "")))
+    (cond ((eq grep-find-use-xargs 'gnu)
+	   (format "find . %s %s -type f -print0 | xargs -0 -e %s"
+		   find-segment omit-annoying grep-segment))
+	  (grep-find-use-xargs
+	   (format "find . %s %s -type f -print | xargs %s"
+		   find-segment omit-annoying grep-segment))
+	  (t
+	   (format "find . %s %s -type f -exec %s {} /dev/null \\;"
+		   find-segment omit-annoying grep-segment)))))
+
+;;;###autoload
+(defun grep-all-files-in-current-directory (command)
+  "Run `grep' in all non-annoying files in the current directory.
+`Non-annoying' excludes backup files, autosave files, CVS merge files, etc.
+More specifically, this is controlled by `grep-all-files-omitted-expressions'.
+
+This function does not recurse into subdirectories.  If you want this,
+use \\[grep-all-files-in-current-directory-and-below]."
+  (interactive
+   (progn
+     (list (read-shell-command "Run grep (like this): "
+			       grep-command 'grep-all-files-history))))
+  (grep (construct-grep-all-files-command
+	 "-name . -or -type d -prune -or" command)))
+
+;;;###autoload
+(defun grep-all-files-in-current-directory-and-below (command)
+  "Run `grep' in all non-annoying files in the current directory and below.
+`Non-annoying' excludes backup files, autosave files, CVS merge files, etc.
+More specifically, this is controlled by `grep-all-files-omitted-expressions'.
+
+This function recurses into subdirectories.  If you do not want this,
+use \\[grep-all-files-in-current-directory]."
+  (interactive
+   (progn
+     (list (read-shell-command "Run grep (like this): "
+			       grep-command 'grep-all-files-history))))
+  (grep (construct-grep-all-files-command
+	 ;; prune all specified directories.
+	 (mapconcat #'(lambda (wildcard)
+			(concat "-name '" wildcard "' -prune -or "))
+		    grep-all-files-omitted-directories
+		    "")
+	 command)))
 
 (defun compile-internal (command error-message
 				 &optional name-of-mode parser regexp-alist

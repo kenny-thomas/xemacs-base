@@ -1,3 +1,33 @@
+2002-11-29  Ben Wing  <ben@xemacs.org>
+
+	* .cvsignore: Remove files now handled automatically by CVS.
+	* Makefile: Use `compile' instead of hard-coded `all'.
+
+	* compile.el:
+	* compile.el (grep-all-files-history): New.
+	* compile.el (grep-all-files-omitted-expressions): New.
+	* compile.el (grep-all-files-omitted-directories): New.
+	* compile.el (construct-grep-all-files-command): New.
+	* compile.el (grep-all-files-in-current-directory): New.
+	* compile.el (grep-all-files-in-current-directory-and-below): New.
+	* compile.el (compile-internal):
+
+	New commands for conveniently grepping all useful files in the
+	current directory, or recursively.  Sort of like grep-find, but
+
+	(a) the find command is determined for you, to cover this
+	directory only, or all subdirs
+
+	(b) uninteresting files/dirs are automatically skipped by
+	`grep-all-files-omitted-expressions' and
+	`grep-all-files-omitted-directories' -- e.g. binary files (.o,
+	.obj, .exe), diff droppings (.orig, .rej), backup files (~),
+	autosave files (#....), CVS droppings (.#...), etc. plus
+	directories CVS/RCS/SCCS.
+
+	(c) unlike grep-find, the interface shows only the grep command,
+	minus files, so it's manageable.
+
 2002-11-25  Mike Sperber <mike@xemacs.org>
 
 	* compile.el (compile-internal): Re-set `outwin' because it may
