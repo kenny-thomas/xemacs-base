@@ -395,6 +395,9 @@ the sort order."
 	   t)
 	 (goto-char (match-beginning 0)))))
 
+;; History used for sort regexps.
+(defvar sort-regexp-history nil)
+
 ;;;###autoload
 (defun sort-regexp-fields (reverse record-regexp key-regexp beg end
 				   &optional comparefun)
@@ -425,8 +428,17 @@ For example: to sort lines in the region by the first word on each line
   ;; using negative prefix arg to mean "reverse" is now inconsistent with
   ;; other sort-.*fields functions but then again this was before, since it
   ;; didn't use the magnitude of the arg to specify anything.
-  (interactive "P\nsRegexp specifying records to sort: 
-sRegexp specifying key within record: \nr")
+  (interactive
+   ;; retrieve the region first, since pasting into the minibuffer will
+   ;; deactivate it. (YUCK! should have per-buffer regions.)
+   (let ((beg (region-beginning))
+	 (end (region-end)))
+     (list current-prefix-arg
+	   (read-string "Regexp specifying records to sort: "
+			nil 'sort-regexp-history)
+	   (read-string "Regexp specifying key within record: "
+			nil 'sort-regexp-history)
+	   beg end)))
   (cond ((or (equal key-regexp "") (equal key-regexp "\\&"))
 	 (setq key-regexp 0))
 	((string-match "\\`\\\\[1-9]\\'" key-regexp)
@@ -485,12 +497,19 @@ For example: to sort lines in the region by the first word on each line
   ;; using negative prefix arg to mean "reverse" is now inconsistent with
   ;; other sort-.*fields functions but then again this was before, since it
   ;; didn't use the magnitude of the arg to specify anything.
-  (interactive "P\nsRegexp specifying records to sort: 
-sRegexp specifying key within record: \nr")
+  (interactive
+   ;; retrieve the region first, since pasting into the minibuffer will
+   ;; deactivate it. (YUCK! should have per-buffer regions.)
+   (let ((beg (region-beginning))
+	 (end (region-end)))
+     (list current-prefix-arg
+	   (read-string "Regexp specifying records to sort: "
+			nil 'sort-regexp-history)
+	   (read-string "Regexp specifying key within record: "
+			nil 'sort-regexp-history)
+	   beg end)))
   (sort-regexp-fields reverse record-regexp key-regexp beg end
 		      #'(lambda (a b)
-			  (dp a)
-			  (dp b)
 			  (< (string-to-number a) (string-to-number b)))))
 
 

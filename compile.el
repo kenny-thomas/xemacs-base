@@ -1710,7 +1710,7 @@ bTo BUFFER : ")
     (let* ((dirs compilation-search-path)
 	   (true-file-name (file-name-nondirectory filename))
 	   (buffer (get-buffer true-file-name)) 
-	   fi thisdir fmts name)
+	   thisdir fmts name)
       (flet ((push-file-name-history (name)
 	       (setq file-name-history
 		     (if minibuffer-history-uniquify
