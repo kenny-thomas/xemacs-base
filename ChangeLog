@@ -1,3 +1,7 @@
+2002-10-29  Rendhalver [Peter Brown]  <rendhalver@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 1.71 released.
+
 2002-10-19  Ville Skyttä  <scop@xemacs.org>
 
 	* ffap.el (ffap): Remove dummy defun for ffap, autoload alias.
