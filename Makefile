@@ -44,6 +44,6 @@ include ../../XEmacs.rules
 
 GENERATED += custom-load.elc
 
-all:: $(ELCS) auto-autoloads.elc custom-load.elc
+compile:: $(ELCS) auto-autoloads.elc custom-load.elc
 
 binkit: binkit-common
