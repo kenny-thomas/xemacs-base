@@ -1,3 +1,7 @@
+2004-11-08  Norbert Koch  <viteno@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 1.90 released.
+
 2004-11-07  Ben Wing  <ben@xemacs.org>
 
 	* add-log.el:
