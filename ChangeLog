@@ -1,3 +1,8 @@
+2002-01-07  Adrian Aichner  <adrian@xemacs.org>
+
+	* Makefile (HTML_FILES): New.
+	* Makefile (HTML_DEP): New.
+
 2002-01-02  Adrian Aichner  <adrian@xemacs.org>
 
 	* add-log.el (patch-to-change-log): Standardize on / in ChangeLog

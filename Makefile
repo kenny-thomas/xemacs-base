@@ -34,6 +34,9 @@ ELCS = add-log.elc advice.elc annotations.elc assoc.elc case-table.elc \
 	skeleton.elc sort.elc thing.elc time-stamp.elc timezone.elc \
 	xbm-button.elc xpm-button.elc tq.elc
 
+HTML_FILES = 
+HTML_DEP = 
+
 DATA_FILES = etc/enriched.doc
 DATA_DEST = .
 
