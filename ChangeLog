@@ -1,3 +1,16 @@
+1999-08-19  Christoph Wedler  <Christoph.Wedler@sap-ag.de>
+
+	* imenu.el: Synced up with FSF 20.4, except menu/menubar
+ 	differences, some autoload cookies and:
+	(imenu--generic-function): Use `match-string' instead
+ 	`match-string-no-properties'.
+	(imenu--completion-buffer): Don't set `minibuffer-setup-hook'.  In
+ 	XEmacs, `completing-read' has only 6 args, provide workaround.
+
+	* imenu.el: Bugfix in XEmacs specific part.
+ 	(imenu--last-menubar-filter-menu): New buffer-local variable.
+	(imenu-menu-filter): Use it.  Split/sort submenus.
+
 1999-07-22  SL Baur  <steve@beopen.com>
 
 	* comint.el (comint-password-prompt-regexp): add extra blank.
