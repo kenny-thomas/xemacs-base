@@ -1,3 +1,15 @@
+1999-07-22  SL Baur  <steve@beopen.com>
+
+	* comint.el (comint-password-prompt-regexp): add extra blank.
+	From Bob Weiner  <weiner@beopen.com>
+
+1999-07-22  SL Baur  <steve@xemacs.org>
+
+	* compile.el (compilation-set-window-height): Did not take into
+	account left/right toolbars when checking that window was
+	not split horizontally.
+	From Sean MacLennan <seanm@storm.ca>
+
 1999-03-26  Adrian Aichner  <aichner@ecf.teradyne.com>
 
 	* compile.el (compile-internal): Use `shell-command-switch'
