@@ -1,4 +1,4 @@
-2004-06-28  Fily~ Zolt~n  <zoltan.filyo@multipolaris.hu>
+2004-06-28  Zoltan Filyo  <zoltan.filyo@multipolaris.hu>
 
 	* compile.el (compilation-error-regexp-alist-alist): Enhance
 	regexp to grasp Borland C++ Builder 6.0 syntax.
