@@ -1,3 +1,10 @@
+2000-02-14  Barry Wilkes  <bew@bcs.org.uk>
+
+	* compile.el : Added grep-find command (+ associated variables)
+	from FSF Emacs. Only one change to FSF code required, namely to
+	use read-shell-command rather than read-from-minibuffer in
+	grep-find. 
+	
 2000-02-16  Yoshiki Hayashi  <yoshiki@xemacs.org>
 
 	* compile.el: Delete garbage.

@@ -393,6 +393,29 @@ Otherwise, it saves all modified buffers without asking."
   :type 'string
   :group 'compilation)
 
+(defvar grep-find-use-xargs
+  (if (equal (call-process "find" nil nil nil
+			   grep-null-device "-print0")
+	     0)
+      'gnu)
+  "Whether \\[grep-find] uses the `xargs' utility by default.
+
+If nil, it uses `grep -exec'; if `gnu', it uses `find -print0' and `xargs -0';
+if not nil and not `gnu', it uses `find -print' and `xargs'.
+
+This variable's value takes effect when `compile.el' is loaded
+by influencing the default value for the variable `grep-find-command'.")
+
+(defvar grep-find-command
+  (cond ((eq grep-find-use-xargs 'gnu)
+	 (format "find . -type f -print0 | xargs -0 -e %s" grep-command))
+	(grep-find-use-xargs
+	 (format "find . -type f -print | xargs %s" grep-command))
+	(t (cons (format "find . -type f -exec %s {} /dev/null \\;"
+			 grep-command)
+		 (+ 22 (length grep-command)))))
+  "The default find command for \\[grep-find].")
+
 ;;;###autoload
 (defcustom compilation-search-path '(nil)
   "*List of directories to search for source files named in error messages.
@@ -446,6 +469,7 @@ write into the compilation buffer, and to put in its mode line.")
 (defvar compile-history nil)
 ;; History of grep commands.
 (defvar grep-history nil)
+(defvar grep-find-history nil)
 
 ;; XEmacs
 (defvar compilation-font-lock-keywords (purecopy
@@ -561,6 +585,20 @@ easily repeat a grep command."
 			 (t
 			  (cons msg code)))
 		 (cons msg code))))))))
+
+(defun grep-find (command-args)
+  "Run grep via find, with user-specified args, and collect output in a buffer.
+While find runs asynchronously, you can use the \\[next-error] command
+to find the text that grep hits refer to.
+
+This command uses a special history list for its arguments, so you can
+easily repeat a find command."
+  (interactive
+   ;; XEmacs change..
+   (list (read-shell-command "Run find (like this): "
+			       grep-find-command 'grep-find-history)))
+  (let ((grep-null-device nil))		; see grep
+    (grep command-args)))
 
 (defun compile-internal (command error-message
 				 &optional name-of-mode parser regexp-alist
