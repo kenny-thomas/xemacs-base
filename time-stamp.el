@@ -390,7 +390,9 @@ of the format string."
 	  (time-stamp-mail-host-name))
 	 ))
 	(if (string-equal field-width "")
-	    field-result
+	    (if (numberp field-result) 
+		(number-to-string field-result)
+	      field-result)
 	  (let ((padded-result
 		 (format (format "%%%s%c"
 				 field-width

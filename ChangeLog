@@ -1,3 +1,8 @@
+1998-10-08  Didier Verna  <verna@inf.enst.fr>
+
+	* time-stamp.el (time-stamp-strftime): fixed usage of `concat'
+	(which now accepts only strings) when `field-result' is a number.
+
 1998-08-21  Greg Klanderman  <greg@alphatech.com>
 
 	* comint.el (comint-dynamic-complete-filename): do user name
