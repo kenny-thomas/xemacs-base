@@ -1,3 +1,9 @@
+2000-01-10  Didier Verna  <didier@xemacs.org>
+
+	* annotations.el (set-annotation-glyph): preserve layout and side
+	when not specified, remove old glyph from the extent when chaging
+	the side of the annotation.
+
 1999-12-11  Andreas Jaeger  <aj@suse.de>
 
 	* timezone.el (timezone-parse-date): Years < 69 are 20YY.
