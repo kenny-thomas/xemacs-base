@@ -799,7 +799,7 @@ This uses ffap-file-exists-string, which may try adding suffixes from
 If string NAME at point (maybe \"\") is not a file or url, these pairs
 specify actions to try creating such a string.  A pair matches if either
   KEY is a symbol, and it equals `major-mode', or
-  KEY is a string, it should matches NAME as a regexp.
+  KEY is a string, it should match NAME as a regexp.
 On a match, \(FUNCTION NAME\) is called and should return a file, an
 url, or nil. If nil, search the alist for further matches.")
 

@@ -1,3 +1,7 @@
+2004-10-04  Adrian Aichner  <adrian@xemacs.org>
+
+	* ffap.el (ffap-alist): Single typo fix.
+
 2004-09-08  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 1.88 released.
