@@ -1,3 +1,7 @@
+2005-03-05  Norbert Koch  <viteno@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 1.96 released.
+
 2005-03-04  Vin Shelton  <acs@xemacs.org>
 
 	* compile.el (find-grep): Aliases need to be quoted, apparently.
