@@ -768,6 +768,9 @@ easily repeat a find command."
   (let ((grep-null-device nil))		; see grep
     (grep command-args)))
 
+;; XEmacs addition
+(defalias find-grep grep-find)
+
 ;; XEmacs addition: all grep-all-files stuff
 
 (defun construct-grep-all-files-command (find-segment grep-segment)

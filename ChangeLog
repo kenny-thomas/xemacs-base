@@ -1,3 +1,9 @@
+2005-02-26  Aidan Kehoe  <kehoea@parhasard.net>
+
+	* compile.el (find-grep): Alias it to grep-find--if you're used to
+	the shell, find and _then_ grep is the word order that springs to
+	mind.
+
 2004-12-22  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 1.94 released.
