@@ -633,18 +633,15 @@ Otherwise, one argument `-i' is passed to the shell.
    (list
     (and current-prefix-arg
 	 (read-buffer "Shell buffer: " "*shell*"))))
-  (let ((buffer (get-buffer-create (or buffer "*shell*")))
-	(buffer-name (if shell-multiple-shells
-			 "*shell*"
-		       "shell")))
-    ;; XEmacs: #### Yuck!! FSF 21.3 moves pop-to-buffer to before the
-    ;; call to comint; we rely on the old behavior of it being after.
-    ;; Fix this so we have only one call.
+  (let* ((buffer-name (cond ((null buffer) "*shell*")
+			    ((stringp buffer) buffer)
+			    (t (buffer-name buffer))))
+	 (buffer (if shell-multiple-shells (generate-new-buffer buffer-name)
+		   (get-buffer-create buffer-name))))
     ;; Pop to buffer, so that the buffer's window will be correctly set
     ;; when we call comint (so that comint sets the COLUMNS env var properly).
     (pop-to-buffer buffer)
-    (cond ((or shell-multiple-shells
-	       (not (comint-check-proc buffer)))
+    (cond ((not (comint-check-proc buffer))
 	   (let* ((prog (or explicit-shell-file-name
 			    (getenv "ESHELL")
 			    (getenv "SHELL")
@@ -655,7 +652,8 @@ Otherwise, one argument `-i' is passed to the shell.
 		  (xargs-name (intern-soft (concat "explicit-" name "-args"))))
 	     (if (not (file-exists-p startfile))
 		 (setq startfile (concat "~/.emacs.d/.emacs_" name)))
-	     (setq buffer (set-buffer (apply 'make-comint buffer-name prog
+	     (setq buffer (set-buffer (apply 'make-comint-1 buffer
+					     prog
 					     (if (file-exists-p startfile)
 						 startfile)
 					     (if (and xargs-name
@@ -663,9 +661,6 @@ Otherwise, one argument `-i' is passed to the shell.
 						 (symbol-value xargs-name)
 					       '("-i")))))
 	     (shell-mode))))
-    (pop-to-buffer buffer)
-    (if shell-multiple-shells
-	(rename-buffer (generate-new-buffer-name "*shell*")))
     buffer))
 
 ;;; Don't do this when shell.el is loaded, only while dumping.

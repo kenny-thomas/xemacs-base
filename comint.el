@@ -638,6 +638,19 @@ BUFFER can be either a buffer or the name of one."
   (let ((proc (get-buffer-process buffer)))
     (and proc (memq (process-status proc) '(open run stop)))))
 
+;; #### Hack until FSF comint is integrated.
+(defun make-comint-1 (buffer program &optional startfile &rest switches)
+  (or (fboundp 'start-process)
+      (error "Multi-processing is not supported for this system"))
+  ;; If no process, or nuked process, crank up a new one and put buffer in
+  ;; comint mode.  Otherwise, leave buffer and existing process alone.
+  (cond ((not (comint-check-proc buffer))
+	 (save-excursion
+	   (set-buffer buffer)
+	   (comint-mode)) ; Install local vars, mode, keymap, ...
+	 (comint-exec buffer name program startfile switches)))
+  buffer)
+
 ;; Note that this guy, unlike shell.el's make-shell, barfs if you pass it ()
 ;; for the second argument (program).
 ;;;###autoload
@@ -651,17 +664,8 @@ running process in that buffer, it is not restarted.  Optional third arg
 STARTFILE is the name of a file to send the contents of to the process.
 
 If PROGRAM is a string, any more args are arguments to PROGRAM."
-  (or (fboundp 'start-process)
-      (error "Multi-processing is not supported for this system"))
-  (let ((buffer (get-buffer-create (concat "*" name "*"))))
-    ;; If no process, or nuked process, crank up a new one and put buffer in
-    ;; comint mode.  Otherwise, leave buffer and existing process alone.
-    (cond ((not (comint-check-proc buffer))
-	   (save-excursion
-	     (set-buffer buffer)
-	     (comint-mode)) ; Install local vars, mode, keymap, ...
-	   (comint-exec buffer name program startfile switches)))
-    buffer))
+  (apply 'make-comint-1 (get-buffer-create (concat "*" name "*")) program
+	 startfile switches))
 
 ;;;###autoload
 (defun comint-run (program)

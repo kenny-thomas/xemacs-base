@@ -1,3 +1,16 @@
+2004-11-22  Ben Wing  <ben@xemacs.org>
+
+	* comint.el:
+	* comint.el (make-comint-1): New.
+	* comint.el (make-comint):
+	Break out make-comint functionality into make-comint-1 so we can
+	pass in a buffer directly. #### This should go away when FSF
+	comint.el is integrated.
+	
+	* shell.el (shell):
+	Fix up when shell-multiple-shells is true.  Generate the buffer
+	first and pass to comint; avoid weird tricks with the buffer name.
+
 2004-11-08  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 1.90 released.
