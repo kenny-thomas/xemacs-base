@@ -484,7 +484,7 @@ Prefix arg means justify as well."
     t))
 
 (defcustom add-log-current-defun-header-regexp
-  "^\\([A-Z][A-Z_ ]*[A-Z_]\\|[-_a-zA-Z]+\\)[ \t]*[:=]"
+  "^\\([A-Z][_A-Z0-9]*[_A-Z0-9]\\|[_a-zA-Z0-9.-]+\\)[ \t]*[:=]"
   "*Heuristic regexp used by `add-log-current-defun' for unknown major modes."
   :type 'regexp
   :group 'change-log)
@@ -770,8 +770,8 @@ The following keys are allowed:
       ()
     (let* ((old-font-lock-auto-fontify font-lock-auto-fontify)
 	   (font-lock-auto-fontify nil)
-	   (file-re1 "^Index: \\(\\S-*\\)")
-	   (file-re2 "^\\+\\+\\+ \\(\\S-*\\)")
+	   (file-re1 "^Index: \\([^\n]*\\)")
+	   (file-re2 "^\\+\\+\\+ \\([^\t]*\\)")
 	   (hunk-re "^@@ -[0-9]+,[0-9]+ \\+\\([0-9]+\\),\\([0-9]+\\) @@$")
 	   (basename-re "\\`\\(.*\\)/\\(.*\\)\\'")
 	   (lisp-defun-re "(def[a-z-]* \\([^ \n]+\\)")
@@ -784,11 +784,17 @@ The following keys are allowed:
 ; 			       c-multi-token-re ws-re
 ; 			       "\\(," ws-re c-multi-token-re ws-re "\\)*"
 ; 			       "\\)?" ws-re ")" ws-re "{" ws-re "$"))
-	   (new-defun-re (concat "^+" lisp-defun-re))
+	   (new-defun-re (concat "^\\+" lisp-defun-re))
 	   (nomore-defun-re (concat "^-" lisp-defun-re))
+           (new-heuristic-fun-re
+            (concat "^\\+" (substring add-log-current-defun-header-regexp 1)))
+           (nomore-heuristic-fun-re
+            (concat "^-" (substring add-log-current-defun-header-regexp 1)))
 	   (done-hash       (make-hash-table :size 20 :test 'equal))
 	   (new-fun-hash    (make-hash-table :size 20 :test 'equal))
 	   (nomore-fun-hash (make-hash-table :size 20 :test 'equal))
+	   (new-heuristic-fun-hash    (make-hash-table :size 20 :test 'equal))
+	   (nomore-heuristic-fun-hash (make-hash-table :size 20 :test 'equal))
 	   change-log-buffer change-log-buffers change-log-directory
 	   file absfile limit current-defun
 	   dirname basename previous-dirname
@@ -912,6 +918,27 @@ The following keys are allowed:
 			  (puthash fun
 				   (1- (- (line-num) hunk-start-line))
 				   nomore-fun-hash)))))
+		  ;; do added and/or removed variable heuristics.
+		  (clrhash new-heuristic-fun-hash)
+		  (clrhash nomore-heuristic-fun-hash)
+		  (save-excursion
+		    (while (re-search-forward
+                            new-heuristic-fun-re hunk-limit t)
+		      (let ((fun (match-string 1)))
+                        (unless (gethash fun new-fun-hash)
+                          (puthash (match-string 1)
+                                   (1- (- (line-num) hunk-start-line))
+                                   new-heuristic-fun-hash)))))
+		  (save-excursion
+		    (while (re-search-forward
+                            nomore-heuristic-fun-re hunk-limit t)
+		      (let ((fun (match-string 1)))
+			(if (gethash fun new-heuristic-fun-hash)
+			    (remhash fun new-heuristic-fun-hash)
+                          (unless (gethash fun nomore-fun-hash)
+                            (puthash fun
+                                     (1- (- (line-num) hunk-start-line))
+                                     nomore-heuristic-fun-hash))))))
 		  (maphash
 		   #'(lambda (fun val)
 		       (add-entry
@@ -930,6 +957,24 @@ The following keys are allowed:
 			fun
 			(format "\t* %s (%s): Removed.\n" basename fun)))
 		   nomore-fun-hash)
+                  (maphash
+                   #'(lambda (fun val)
+                       (add-entry
+                        basename
+                        ;; this is not a perfect measure of the actual
+                        ;; file line, but good enough for sorting.
+                        (+ first-file-line val)
+                        fun
+                        (format "\t* %s (%s): New.\n" basename fun)))
+                   new-heuristic-fun-hash)
+                  (maphash
+                   #'(lambda (fun val)
+                       (add-entry
+                        basename
+                        (+ first-file-line val)
+                        fun
+                        (format "\t* %s (%s): Removed.\n" basename fun)))
+                   nomore-heuristic-fun-hash)
 
 		  ;; now try to handle what changed.
 		  (let (trylines
@@ -973,7 +1018,8 @@ The following keys are allowed:
 			  (kill-buffer (current-buffer))))))))
 	      (flush-change-log-entries))
 	    ))
-	(if change-log-buffer ;; the patch might be totally blank.
+        ;; the patch might be totally blank.
+	(if change-log-buffer
 	    (finish-up-change-log-buffer))
 	;; return the list of ChangeLog buffers
 	change-log-buffers))))
