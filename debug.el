@@ -538,6 +538,38 @@ If argument is nil or an empty string, cancel for all functions."
       (set-buffer standard-output)
       (help-mode))))
 
+;;; convenience functions for turning on and off debug-on varibles
+
+;;;###autoload
+(defun toggle-debug-on-error (&optional arg)
+  "Toggle the status of debug-on-error.
+With arg, set debug-on-error iff arg is positive."
+  (interactive "_P")
+  (setq debug-on-error
+        (if (null arg)
+            (not debug-on-error)
+	  (> (prefix-numeric-value arg) 0))))
+
+;;;###autoload
+(defun toggle-debug-on-signal (&optional arg)
+  "Toggle the status of debug-on-signal.
+With arg, set debug-on-signal iff arg is positive."
+  (interactive "_P")
+  (setq debug-on-signal
+        (if (null arg)
+            (not debug-on-signal)
+	  (> (prefix-numeric-value arg) 0))))
+
+;;;###autoload
+(defun toggle-debug-on-quit (&optional arg)
+  "Toggle the status of debug-on-quit.
+With arg, set debug-on-quit iff arg is positive."
+  (interactive "_P")
+  (setq debug-on-quit
+        (if (null arg)
+            (not debug-on-quit)
+	  (> (prefix-numeric-value arg) 0))))
+
 (provide 'debug)
 
 ;;; debug.el ends here

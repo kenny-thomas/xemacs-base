@@ -1,3 +1,9 @@
+2000-10-15  Björn Torkelsson  <torkel@hpc2n.umu.se>
+
+	* misc.el (toggle-debug-on-error): New
+	* misc.el (toggle-debug-on-signal): New
+	* misc.el (toggle-debug-on-quit): New
+
 2000-10-24  Didier Verna  <didier@xemacs.org>
 
 	* add-log.el (patch-to-change-log): new cl keywords
