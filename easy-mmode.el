@@ -498,8 +498,9 @@ ARGS is a list of additional keyword arguments."
 	(if (sequencep char)
 	    (mapcar (lambda (c) (modify-syntax-entry c syntax st)) char)
 	  (modify-syntax-entry char syntax st))))
-    (if parent (set-char-table-parent
-		st (if (symbolp parent) (symbol-value parent) parent)))
+    ;; XEmacs change: we do not have set-char-table-parent
+    (if parent (derived-mode-merge-syntax-tables
+		(if (symbolp parent) (symbol-value parent) parent) st))
     st))
 
 ;;;###autoload
