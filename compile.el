@@ -378,6 +378,17 @@ See also the variable `compilation-error-regexp-alist-alist'."
 
 (compilation-build-compilation-error-regexp-alist)
 
+(defcustom compilation-error-screen-columns t
+  "*If non-nil, column numbers in error messages are screen columns.
+Otherwise they are interpreted as character positions, with
+each character occupying one column.
+The default is to use screen columns, which requires that the compilation
+program and Emacs agree about the display width of the characters,
+especially the TAB character."
+:type 'boolean
+:group 'compilation
+:version "20.4")
+
 (defcustom compilation-read-command t
   "*If not nil, M-x compile reads the compilation command to use.
 Otherwise, M-x compile just uses the value of `compile-command'."
@@ -945,6 +956,7 @@ Runs `compilation-mode-hook' with `run-hooks' (which see)."
   (set (make-local-variable 'compilation-old-error-list) nil)
   (set (make-local-variable 'compilation-parsing-end) 1)
   (set (make-local-variable 'compilation-directory-stack) nil)
+  (make-local-variable 'compilation-error-screen-columns)
   (setq compilation-last-buffer (current-buffer))
   ;; XEmacs change: highlight lines, install menubar.
   (require 'mode-motion)
@@ -1550,10 +1562,12 @@ The current buffer should be the desired compilation output buffer."
 			    ;; Look for the next error.
 			    t)
 			;; We found the file.  Get a marker for this error.
-			;; compilation-old-error-list is a buffer-local
-			;; variable, so we must be careful to extract its value
+			;; compilation-old-error-list and
+			;; compilation-error-screen-columns are buffer-local
+			;; so we must be careful to extract their value
 			;; before switching to the source file buffer.
 			(let ((errors compilation-old-error-list)
+			      (columns compilation-error-screen-columns)
 			      (last-line (nth 1 (cdr next-error)))
 			      (column (nth 2 (cdr next-error))))
 			  (set-buffer buffer)
@@ -1563,7 +1577,9 @@ The current buffer should be the desired compilation output buffer."
 			      (goto-line last-line)
 			      (if (and column (> column 0))
 				  ;; Columns in error msgs are 1-origin.
-				  (move-to-column (1- column))
+				  (if columns
+				      (move-to-column (1- column))
+				    (forward-char (1- column)))
 				(beginning-of-line))
 			      (setcdr next-error (point-marker))
 			      ;; Make all the other error messages referring
@@ -1587,7 +1603,9 @@ The current buffer should be the desired compilation output buffer."
                                                                 lines))
                                          (forward-line lines))
 				       (if (and column (> column 1))
-					   (move-to-column (1- column))
+					   (if columns
+					       (move-to-column (1- column))
+					     (forward-char (1- column)))
 					 (beginning-of-line))
 				       (setq last-line this)
 				       (setcdr (car errors) (point-marker))))
@@ -2072,6 +2090,12 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 				    (point-max))))
   (setq compilation-error-list (nreverse compilation-error-list))
   (display-message 'progress "Parsing error messages...done"))
+
+(defun compile-buffer-substring (index)
+  "Get substring matched by INDEXth subexpression."
+  (if index
+      (let ((beg (match-beginning index)))
+	(if beg (buffer-substring beg (match-end index))))))
 
 ;; If directory DIR is a subdir of ORIG or of ORIG's parent,
 ;; return a relative name for it starting from ORIG or its parent.

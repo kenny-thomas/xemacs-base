@@ -1,3 +1,13 @@
+2002-06-22  Ville Skyttä  <ville.skytta@xemacs.org>
+
+	* compile.el: Partial sync with GNU Emacs 21.2.
+	(compilation-error-screen-columns): New.
+	(compile-buffer-substring): New.
+	(compilation-setup):
+	Buffer-localize compilation-error-screen-columns.
+	(compilation-next-error-locus):
+	Use compilation-error-screen-columns.
+
 2002-05-07  Steve Youngs  <youngs@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 1.63 released.
