@@ -526,6 +526,10 @@ The first character of DD is space if the value is less than 10."
   "Return the current time as a string in \"HH:MM:SS\" form."
   (substring (current-time-string) 11 19))
 
+(defun time-stamp-hhmmss ()
+  "Return the current time as a string in \"HHMMSS\" form."
+  (replace-in-string (substring (current-time-string) 11 19) ":" ""))
+
 (defun time-stamp-hhmm ()
   "Return the current time as a string in \"HHMM\" form."
   (let ((date (current-time-string)))
