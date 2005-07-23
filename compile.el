@@ -740,11 +740,20 @@ easily repeat a grep command."
 	       (if (eq (process-status proc) 'exit)
 		   (cond ((zerop code)
 			  (cons (format "finished (%d matches found)\n"
-					(count-lines (save-excursion
-						       (goto-char (point-min))
-						       (forward-line 2)
-						       (point))
-						     (point-max)))
+					;; stolen from count-matches,
+					;; should be refactored by
+					;; count-matches returning
+					;; count.
+					(let ((count 0) opoint)
+					  (save-excursion
+					    (goto-char (point-min))
+					    (while (and (not (eobp))
+							(progn (setq opoint (point))
+							       (re-search-forward (caar grep-regexp-alist) nil t)))
+					      (if (= opoint (point))
+						  (forward-char 1)
+						(setq count (1+ count))))
+					    count)))
 				"matched"))
 			 ((= code 1)
 			  '("finished with no matches found\n" . "no match"))
