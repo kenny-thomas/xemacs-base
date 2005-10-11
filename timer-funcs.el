@@ -181,16 +181,18 @@ be detected."
 	(timeout-forms (cdr list)))
     `(let ((with-timeout-tag (cons nil nil))
 	   with-timeout-value with-timeout-timer)
-      (when (catch with-timeout-tag
-	      (progn
-		(setq with-timeout-timer
-		      (start-itimer "with-timeout" #'with-timeout-handler
-				    ,seconds nil nil t with-timeout-tag))
-		(setq with-timeout-value (progn ,@body))
-		nil))
-	    ,@timeout-forms
-	    (delete-itimer with-timeout-timer)
-	    with-timeout-value))))
+       (unwind-protect
+	   (when (catch with-timeout-tag
+		   (progn
+		     (setq with-timeout-timer
+			   (start-itimer "with-timeout" #'with-timeout-handler
+					 ,seconds nil nil t with-timeout-tag))
+		     (setq with-timeout-value (progn ,@body))
+		     nil))
+	     ,@timeout-forms
+	     with-timeout-value)
+	 (delete-itimer with-timeout-timer)))))
+
 
 ;;;###autoload
 (defun y-or-n-p-with-timeout (prompt seconds default-value)
