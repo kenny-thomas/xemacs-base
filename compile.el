@@ -545,10 +545,13 @@ Otherwise, it kills it without asking."
   "The system null device.")
 
 (defvar grep-find-use-xargs
-  (if (equal (call-process "find" nil nil nil
-			   grep-null-device "-print0")
-	     0)
-      'gnu)
+  ;; XEmacs change: test xargs compatibility too, revert to non-print0 xargs
+  ;; if any xargs is available.
+  (if (and
+       (equal (call-process "find" nil nil nil grep-null-device "-print0") 0)
+       (equal (call-process "xargs" nil nil nil "-0" "-e") 0))
+      'gnu
+    (equal (call-process "xargs") 0))
   "Whether \\[grep-find] uses the `xargs' utility by default.
 
 If nil, it uses `find -exec'; if `gnu', it uses `find -print0' and `xargs -0';

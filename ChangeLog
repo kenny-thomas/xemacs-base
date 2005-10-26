@@ -1,3 +1,10 @@
+2005-10-23  Ville Skyttä  <scop@xemacs.org>
+
+	* compile.el (grep-find-use-xargs): Test "GNU" compatibility of
+	xargs in addition to find, and fall back to using generic
+	find+xargs if the latter is available.  Thanks to Karl Janmar for
+	the initial implementation.
+
 2005-10-12  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 1.99 released.
