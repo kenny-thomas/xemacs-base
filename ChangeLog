@@ -1,3 +1,7 @@
+2005-10-28  Norbert Koch  <viteno@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 2.00 released.
+
 2005-10-23  Ville Skyttä  <scop@xemacs.org>
 
 	* compile.el (grep-find-use-xargs): Test "GNU" compatibility of
