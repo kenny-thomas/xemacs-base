@@ -547,11 +547,14 @@ Otherwise, it kills it without asking."
 (defvar grep-find-use-xargs
   ;; XEmacs change: test xargs compatibility too, revert to non-print0 xargs
   ;; if any xargs is available.
-  (if (and
-       (equal (call-process "find" nil nil nil grep-null-device "-print0") 0)
-       (equal (call-process "xargs" nil nil nil "-0" "-e") 0))
+  (if (condition-case nil
+	  (and
+	   (equal
+	    (call-process "find" nil nil nil grep-null-device "-print0") 0)
+	   (equal (call-process "xargs" nil nil nil "-0" "-e") 0))
+	(error nil))
       'gnu
-    (equal (call-process "xargs") 0))
+    (condition-case nil (equal (call-process "xargs") 0) (error nil)))
   "Whether \\[grep-find] uses the `xargs' utility by default.
 
 If nil, it uses `find -exec'; if `gnu', it uses `find -print0' and `xargs -0';
