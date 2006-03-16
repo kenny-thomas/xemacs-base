@@ -1,3 +1,9 @@
+2006-03-16  Nelson Ferreira  <njsf@tuxie.homelinux.net>
+
+	* debug.el (cancel-debug-on-entry): Fixed alist generation for
+	completing-read, thus allowing interactive use of
+	cancel-debug-on-entry to cancel debug of an individual function.
+
 2005-12-31  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 2.01 released.
