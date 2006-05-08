@@ -132,6 +132,7 @@ arguments."
   :type 'regexp
   :group 'shell)
 
+;;;###autoload
 (defcustom shell-prompt-pattern "^[^#$%>\n]*[#$%>] *"
   "Regexp to match prompts in the inferior shell.
 Defaults to \"^[^#$%>\\n]*[#$%>] *\", which works pretty well.
