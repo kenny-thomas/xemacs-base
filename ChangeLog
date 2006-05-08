@@ -1,3 +1,7 @@
+2006-05-08  Norbert Koch  <viteno@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 2.03 released.
+
 2006-05-08  Tero Saarni  <tero.saarni@gmail.com>
 
 	* shell.el: Unbreak telnet, autoload shell-prompt-pattern.
