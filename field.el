@@ -295,3 +295,11 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil."
 	    ;; point.
 	    (goto-char new-pos)))))
   new-pos)
+
+;;;###autoload
+(defun field-at-pos (pos)
+  "Return the field at position POS, taking openness/closedness into account."
+  (let ((raw-field (get-char-property (field-beginning pos) 'field)))
+    (if (eq raw-field 'boundary)
+	(get-char-property (1- (field-end pos)) 'field)
+      raw-field)))
