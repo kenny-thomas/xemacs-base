@@ -1,3 +1,7 @@
+2006-05-25  Norbert Koch  <viteno@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 2.04 released.
+
 2006-05-16  Jerry James  <james@xemacs.org>
 
 	* field.el (field-at-pos): New function, synced from Emacs.
