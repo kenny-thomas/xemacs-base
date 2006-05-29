@@ -25,7 +25,7 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
-;;; Synched up with: FSF 22.0.50
+;;; Synched up with: FSF 22.0.50 (CVS revision 1.345)
 
 ;;; Commentary:
 
@@ -452,6 +452,8 @@ respect field boundaries in a natural way)."
 
 ;; XEmacs change: we don't need the autoload here since we never used
 ;; comint-use-prompt-regexp-instead-of-fields
+(define-obsolete-variable-alias 'comint-use-prompt-regexp-instead-of-fields
+    'comint-use-prompt-regexp)
 
 (defcustom comint-mode-hook nil
   "Hook run upon entry to `comint-mode'.
@@ -566,9 +568,8 @@ The command \\[comint-accumulate] sets this.")
     ["Send EOF"  comint-send-eof t]
     ))
 
-
 ;;;###autoload
-(defun comint-mode ()
+(define-derived-mode comint-mode fundamental-mode "Comint"
   "Major mode for interacting with an inferior interpreter.
 Interpreter name is same as buffer name, sans the asterisks.
 Return at end of buffer sends line as input.
@@ -604,13 +605,7 @@ to continue it.
 \\{comint-mode-map}
 
 Entry to this mode runs the hooks on `comint-mode-hook'."
-  (interactive)
-  ;; Do not remove this.  All major modes must do this.
-  (kill-all-local-variables)
-  (setq major-mode 'comint-mode)
-  (setq mode-name "Comint")
   (setq mode-line-process '(":%s"))
-  (use-local-map comint-mode-map)
   (set (make-local-variable 'comint-last-input-start) (point-min-marker))
   (set (make-local-variable 'comint-last-input-end) (point-min-marker))
   (set (make-local-variable 'comint-last-output-start) (make-marker))
@@ -653,7 +648,8 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (make-local-variable 'comint-file-name-chars)
   (make-local-variable 'comint-file-name-quote-list)
   (set (make-local-variable 'comint-accum-marker) (make-marker))
-  (add-hook 'change-major-mode-hook 'font-lock-unfontify-buffer nil t)
+  ;; XEmacs change: font-lock-unfontify-buffer may not be loaded
+  ;(add-hook 'change-major-mode-hook 'font-lock-unfontify-buffer nil t)
   ;; This behavior is not useful in comint buffers, and is annoying
   (set (make-local-variable 'next-line-add-newlines) nil)
   (unless comint-1-menubar-menu
@@ -1490,7 +1486,7 @@ Argument 0 is the command name."
 		     (nconc (comint-delim-arg str) args))))
     (setq count (length args))
     (let ((n (or nth (1- count)))
-	  (m (if mth (1- (- count mth)) 0)))
+	  (m (if mth (max 0 (1- (- count mth))) 0)))
       (mapconcat #'identity (nthcdr n (nreverse (nthcdr m args))) " "))))
 
 
@@ -2008,17 +2004,6 @@ This function could be on `comint-output-filter-functions' or bound to a key."
   (goto-char (point-max))
   (recenter -1))
 
-(defun comint-copy-old-input ()
-  "Insert after prompt old input at point as new input to be edited.
-Calls `comint-get-old-input' to get old input."
-  (interactive)
-  (let ((input (funcall comint-get-old-input))
-	(process (get-buffer-process (current-buffer))))
-    (if (not process)
-	(error "Current buffer has no process")
-      (goto-char (process-mark process))
-      (insert input))))
-
 (defun comint-get-old-input-default ()
   "Default for `comint-get-old-input'.
 If `comint-use-prompt-regexp' is nil, then either
@@ -2032,6 +2017,17 @@ the current line with any initial string matching the regexp
 	(field-string-no-properties bof)
       (comint-bol)
       (buffer-substring-no-properties (point) (point-at-eol)))))
+
+(defun comint-copy-old-input ()
+  "Insert after prompt old input at point as new input to be edited.
+Calls `comint-get-old-input' to get old input."
+  (interactive)
+  (let ((input (funcall comint-get-old-input))
+	(process (get-buffer-process (current-buffer))))
+    (if (not process)
+	(error "Current buffer has no process")
+      (goto-char (process-mark process))
+      (insert input))))
 
 (defun comint-skip-prompt ()
   "Skip past the text matching regexp `comint-prompt-regexp'.
@@ -2486,19 +2482,19 @@ preceding newline is removed."
 	   (when (eq (get-text-property (1- pt) 'read-only) 'fence)
 	     (remove-text-properties (1- pt) pt '(read-only nil)))))))
 
-(defun comint-kill-whole-line (&optional arg)
+(defun comint-kill-whole-line (&optional count)
   "Kill current line, ignoring read-only and field properties.
-With prefix arg, kill that many lines starting from the current line.
-If arg is negative, kill backward.  Also kill the preceding newline,
+With prefix arg COUNT, kill that many lines starting from the current line.
+If COUNT is negative, kill backward.  Also kill the preceding newline,
 instead of the trailing one.  \(This is meant to make \\[repeat] work well
 with negative arguments.)
-If arg is zero, kill current line but exclude the trailing newline.
+If COUNT is zero, kill current line but exclude the trailing newline.
 The read-only status of newlines is updated with `comint-update-fence',
 if necessary."
   (interactive "p")
   (let ((inhibit-read-only t) (inhibit-field-text-motion t))
-    (kill-entire-line arg)
-    (when (>= arg 0) (comint-update-fence))))
+    (kill-entire-line count)
+    (when (>= count 0) (comint-update-fence))))
 
 (defun comint-kill-region (beg end &optional yank-handler)
   "Like `kill-region', but ignores read-only properties, if safe.

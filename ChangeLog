@@ -1,3 +1,10 @@
+2006-05-29  Jerry James  <james@xemacs.org>
+
+	* comint.el: Fix bug in comint-arguments that signaled instead of
+	returning a value.
+	* comint.el: Sync with very recent Emacs CVS activity.
+	* shell.el: Ditto.
+
 2006-05-25  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 2.04 released.

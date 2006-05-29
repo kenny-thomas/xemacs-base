@@ -25,7 +25,7 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
-;;; Synched up with: FSF 22.0.50
+;;; Synched up with: FSF 22.0.50 (CVS revision 1.137)
 
 ;;; Commentary:
 
@@ -108,6 +108,10 @@
 
 (require 'comint)
 
+;; XEmacs addition: make the byte compiler be quiet
+(eval-when-compile
+  (require 'font-lock))
+
 ;;; Customization and Buffer Variables
 
 (defgroup shell nil
@@ -153,7 +157,7 @@ This is a fine thing to set in your `user-init-file'."
   :group 'shell)
 
 (defcustom shell-completion-fignore nil
-  "*List of suffixes to be disregarded during file/command completion.
+  "List of suffixes to be disregarded during file/command completion.
 This variable is used to initialize `comint-completion-fignore' in the shell
 buffer.  The default is nil, for compatibility with most shells.
 Some people like (\"~\" \"#\" \"%\").
@@ -204,19 +208,19 @@ shell buffer.
 This is a fine thing to set in your `user-init-file'.")
 
 (defcustom shell-command-regexp "[^;&|\n]+"
-  "*Regexp to match a single command within a pipeline.
+  "Regexp to match a single command within a pipeline.
 This is used for directory tracking and does not do a perfect job."
   :type 'regexp
   :group 'shell)
 
 (defcustom shell-command-separator-regexp "[;&|\n \t]*"
-  "*Regexp to match a single command within a pipeline.
+  "Regexp to match a single command within a pipeline.
 This is used for directory tracking and does not do a perfect job."
   :type 'regexp
   :group 'shell)
 
 (defcustom shell-completion-execonly t
-  "*If non-nil, use executable files only for completion candidates.
+  "If non-nil, use executable files only for completion candidates.
 This mirrors the optional behavior of tcsh.
 
 Detecting executability of files may slow command completion considerably."
@@ -224,35 +228,35 @@ Detecting executability of files may slow command completion considerably."
   :group 'shell)
 
 (defcustom shell-popd-regexp "popd"
-  "*Regexp to match subshell commands equivalent to popd."
+  "Regexp to match subshell commands equivalent to popd."
   :type 'regexp
   :group 'shell-directories)
 
 (defcustom shell-pushd-regexp "pushd"
-  "*Regexp to match subshell commands equivalent to pushd."
+  "Regexp to match subshell commands equivalent to pushd."
   :type 'regexp
   :group 'shell-directories)
 
 (defcustom shell-pushd-tohome nil
-  "*If non-nil, make pushd with no arg behave as \"pushd ~\" (like cd).
+  "If non-nil, make pushd with no arg behave as \"pushd ~\" (like cd).
 This mirrors the optional behavior of tcsh."
   :type 'boolean
   :group 'shell-directories)
 
 (defcustom shell-pushd-dextract nil
-  "*If non-nil, make \"pushd +n\" pop the nth dir to the stack top.
+  "If non-nil, make \"pushd +n\" pop the nth dir to the stack top.
 This mirrors the optional behavior of tcsh."
   :type 'boolean
   :group 'shell-directories)
 
 (defcustom shell-pushd-dunique nil
-  "*If non-nil, make pushd only add unique directories to the stack.
+  "If non-nil, make pushd only add unique directories to the stack.
 This mirrors the optional behavior of tcsh."
   :type 'boolean
   :group 'shell-directories)
 
 (defcustom shell-cd-regexp "cd"
-  "*Regexp to match subshell commands equivalent to cd."
+  "Regexp to match subshell commands equivalent to cd."
   :type 'regexp
   :group 'shell-directories)
 
@@ -261,20 +265,20 @@ This mirrors the optional behavior of tcsh."
       ; NetWare allows the five chars between upper and lower alphabetics.
       "[]a-zA-Z^_`\\[\\\\]:"
     nil)
-  "*If non-nil, is regexp used to track drive changes."
+  "If non-nil, is regexp used to track drive changes."
   :type '(choice regexp
 		 (const nil))
   :group 'shell-directories)
 
 (defcustom shell-dirtrack-verbose t
-  "*If non-nil, show the directory stack following directory change.
+  "If non-nil, show the directory stack following directory change.
 This is effective only if directory tracking is enabled."
   :type 'boolean
   :group 'shell-directories)
 
 ;; XEmacs addition
 (defcustom shell-dirtrack-other-regexp nil
-  "*Regexp to match commands for which we call `shell-dirtrack-process-other-func'."
+  "Regexp to match commands for which we call `shell-dirtrack-process-other-func'."
   :type '(choice regexp
 		 (const nil))
   :group 'shell-directories)
@@ -283,7 +287,7 @@ This is effective only if directory tracking is enabled."
 ;; @todo make this a full blown hook?  ?A hook which stops when a func
 ;; returns t? Or nil?
 (defcustom shell-dirtrack-process-other-func nil
-  "*Function to allow external processing of directory changing commands
+  "Function to allow external processing of directory changing commands
 which match `shell-dirtrack-other-regexp'.  This allows users to process
 arbitrary directory changing commands.  This function takes two arguments:
   CMD  - the first word (cmd part) of the current shell command line.
@@ -295,7 +299,7 @@ pushd-like command which expands ARG1 from an abbrev-table."
   :group 'shell-directories)
 
 (defcustom explicit-shell-file-name nil
-  "*If non-nil, is file name to use for explicitly requested inferior shell."
+  "If non-nil, is file name to use for explicitly requested inferior shell."
   :type '(choice (const :tag "None" nil) file)
   :group 'shell)
 
@@ -305,7 +309,7 @@ pushd-like command which expands ARG1 from an abbrev-table."
       ;; than us about what terminal modes to use.
       '("-i" "-T")
     '("-i"))
-  "*Args passed to inferior shell by M-x shell, if the shell is csh.
+  "Args passed to inferior shell by \\[shell], if the shell is csh.
 Value is a list of strings, which may be nil."
   :type '(repeat (string :tag "Argument"))
   :group 'shell)
@@ -323,39 +327,39 @@ Value is a list of strings, which may be nil."
 			   (shell-command-to-string (concat prog " --noediting"))))
 	'("-i")
       '("--noediting" "-i")))
-  "*Args passed to inferior shell by M-x shell, if the shell is bash.
+  "Args passed to inferior shell by \\[shell], if the shell is bash.
 Value is a list of strings, which may be nil."
   :type '(repeat (string :tag "Argument"))
   :group 'shell)
 
 ;; XEmacs addition: allow the user to customize args for some shells
 (defcustom explicit-ash-args '("-i")
-  "*List of arguments to pass to \"ash\" on startup in `shell-mode'."
+  "List of arguments to pass to \"ash\" on startup in `shell-mode'."
   :type '(repeat (string :tag "Argument"))
   :group 'shell)
 
 (defcustom explicit-ksh-args '("-i")
-  "*List of arguments to pass to \"ksh\" on startup in `shell-mode'."
+  "List of arguments to pass to \"ksh\" on startup in `shell-mode'."
   :type '(repeat (string :tag "Argument"))
   :group 'shell)
 
 (defcustom explicit-pdksh-args '("-i")
-  "*List of arguments to pass to \"pdksh\" on startup in `shell-mode'."
+  "List of arguments to pass to \"pdksh\" on startup in `shell-mode'."
   :type '(repeat (string :tag "Argument"))
   :group 'shell)
 
 (defcustom explicit-tcsh-args '("-i")
-  "*List of arguments to pass to \"tcsh\" on startup in `shell-mode'."
+  "List of arguments to pass to \"tcsh\" on startup in `shell-mode'."
   :type '(repeat (string :tag "Argument"))
   :group 'shell)
 
 (defcustom explicit-zsh-args '("-i")
-  "*List of arguments to pass to \"zsh\" on startup in `shell-mode'."
+  "List of arguments to pass to \"zsh\" on startup in `shell-mode'."
   :type '(repeat (string :tag "Argument"))
   :group 'shell)
 
 (defcustom shell-input-autoexpand 'history
-  "*If non-nil, expand input command history references on completion.
+  "If non-nil, expand input command history references on completion.
 This mirrors the optional behavior of tcsh (its autoexpand and histlit).
 
 If the value is `input', then the expansion is seen on input.
@@ -386,7 +390,7 @@ Thus, this does not include the shell's current directory.")
 
 (defvar shell-mode-map nil)
 (if (not shell-mode-map)
-    (let ((map (make-keymap 'shell-mode-map)))
+    (let ((map (make-sparse-keymap 'shell-mode-map)))
       (set-keymap-parents map (list comint-mode-map))
       (define-key map "\C-c\C-f" 'shell-forward-command)
       (define-key map "\C-c\C-b" 'shell-backward-command)
@@ -540,13 +544,11 @@ buffer."
   (setq shell-dirstack nil)
   (make-local-variable 'shell-last-dir)
   (setq shell-last-dir nil)
-  (make-local-variable 'shell-dirtrackp)
-  (setq shell-dirtrackp t)
-  (add-hook 'comint-input-filter-functions 'shell-directory-tracker nil t)
   (setq comint-input-autoexpand shell-input-autoexpand)
   ;; This is not really correct, since the shell buffer does not really
   ;; edit this directory.  But it is useful in the buffer list and menus.
   (make-local-variable 'list-buffers-directory)
+  (shell-dirtrack-mode 1)
   (setq list-buffers-directory (expand-file-name default-directory))
   ;; shell-dependent assignments.
   (when (ring-empty-p comint-input-ring)
@@ -577,7 +579,6 @@ buffer."
     ;; point in cluttering the code to support versions of bash that are
     ;; probably nowhere in use. --JJ
     (comint-read-input-ring t)
-    (shell-dirstack-message)  ; XEmacs addition
     ))
 
 (defun shell-write-history-on-exit (process event)
@@ -647,12 +648,11 @@ Otherwise, one argument `-i' is passed to the shell.
 	   (xargs-name (intern-soft (concat "explicit-" name "-args"))))
       (if (not (file-exists-p startfile))
 	  (setq startfile (concat "~/.emacs.d/.emacs_" name)))
-      (setq buffer (set-buffer
-		    (apply #'make-comint-in-buffer "shell" buffer prog
-			   (if (file-exists-p startfile) startfile)
-			   (if (and xargs-name (boundp xargs-name))
-			       (symbol-value xargs-name)
-			     '("-i")))))
+      (apply #'make-comint-in-buffer "shell" buffer prog
+	     (if (file-exists-p startfile) startfile)
+	     (if (and xargs-name (boundp xargs-name))
+		 (symbol-value xargs-name)
+	       '("-i")))
       (shell-mode)))
   buffer)
 
@@ -660,44 +660,44 @@ Otherwise, one argument `-i' is passed to the shell.
 ;;;###autoload (add-hook 'same-window-buffer-names "*shell*")
 
 ;;; Directory tracking
-;;;
-;;; This code provides the shell mode input sentinel
-;;;     SHELL-DIRECTORY-TRACKER
-;;; that tracks cd, pushd, and popd commands issued to the shell, and
-;;; changes the current directory of the shell buffer accordingly.
-;;;
-;;; This is basically a fragile hack, although it's more accurate than
-;;; the version in Emacs 18's shell.el. It has the following failings:
-;;; 1. It doesn't know about the cdpath shell variable.
-;;; 2. It cannot infallibly deal with command sequences, though it does well
-;;;    with these and with ignoring commands forked in another shell with ()s.
-;;; 3. More generally, any complex command is going to throw it. Otherwise,
-;;;    you'd have to build an entire shell interpreter in Emacs Lisp.  Failing
-;;;    that, there's no way to catch shell commands where cd's are buried
-;;;    inside conditional expressions, aliases, and so forth.
-;;;
-;;; The whole approach is a crock. Shell aliases mess it up. File sourcing
-;;; messes it up. You run other processes under the shell; these each have
-;;; separate working directories, and some have commands for manipulating
-;;; their w.d.'s (e.g., the lcd command in ftp). Some of these programs have
-;;; commands that do *not* affect the current w.d. at all, but look like they
-;;; do (e.g., the cd command in ftp).  In shells that allow you job
-;;; control, you can switch between jobs, all having different w.d.'s. So
-;;; simply saying %3 can shift your w.d..
-;;;
-;;; The solution is to relax, not stress out about it, and settle for
-;;; a hack that works pretty well in typical circumstances. Remember
-;;; that a half-assed solution is more in keeping with the spirit of Unix,
-;;; anyway. Blech.
-;;;
-;;; One good hack not implemented here for users of programmable shells
-;;; is to program up the shell w.d. manipulation commands to output
-;;; a coded command sequence to the tty. Something like
-;;;     ESC | <cwd> |
-;;; where <cwd> is the new current working directory. Then trash the
-;;; directory tracking machinery currently used in this package, and
-;;; replace it with a process filter that watches for and strips out
-;;; these messages.
+;;
+;; This code provides the shell mode input sentinel
+;;     SHELL-DIRECTORY-TRACKER
+;; that tracks cd, pushd, and popd commands issued to the shell, and
+;; changes the current directory of the shell buffer accordingly.
+;;
+;; This is basically a fragile hack, although it's more accurate than
+;; the version in Emacs 18's shell.el. It has the following failings:
+;; 1. It doesn't know about the cdpath shell variable.
+;; 2. It cannot infallibly deal with command sequences, though it does well
+;;    with these and with ignoring commands forked in another shell with ()s.
+;; 3. More generally, any complex command is going to throw it. Otherwise,
+;;    you'd have to build an entire shell interpreter in Emacs Lisp.  Failing
+;;    that, there's no way to catch shell commands where cd's are buried
+;;    inside conditional expressions, aliases, and so forth.
+;;
+;; The whole approach is a crock. Shell aliases mess it up. File sourcing
+;; messes it up. You run other processes under the shell; these each have
+;; separate working directories, and some have commands for manipulating
+;; their w.d.'s (e.g., the lcd command in ftp). Some of these programs have
+;; commands that do *not* affect the current w.d. at all, but look like they
+;; do (e.g., the cd command in ftp).  In shells that allow you job
+;; control, you can switch between jobs, all having different w.d.'s. So
+;; simply saying %3 can shift your w.d..
+;;
+;; The solution is to relax, not stress out about it, and settle for
+;; a hack that works pretty well in typical circumstances. Remember
+;; that a half-assed solution is more in keeping with the spirit of Unix,
+;; anyway. Blech.
+;;
+;; One good hack not implemented here for users of programmable shells
+;; is to program up the shell w.d. manipulation commands to output
+;; a coded command sequence to the tty. Something like
+;;     ESC | <cwd> |
+;; where <cwd> is the new current working directory. Then trash the
+;; directory tracking machinery currently used in this package, and
+;; replace it with a process filter that watches for and strips out
+;; these messages.
 
 (defun shell-directory-tracker (str)
   "Tracks cd, pushd and popd commands issued to the shell.
@@ -885,26 +885,25 @@ Environment variables are expanded, see function `substitute-in-file-name'."
   (and (string-match "^\\+[1-9][0-9]*$" str)
        (string-to-number str)))
 
-
-(defun shell-dirtrack-mode ()
+(defvaralias 'shell-dirtrack-mode 'shell-dirtrackp)
+(define-minor-mode shell-dirtrack-mode
   "Turn directory tracking on and off in a shell buffer."
-  (interactive)
-  (if (setq shell-dirtrackp (not shell-dirtrackp))
-      (setq list-buffers-directory default-directory)
-    (setq list-buffers-directory nil))
-  (message "Directory tracking %s" (if shell-dirtrackp "ON" "OFF")))
+  nil nil nil
+  (setq list-buffers-directory (if shell-dirtrack-mode default-directory))
+  (if shell-dirtrack-mode
+      (add-hook 'comint-input-filter-functions 'shell-directory-tracker nil t)
+    (remove-hook 'comint-input-filter-functions 'shell-directory-tracker t)))
 
-;;; For your typing convenience:
-(defalias 'shell-dirtrack-toggle 'shell-dirtrack-mode)
+;; For your typing convenience:
+(defalias 'shell-dirtrack-toggle 'shell-dirtrack-mode) ;??Convenience??
 (defalias 'dirtrack-toggle 'shell-dirtrack-mode)
 (defalias 'dirtrack-mode 'shell-dirtrack-mode)
 
 (defun shell-cd (dir)
   "Do normal `cd' to DIR, and set `list-buffers-directory'."
+  (cd dir)
   (if shell-dirtrackp
-      (setq list-buffers-directory (file-name-as-directory
-				    (expand-file-name dir))))
-  (cd dir))
+      (setq list-buffers-directory default-directory)))
 
 (defun shell-resync-dirs ()
   "Resync the buffer's idea of the current directory stack.
@@ -959,18 +958,18 @@ command again."
       (let ((ds (nreverse ds)))
         (shell-cd-1 (car ds) (cdr ds))))))
 
-;;; For your typing convenience:
+;; For your typing convenience:
 (defalias 'dirs 'shell-resync-dirs)
 
 ;; XEmacs addition
 (defvar shell-dirstack-message-hook nil
   "Hook to run after a cd, pushd or popd event")
 
-;;; Show the current dirstack on the message line.
-;;; Pretty up dirs a bit by changing "/usr/jqr/foo" to "~/foo".
-;;; (This isn't necessary if the dirlisting is generated with a simple "dirs".)
-;;; All the commands that mung the buffer's dirstack finish by calling
-;;; this guy.
+;; Show the current dirstack on the message line.
+;; Pretty up dirs a bit by changing "/usr/jqr/foo" to "~/foo".
+;; (This isn't necessary if the dirlisting is generated with a simple "dirs".)
+;; All the commands that mung the buffer's dirstack finish by calling
+;; this guy.
 (defun shell-dirstack-message ()
   (when shell-dirtrack-verbose
     (let* ((msg "")
