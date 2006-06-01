@@ -1,3 +1,7 @@
+2006-05-31  Jerry James  <james@xemacs.org>
+
+	* comint.el: Fix derived-mode autoload as suggested by Ville.
+
 2006-05-29  Jerry James  <james@xemacs.org>
 
 	* comint.el: Fix bug in comint-arguments that signaled instead of

@@ -568,7 +568,8 @@ The command \\[comint-accumulate] sets this.")
     ["Send EOF"  comint-send-eof t]
     ))
 
-;;;###autoload
+;; XEmacs hack: autoload a dummy autoload instead of a derived mode
+;;;###autoload(autoload 'comint-mode "comint" nil t)
 (define-derived-mode comint-mode fundamental-mode "Comint"
   "Major mode for interacting with an inferior interpreter.
 Interpreter name is same as buffer name, sans the asterisks.
