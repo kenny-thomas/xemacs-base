@@ -110,6 +110,7 @@
 
 ;; XEmacs addition: make the byte compiler be quiet
 (eval-when-compile
+  (require 'easy-mmode)
   (require 'font-lock))
 
 ;;; Customization and Buffer Variables

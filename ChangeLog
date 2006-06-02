@@ -1,3 +1,8 @@
+2006-06-01  Jerry James  <james@xemacs.org>
+
+	* shell.el: (require 'easy-mmode) when compiling to properly
+	expand macros.
+
 2006-05-31  Jerry James  <james@xemacs.org>
 
 	* comint.el: Fix derived-mode autoload as suggested by Ville.
