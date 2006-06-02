@@ -1,3 +1,7 @@
+2006-06-02  Norbert Koch  <viteno@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 2.05 released.
+
 2006-06-01  Jerry James  <james@xemacs.org>
 
 	* shell.el: (require 'easy-mmode) when compiling to properly
