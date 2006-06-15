@@ -1,3 +1,8 @@
+2006-06-07  Jerry James  <james@xemacs.org>
+
+	* comint.el (comint-output-filter): Workaround
+	insert-before-markers bug with a partial reversion to the old code.
+
 2006-06-02  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 2.05 released.

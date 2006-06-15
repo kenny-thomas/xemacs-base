@@ -1761,117 +1761,79 @@ Make backspaces delete the previous character."
 	    (setq functions (cdr functions))))
 
 	;; Insert STRING
-	(let ((inhibit-read-only t)
-	      ;; Avoid the overhead of save-excursion, since we just
-	      ;; fiddle with the point
-	      (saved-point (point-marker)))
+	(let* ((inhibit-read-only t)
+	       (opoint (point))
+	       (obeg (point-min))
+	       (oend (point-max))
+	       (nchars (length string))
+	       (mark (process-mark process))
+	       (ostart (marker-position mark)))
+	  (widen)
+	  (goto-char mark)
+	  (if (<= ostart opoint)
+	      (setq opoint (+ opoint nchars)))
+	  ;; Insert after old_begv, but before old_zv.
+	  (if (< ostart obeg)
+	      (setq obeg (+ obeg nchars)))
+	  (if (<= ostart oend)
+	      (setq oend (+ oend nchars)))
+	  (insert-before-markers string)
+	  ;; Don't insert initial prompt outside the top of the window.
+	  (if (= (window-start (selected-window)) (point))
+	      (set-window-start (selected-window) (- (point) nchars)))
+	  (if (and comint-last-input-end
+		   (marker-buffer comint-last-input-end)
+		   (= (point) comint-last-input-end))
+	      (set-marker comint-last-input-end
+			  (- comint-last-input-end nchars)))
+	  (set-marker comint-last-output-start ostart)
+	  (set-marker (process-mark process) (point))
+	  (force-mode-line-update)
+	  (narrow-to-region obeg oend)
+	  (goto-char opoint)
 
-	  ;; The point should float after any insertion we do
-	  (set-marker-insertion-type saved-point t)
+	  (unless comint-inhibit-carriage-motion
+	    ;; Interpret any carriage motion characters (newline, backspace)
+	    (comint-carriage-motion comint-last-output-start (point)))
 
-	  ;; We temporarly remove any buffer narrowing, in case the
-	  ;; process mark is outside of the restriction
-	  (save-restriction
-	    (widen)
+	  ;; Run these hooks with point where the user had it.
+	  (run-hook-with-args 'comint-output-filter-functions string)
 
-	    (goto-char (process-mark process))
-	    (set-marker comint-last-output-start (point))
+	  (goto-char (process-mark process)) ; in case a filter moved it
 
-	    ;; insert-before-markers is a bad thing. XXX
-	    ;;
-	    ;; It is used here to force window-point markers (used to
-	    ;; store the value of point in non-selected windows) to
-	    ;; advance, but it also screws up any other markers that we
-	    ;; don't _want_ to advance, such as the start-marker of some
-	    ;; of the extents we create.
-	    ;;
-	    ;; We work around the problem with the extents by
-	    ;; explicitly adjusting them after we do the insertion, but
-	    ;; in the future this problem should be solved correctly, by
-	    ;; using `insert', and making the insertion-type of
-	    ;; window-point markers settable (via a buffer-local
-	    ;; variable).  In comint buffers, this variable would be set
-	    ;; to `t', to cause point in non-select windows to advance.
-	    (insert-before-markers string)
-	    ;; Fixup markers and extents that got screwed up because we
-	    ;; used `insert-before-markers'.
-	    (let ((old-point (- (point) (length string))))
-	      ;; comint-last-output-start
-	      (set-marker comint-last-output-start old-point)
-	      ;; comint-last-input-end
-	      (when (and comint-last-input-end
-			 (equal (marker-position comint-last-input-end)
-				(point)))
-		(set-marker comint-last-input-end old-point))
-	      ;; No extents we create are set to advance upon insertion
-	      ;; (at the start/end), so we assume that any extent which
-	      ;; is at the current point was incorrectly advanced by
-	      ;; insert-before-markers.
-	      (map-extents
-	       #'(lambda (extent ignored)
-		   (let ((start (extent-start-position extent))
-			 (end (extent-end-position extent)))
-		     ;; First fixup extents that might start at point:
-		     (if (eq start (point))
-			 (set-extent-endpoints
-			  extent old-point
-			  (if (eq end (point)) old-point end)))
-		     ;; Then do extents that might end at point
-		     (if (eq end (point))
-			 (set-extent-endpoints 
-			  extent (min start old-point) old-point))
-		     nil))
-	       nil (max 0 (1- (point))) (point)))
+	  (unless comint-use-prompt-regexp
+	    (let ((inhibit-read-only t))
+	      (add-text-properties comint-last-output-start (point)
+				   '(end-open t
+				     field output
+				     inhibit-line-move-field-capture t))))
 
-	    ;; Advance process-mark
-	    (set-marker (process-mark process) (point))
-
-	    (unless comint-inhibit-carriage-motion
-	      ;; Interpret any carriage motion characters (newline, backspace)
-	      (comint-carriage-motion comint-last-output-start (point)))
-
-	    ;; Run these hooks with point where the user had it.
-	    (goto-char saved-point)
-	    (run-hook-with-args 'comint-output-filter-functions string)
-	    (set-marker saved-point (point))
-
-	    (goto-char (process-mark process)) ; in case a filter moved it
-
-	    (unless comint-use-prompt-regexp
-              (let ((inhibit-read-only t))
-                (add-text-properties comint-last-output-start (point)
-                                     '(end-open t
-				       field output
-				       inhibit-line-move-field-capture t))))
-
-	    ;; Highlight the prompt, where we define `prompt' to mean
-	    ;; the most recent output that doesn't end with a newline.
-	    (let ((prompt-start (save-excursion (forward-line 0) (point)))
-		  (inhibit-read-only t))
-	      (when comint-prompt-read-only
-		(or (= (point-min) prompt-start)
-		    (get-text-property (1- prompt-start) 'read-only)
-		    (put-text-property
-		     (1- prompt-start) prompt-start 'read-only 'fence))
-		(add-text-properties
-		 prompt-start (point)
-		 '(read-only t end-open t start-open (read-only))))
-	      (unless (and (bolp) (null comint-last-prompt-extent))
-		;; Need to create or move the prompt extent (in the case
-		;; where there is no prompt ((bolp) == t), we still do
-		;; this if there's already an existing extent).
-		(if comint-last-prompt-extent
-		    ;; Just move an existing extent
-		    (set-extent-endpoints comint-last-prompt-extent
-					  prompt-start (point))
-		  ;; Need to create the extent
-		  (setq comint-last-prompt-extent
-			(make-extent prompt-start (point)))
-		  (set-extent-property
-		   comint-last-prompt-extent
-		   'font-lock-face 'comint-highlight-prompt))))
-
-	    (goto-char saved-point)))))))
+	  ;; Highlight the prompt, where we define `prompt' to mean
+	  ;; the most recent output that doesn't end with a newline.
+	  (let ((prompt-start (save-excursion (forward-line 0) (point)))
+		(inhibit-read-only t))
+	    (when comint-prompt-read-only
+	      (or (= (point-min) prompt-start)
+		  (get-text-property (1- prompt-start) 'read-only)
+		  (put-text-property
+		   (1- prompt-start) prompt-start 'read-only 'fence))
+	      (add-text-properties
+	       prompt-start (point)
+	       '(read-only t end-open t start-open (read-only))))
+	    (unless (and (bolp) (null comint-last-prompt-extent))
+	      ;; Need to create or move the prompt extent (in the case
+	      ;; where there is no prompt ((bolp) == t), we still do
+	      ;; this if there's already an existing extent).
+	      (if comint-last-prompt-extent
+		  ;; Just move an existing extent
+		  (set-extent-endpoints comint-last-prompt-extent
+					prompt-start (point))
+		;; Need to create the extent
+		(setq comint-last-prompt-extent
+		      (make-extent prompt-start (point)))
+		(set-extent-property
+		 comint-last-prompt-extent
+		 'font-lock-face 'comint-highlight-prompt)))))))))
 
 ;; XEmacs: Use a variable for this so that new commands can be added easily.
 (defcustom comint-scroll-to-bottom-on-input-commands
