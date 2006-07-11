@@ -22,7 +22,7 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;;; Synched up with: FSF 21.3 + 09072004 CVS editfns.c.
+;;; Synched up with: editfns.c CVS revision 1.416
 
 ;;; Commentary:
 
@@ -112,9 +112,8 @@ If SKIP-STOP is non-nil, do not computer the STOP point (it is nil)."
     ;; MERGE-AT-BOUNDARY is non-nil (see docstring) is actually the more
     ;; natural one; then we avoid treating the beginning of a field specially.
     (unless merge-at-boundary
-      (let ((field
-	     (map-extents #'(lambda (ext ign) (extent-property ext 'field))
-			  nil pos pos nil nil 'field)))
+      (let* ((ext (extent-at pos nil 'field))
+	     (field (if ext (extent-property ext 'field))))
 	(unless (eq field after-field)
 	  (setq at-field-end t))
 	(unless (eq field before-field)
@@ -183,7 +182,10 @@ If SKIP-STOP is non-nil, do not computer the STOP point (it is nil)."
 (defun delete-field (&optional pos)
   "Delete the field surrounding POS.
 A field is a region of text with the same `field' property.
-If POS is nil, the value of point is used for POS."
+If POS is nil, the value of point is used for POS.
+
+An `args-out-of-range' error is signaled if POS is outside the
+buffer's accessible portion."
   (let* ((field (find-field pos))
 	 (start (car field))
 	 (end (cdr field)))
@@ -194,7 +196,10 @@ If POS is nil, the value of point is used for POS."
 (defun field-string (&optional pos)
   "Return the contents of the field surrounding POS as a string.
 A field is a region of text with the same `field' property.
-If POS is nil, the value of point is used for POS."
+If POS is nil, the value of point is used for POS.
+
+An `args-out-of-range' error is signaled if POS is outside the
+buffer's accessible portion."
   (let ((field (find-field pos)))
     (buffer-substring (car field) (cdr field))))
 
@@ -202,7 +207,10 @@ If POS is nil, the value of point is used for POS."
 (defun field-string-no-properties (&optional pos)
   "Return the contents of the field around POS, without text-properties.
 A field is a region of text with the same `field' property.
-If POS is nil, the value of point is used for POS."
+If POS is nil, the value of point is used for POS.
+
+An `args-out-of-range' error is signaled if POS is outside the
+buffer's accessible portion."
   (let ((field (find-field pos)))
     (buffer-substring-no-properties (car field) (cdr field))))
 
@@ -214,7 +222,10 @@ If POS is nil, the value of point is used for POS.
 If ESCAPE-FROM-EDGE is non-nil and POS is at the beginning of its
 field, then the beginning of the *previous* field is returned.
 If LIMIT is non-nil, it is a buffer position; if the beginning of the field
-is before LIMIT, then LIMIT will be returned instead."
+is before LIMIT, then LIMIT will be returned instead.
+
+An `args-out-of-range' error is signaled if POS is outside the
+buffer's accessible portion."
   (car (find-field pos escape-from-edge limit nil nil t)))
 
 ;;;###autoload
@@ -225,7 +236,10 @@ If POS is nil, the value of point is used for POS.
 If ESCAPE-FROM-EDGE is non-nil and POS is at the end of its field,
 then the end of the *following* field is returned.
 If LIMIT is non-nil, it is a buffer position; if the end of the field
-is after LIMIT, then LIMIT will be returned instead."
+is after LIMIT, then LIMIT will be returned instead.
+
+An `args-out-of-range' error is signaled if POS is outside the
+buffer's accessible portion."
   (cdr (find-field pos escape-from-edge nil limit t nil)))
 
 ;;;###autoload

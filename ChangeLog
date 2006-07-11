@@ -1,3 +1,18 @@
+2006-07-06  Jerry James  <james@xemacs.org>
+
+	* comint.el (comint-output-filter): Don't move point to the bottom
+	unconditionally.  Also, clean up old extents that no longer have a
+	buffer.
+	* field.el (find-field): When point was at the meeting place of
+	two fields, find-field was finding the field before point instead
+	of the field after point, like Emacs does.
+	* field.el (delete-field): Update the docstring with a warning
+	about args-out-of-range.
+	* field.el (field-string): Ditto.
+	* field.el (field-string-no-properties): Ditto.
+	* field.el (field-beginning): Ditto.
+	* field.el (field-end): Ditto.
+
 2006-06-16  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 2.06 released.

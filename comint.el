@@ -1789,15 +1789,15 @@ Make backspaces delete the previous character."
 	  (set-marker comint-last-output-start ostart)
 	  (set-marker (process-mark process) (point))
 	  (force-mode-line-update)
-	  (narrow-to-region obeg oend)
-	  (goto-char opoint)
 
 	  (unless comint-inhibit-carriage-motion
 	    ;; Interpret any carriage motion characters (newline, backspace)
 	    (comint-carriage-motion comint-last-output-start (point)))
 
 	  ;; Run these hooks with point where the user had it.
+	  (goto-char opoint)
 	  (run-hook-with-args 'comint-output-filter-functions string)
+	  (setq opoint (point))
 
 	  (goto-char (process-mark process)) ; in case a filter moved it
 
@@ -1820,6 +1820,15 @@ Make backspaces delete the previous character."
 	      (add-text-properties
 	       prompt-start (point)
 	       '(read-only t end-open t start-open (read-only))))
+
+	    ;; XEmacs change: if the existing prompt extent is for a
+	    ;; different buffer, kill it
+	    (unless (or (null comint-last-prompt-extent)
+			(eq (extent-object comint-last-prompt-extent)
+			    oprocbuf))
+	      (delete-extent comint-last-prompt-extent)
+	      (setq comint-last-prompt-extent nil))
+
 	    (unless (and (bolp) (null comint-last-prompt-extent))
 	      ;; Need to create or move the prompt extent (in the case
 	      ;; where there is no prompt ((bolp) == t), we still do
@@ -1833,7 +1842,11 @@ Make backspaces delete the previous character."
 		      (make-extent prompt-start (point)))
 		(set-extent-property
 		 comint-last-prompt-extent
-		 'font-lock-face 'comint-highlight-prompt)))))))))
+		 'font-lock-face 'comint-highlight-prompt))))
+
+	  ;; Put point back where the user left it
+	  (narrow-to-region obeg oend)
+	  (goto-char opoint))))))
 
 ;; XEmacs: Use a variable for this so that new commands can be added easily.
 (defcustom comint-scroll-to-bottom-on-input-commands
