@@ -1,3 +1,7 @@
+2006-07-12  Norbert Koch  <viteno@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 2.07 released.
+
 2006-07-06  Jerry James  <james@xemacs.org>
 
 	* comint.el (comint-output-filter): Don't move point to the bottom
