@@ -1,3 +1,17 @@
+2006-07-25  Jerry James  <james@xemacs.org>
+
+	* comint.el (comint-inhibit-carriage-motion): default to t to
+	avoid surprises.
+	* comint.el (comint-snapshot-last-prompt): this function is
+	redundant with code in comint-output-filter.  Gut it, but leave it
+	for now for Emacs compatibility.
+	* comint.el (comint-output-filter): Move the narrow-to-region call
+	above the execution of the comint-output-filter-functions hooks
+	like it used to be to placate current callers.  Note that this is
+	different from the order in which Emacs does it, though, so watch
+	out for incompatibilities.  Also, remove now useless code checking
+	for trouble with comint-last-prompt-extent that will never happen.
+
 2006-07-12  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 2.07 released.

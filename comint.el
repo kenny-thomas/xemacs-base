@@ -1689,7 +1689,8 @@ redirection buffer.
 You can use `add-hook' to add functions to this list
 either globally or locally.")
 
-(defvar comint-inhibit-carriage-motion nil
+;; XEmacs change: don't interpret carriage control characters by default
+(defvar comint-inhibit-carriage-motion t
   "If nil, Comint will interpret `carriage control' characters in output.
 See `comint-carriage-motion' for details.")
 
@@ -1701,11 +1702,8 @@ See `comint-carriage-motion' for details.")
   "`snapshot' any current `comint-last-prompt-extent'.
 Freeze its attributes in place, even when more input comes along
 and moves the prompt extent."
-  (when comint-last-prompt-extent
-    (let ((inhibit-read-only t))
-      (add-text-properties (extent-start-position comint-last-prompt-extent)
-                           (extent-end-position comint-last-prompt-extent)
-                           (extent-properties comint-last-prompt-extent)))))
+  ;; XEmacs change: we do this in comint-output-filter
+  t)
 
 (defun comint-carriage-motion (start end)
   "Interpret carriage control characters in the region from START to END.
@@ -1761,6 +1759,7 @@ Make backspaces delete the previous character."
 	    (setq functions (cdr functions))))
 
 	;; Insert STRING
+	;; XEmacs change: this code diverges wildly from the Emacs version
 	(let* ((inhibit-read-only t)
 	       (opoint (point))
 	       (obeg (point-min))
@@ -1795,6 +1794,7 @@ Make backspaces delete the previous character."
 	    (comint-carriage-motion comint-last-output-start (point)))
 
 	  ;; Run these hooks with point where the user had it.
+	  (narrow-to-region obeg oend)
 	  (goto-char opoint)
 	  (run-hook-with-args 'comint-output-filter-functions string)
 	  (setq opoint (point))
@@ -1821,14 +1821,6 @@ Make backspaces delete the previous character."
 	       prompt-start (point)
 	       '(read-only t end-open t start-open (read-only))))
 
-	    ;; XEmacs change: if the existing prompt extent is for a
-	    ;; different buffer, kill it
-	    (unless (or (null comint-last-prompt-extent)
-			(eq (extent-object comint-last-prompt-extent)
-			    oprocbuf))
-	      (delete-extent comint-last-prompt-extent)
-	      (setq comint-last-prompt-extent nil))
-
 	    (unless (and (bolp) (null comint-last-prompt-extent))
 	      ;; Need to create or move the prompt extent (in the case
 	      ;; where there is no prompt ((bolp) == t), we still do
@@ -1845,7 +1837,6 @@ Make backspaces delete the previous character."
 		 'font-lock-face 'comint-highlight-prompt))))
 
 	  ;; Put point back where the user left it
-	  (narrow-to-region obeg oend)
 	  (goto-char opoint))))))
 
 ;; XEmacs: Use a variable for this so that new commands can be added easily.
