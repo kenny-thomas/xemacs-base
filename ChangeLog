@@ -1,3 +1,8 @@
+2006-07-25  Daiki Ueno  <ueno@unixuser.org>
+
+	* timer-funcs.el (with-timeout): Return the result of
+	TIMEOUT-FORMS if the timeout expires.
+
 2006-07-25  Jerry James  <james@xemacs.org>
 
 	* comint.el (comint-inhibit-carriage-motion): default to t to

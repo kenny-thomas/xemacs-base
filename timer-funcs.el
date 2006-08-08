@@ -182,14 +182,14 @@ be detected."
     `(let ((with-timeout-tag (cons nil nil))
 	   with-timeout-value with-timeout-timer)
        (unwind-protect
-	   (when (catch with-timeout-tag
+	   (if (catch with-timeout-tag
 		   (progn
 		     (setq with-timeout-timer
 			   (start-itimer "with-timeout" #'with-timeout-handler
 					 ,seconds nil nil t with-timeout-tag))
 		     (setq with-timeout-value (progn ,@body))
 		     nil))
-	     ,@timeout-forms
+	       ,@timeout-forms
 	     with-timeout-value)
 	 (delete-itimer with-timeout-timer)))))
 
