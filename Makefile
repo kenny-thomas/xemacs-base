@@ -17,7 +17,7 @@
 # the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
 
-VERSION = 2.07
+VERSION = 2.08
 AUTHOR_VERSION =
 MAINTAINER = XEmacs Development Team <xemacs-beta@xemacs.org>
 PACKAGE = xemacs-base

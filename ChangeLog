@@ -1,3 +1,7 @@
+2006-08-14  Norbert Koch  <viteno@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 2.08 released.
+
 2006-07-25  Daiki Ueno  <ueno@unixuser.org>
 
 	* timer-funcs.el (with-timeout): Return the result of
