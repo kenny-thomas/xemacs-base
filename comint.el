@@ -2811,13 +2811,10 @@ Environment variables are substituted.  See `comint-word'."
 Magic characters are those in `comint-file-name-quote-list'."
   (if (null comint-file-name-quote-list)
       filename
-    (let ((regexp
-	   (format "\\(^\\|[^\\]\\)\\([%s]\\)"
-	    (mapconcat 'char-to-string comint-file-name-quote-list ""))))
-      (save-match-data
-	(while (string-match regexp filename)
-	  (setq filename (replace-match "\\1\\\\\\2" nil nil filename)))
-	filename))))
+    (mapconcat (lambda (x)
+		 (concat (if (memq x comint-file-name-quote-list) "\\" "")
+			 (char-to-string x)))
+	       filename "")))
 
 (defun comint-unquote-filename (filename)
   "Return FILENAME with quoted characters unquoted."

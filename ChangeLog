@@ -1,3 +1,7 @@
+2007-02-28  Stephen J. Turnbull  <stephen@xemacs.org>
+
+	* comint.el (comint-quote-filename): Fix infloop.
+
 2006-08-14  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 2.08 released.
