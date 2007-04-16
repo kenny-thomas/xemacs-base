@@ -1,3 +1,7 @@
+2007-04-16  Norbert Koch  <viteno@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 2.10 released.
+
 2007-04-02  Stephen J. Turnbull  <stephen@xemacs.org>
 
 	* comint.el (comint-output-filter): Avoid error if filter deletes.
