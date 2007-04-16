@@ -1,3 +1,8 @@
+2007-04-02  Stephen J. Turnbull  <stephen@xemacs.org>
+
+	* comint.el (comint-output-filter): Avoid error if filter deletes.
+	(comint-inhibit-carriage-motion): Comment on remaining bug.
+
 2007-03-07  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 2.09 released.

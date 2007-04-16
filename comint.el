@@ -1692,7 +1692,10 @@ either globally or locally.")
 ;; XEmacs change: don't interpret carriage control characters by default
 (defvar comint-inhibit-carriage-motion t
   "If nil, Comint will interpret `carriage control' characters in output.
-See `comint-carriage-motion' for details.")
+See `comint-carriage-motion' for details..
+Note: currently this does not work perfectly.  Specifically a bare ASCII
+CR will usually, but not always, result in the current line being erased
+(giving the effect of overwriting it).")
 
 ;; When non-nil, this is an extent over the last recognized prompt in
 ;; the buffer; it is used when highlighting the prompt.
@@ -1790,6 +1793,11 @@ Make backspaces delete the previous character."
 	  (force-mode-line-update)
 
 	  (unless comint-inhibit-carriage-motion
+	    ;; oend needs to be adjusted if the buffer content is changed.
+	    ;; Specifically, an error occurs if oend points beyond EOB.
+	    ;; Use of a marker seems to (mostly) work (see docstring of
+	    ;; `comint-inhibit-carriage-motion').
+	    (setq oend (copy-marker oend))
 	    ;; Interpret any carriage motion characters (newline, backspace)
 	    (comint-carriage-motion comint-last-output-start (point)))
 
