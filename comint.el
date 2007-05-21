@@ -1,7 +1,6 @@
 ;;; comint.el --- general command interpreter in a window stuff
 
-;; Copyright (C) 1988, 1990, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 90, 92, 93, 94, 95, 96 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;;	Simon Marshall <simon@gnu.org>
@@ -25,8 +24,6 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
-;;; Synched up with: FSF 22.0.50 (CVS revision 1.345)
-
 ;;; Commentary:
 
 ;; This source has diverged somewhat from the FSF version.  Please send
@@ -47,8 +44,8 @@
 ;; - The file tea.el tunes scheme and inferior-scheme modes for T.
 ;; - The file soar.el tunes Lisp and inferior-lisp modes for Soar.
 ;; - cmutex.el defines TeX and LaTeX modes that invoke TeX, LaTeX, BibTeX,
-;;   previewers, and printers from within Emacs.
-;; - background.el allows csh-like job control inside Emacs.
+;;   previewers, and printers from within XEmacs.
+;; - background.el allows csh-like job control inside XEmacs.
 ;; It is pretty easy to make new derived modes for other processes.
 
 ;; For documentation on the functionality provided by Comint mode, and
@@ -66,31 +63,30 @@
 ;; Comint Mode Commands: (common to all derived modes, like shell & cmulisp
 ;; mode)
 ;;
-;; M-p	   comint-previous-input	   Cycle backwards in input history
-;; M-n	   comint-next-input		   Cycle forwards
-;; M-r     comint-previous-matching-input  Previous input matching a regexp
-;; M-s     comint-next-matching-input      Next input that matches
-;; M-C-l   comint-show-output		   Show last batch of process output
-;; RET	   comint-send-input
-;; C-d	   comint-delchar-or-maybe-eof     Delete char unless at end of buff
-;; C-c C-a comint-bol-or-process-mark      First time, move point to bol;
-;;					    second time, move to process-mark.
-;; C-c C-u comint-kill-input		    ^u
-;; C-c C-w backward-kill-word		    ^w
-;; C-c C-c comint-interrupt-subjob	    ^c
-;; C-c C-z comint-stop-subjob		    ^z
-;; C-c C-\ comint-quit-subjob		    ^\
-;; C-c C-o comint-delete-output		    Delete last batch of process output
-;; C-c C-r comint-show-output		    Show last batch of process output
-;; C-c C-l comint-dynamic-list-input-ring  List input history
-;;
-;; XEmacs addition:
-;; C-a	   comint-bol			   Beginning of line; skip prompt
+;; XEmacs rebinds m-p/M-n to looking for matching input
+;; m-p	   comint-previous-input    	    Cycle backwards in input history
+;; m-n	   comint-next-input  	    	    Cycle forwards
+;; m-r     comint-previous-matching-input   Previous input matching a regexp
+;; m-s     comint-next-matching-input       Next input that matches
+;; m-c-l   comint-show-output		    Show last batch of process output
+;; return  comint-send-input
+;; c-a	   comint-bol			    Beginning of line; skip prompt
+;; c-d	   comint-delchar-or-maybe-eof      Delete char unless at end of buff
+;; c-c c-a comint-bol                       Beginning of line; skip prompt
+;; c-c c-u comint-kill-input	    	    ^u
+;; c-c c-w backward-kill-word    	    ^w
+;; c-c c-c comint-interrupt-subjob 	    ^c
+;; c-c c-z comint-stop-subjob	    	    ^z
+;; c-c c-\ comint-quit-subjob	    	    ^\
+;; c-c c-o comint-kill-output		    Delete last batch of process output
+;; c-c c-r comint-show-output		    Show last batch of process output
+;; c-c c-l comint-dynamic-list-input-ring  List input history
 ;;
 ;; Not bound by default in comint-mode (some are in shell mode)
 ;; comint-run				Run a program under comint-mode
 ;; send-invisible			Read a line w/o echo, and send to proc
 ;; comint-dynamic-complete-filename	Complete filename at point.
+;; comint-dynamic-complete-variable    Complete variable name at point.
 ;; comint-dynamic-list-filename-completions List completions in help buffer.
 ;; comint-replace-by-expanded-filename	Expand and complete filename at point;
 ;;					replace with expanded/completed name.
@@ -100,39 +96,28 @@
 ;; comint-kill-subjob			No mercy.
 ;; comint-show-maximum-output          Show as much output as possible.
 ;; comint-continue-subjob		Send CONT signal to buffer's process
-;;					group.  Useful if you accidentally
+;;					group. Useful if you accidentally
 ;;					suspend your process (with C-c C-z).
-;; comint-get-next-from-history        Fetch successive input history lines
-;; comint-accumulate		       Combine lines to send them together
-;;					as input.
-;; comint-goto-process-mark	       Move point to where process-mark is.
-;; comint-set-process-mark	       Set process-mark to point.
 
-;; comint-mode-hook is the Comint mode hook.  Basically for your keybindings.
+;; comint-mode-hook is the comint mode hook. Basically for your keybindings.
 
 ;;; Code:
 
 (require 'ring)
-
-;; XEmacs addition: make the byte compiler be quiet
-(eval-when-compile
-  (load "field")
-  (require 'ffap)
-  (require 'passwd))
 
 ;; Buffer Local Variables:
 ;;============================================================================
 ;; Comint mode buffer local variables:
-;;  comint-prompt-regexp		string	comint-bol uses to match prompt
+;;  comint-prompt-regexp    		string	comint-bol uses to match prompt
 ;;  comint-delimiter-argument-list	list	For delimiters and arguments
 ;;  comint-last-input-start		marker	Handy if inferior always echoes
-;;  comint-last-input-end		marker	For comint-delete-output command
+;;  comint-last-input-end		marker	For comint-kill-output command
 ;;  comint-input-ring-size		integer	For the input history
 ;;  comint-input-ring			ring	mechanism
 ;;  comint-input-ring-index		number	...
-;;  comint-save-input-ring-index	number	...
 ;;  comint-input-autoexpand		symbol	...
 ;;  comint-input-ignoredups		boolean	...
+;;  comint-last-input-match		string	...
 ;;  comint-dynamic-complete-functions	hook   For the completion mechanism
 ;;  comint-completion-fignore		list	...
 ;;  comint-file-name-chars		string	...
@@ -140,7 +125,6 @@
 ;;  comint-get-old-input		function Hooks for specific
 ;;  comint-input-filter-functions	hook	process-in-a-buffer
 ;;  comint-output-filter-functions	hook	function modes.
-;;  comint-preoutput-filter-functions   hook
 ;;  comint-input-filter			function ...
 ;;  comint-input-sender			function ...
 ;;  comint-eol-on-send			boolean	...
@@ -148,32 +132,15 @@
 ;;  comint-scroll-to-bottom-on-input	symbol	For scroll behavior
 ;;  comint-scroll-to-bottom-on-output	symbol	...
 ;;  comint-scroll-show-maximum-output	boolean	...
-;;  comint-accum-marker			marker	  For comint-accumulate
 ;;
 ;; Comint mode non-buffer local variables:
 ;;  comint-completion-addsuffix		boolean/cons	For file name
 ;;  comint-completion-autolist		boolean		completion behavior
 ;;  comint-completion-recexact		boolean		...
 
-(defgroup comint nil
-  "General command interpreter in a window stuff."
-  :group 'processes)
-
-(defgroup comint-completion nil
-  "Completion facilities in comint."
-  :group 'comint)
-
-(defgroup comint-source nil
-  "Source finding facilities in comint."
-  :prefix "comint-"
-  :group 'comint)
-
 (defvar comint-prompt-regexp "^"
-  "Regexp to recognize prompts in the inferior process.
+  "Regexp to recognise prompts in the inferior process.
 Defaults to \"^\", the null string at BOL.
-
-This variable is only used if the variable
-`comint-use-prompt-regexp' is non-nil.
 
 Good choices:
   Canonical Lisp: \"^[^> \\n]*>+:? *\" (Lucid, franz, kcl, T, cscheme, oaklisp)
@@ -188,32 +155,8 @@ This pattern gets handed to re-search-backward, not looking-at.
 
 This is a good thing to set in mode hooks.")
 
-(defcustom comint-prompt-read-only nil
-  "If non-nil, the comint prompt is read only.
-The read only region includes the newline before the prompt.
-This does not affect existing prompts.
-Certain derived modes may override this option.
-
-If you set this option to t, then the safe way to temporarily
-override the read-only-ness of comint prompts is to call
-`comint-kill-whole-line' or `comint-kill-region' with no
-narrowing in effect.  This way you will be certain that none of
-the remaining prompts will be accidentally messed up.  You may
-wish to put something like the following in your `user-init-file':
-
-\(add-hook 'comint-mode-hook
-	  (lambda ()
-	    (define-key comint-mode-map \"\\C-w\" 'comint-kill-region)
-	    (define-key comint-mode-map [C-S-backspace]
-	      'comint-kill-whole-line)))
-
-If you sometimes use comint-mode on text-only terminals or with `xemacs -nw',
-you might wish to use another binding for `comint-kill-whole-line'."
-  :type 'boolean
-  :group 'comint)
-
 (defvar comint-delimiter-argument-list ()
-  "List of characters to recognize as separate arguments in input.
+  "List of characters to recognise as separate arguments in input.
 Strings comprising a character in this list will separate the arguments
 surrounding them, and also be regarded as arguments in their own right (unlike
 whitespace).  See `comint-arguments'.
@@ -225,7 +168,7 @@ This is a good thing to set in mode hooks.")
 
 (defcustom comint-input-autoexpand nil
   "*If non-nil, expand input command history references on completion.
-This mirrors the optional behavior of tcsh (its autoexpand and histlist).
+This mirrors the optional behavior of tcsh (its autoexpand and histlit).
 
 If the value is `input', then the expansion is seen on input.
 If the value is `history', then the expansion is only when inserting
@@ -237,18 +180,6 @@ This variable is buffer-local."
 		 (const :tag "on" t)
 		 (const input)
 		 (const history))
-  :group 'comint)
-
-(defface comint-highlight-input '((t (:bold t)))
-  "Face to use to highlight user input."
-  :group 'comint)
-
-(defface comint-highlight-prompt
-  ;; XEmacs change: we don't have a min-colors property
-  '((((background dark)) (:foreground "cyan1"))
-    (((background dark)) (:foreground "cyan"))
-    (t (:foreground "dark blue")))
-  "Face to use to highlight prompts."
   :group 'comint)
 
 ;; This should default to t for consistency with minibuffer history. -jwz
@@ -266,7 +197,7 @@ See also `comint-read-input-ring' and `comint-write-input-ring'.
 
 This variable is buffer-local, and is a good thing to set in mode hooks."
   :type '(choice (const :tag "None" nil)
-		 file)
+	         (file))
   :group 'comint)
 
 (defcustom comint-scroll-to-bottom-on-input nil
@@ -283,19 +214,16 @@ See `comint-preinput-scroll-to-bottom'.  This variable is buffer-local."
 		 (const this))
   :group 'comint)
 
-(defcustom comint-move-point-for-output nil
-  "*Controls whether interpreter output moves point to the end of the output.
-If nil, then output never moves point to the output.
-\(If the output occurs at point, it is inserted before point.)
-If t or `all', move point in all windows showing the buffer.
-If `this', move point only the selected window.
-If `others', move point only in other windows, not in the selected window.
+(defcustom comint-scroll-to-bottom-on-output nil
+  "*Controls whether interpreter output causes window to scroll.
+If nil, then do not scroll.  If t or `all', scroll all windows showing buffer.
+If `this', scroll only the selected window.
+If `others', scroll only those that are not the selected window.
 
 The default is nil.
 
-See the variable `comint-scroll-show-maximum-output' and the function
-`comint-postoutput-scroll-to-bottom'.
-This variable is buffer-local in all Comint buffers."
+See variable `comint-scroll-show-maximum-output' and function
+`comint-postoutput-scroll-to-bottom'.  This variable is buffer-local."
   :type '(choice (const :tag "off" nil)
 		 (const t)
 		 (const all)
@@ -303,28 +231,17 @@ This variable is buffer-local in all Comint buffers."
 		 (const others))
   :group 'comint)
 
-(defvaralias 'comint-scroll-to-bottom-on-output 'comint-move-point-for-output)
-
-;; XEmacs change: also support numeric values
 (defcustom comint-scroll-show-maximum-output t
-  "*Controls how to scroll due to interpreter output.
-This variable applies when point is at the end of the buffer
-\(either because it was originally there, or because
-`comint-move-point-for-output' said to move it there)
-and output from the subprocess is inserted.
-
-T means scroll so that the window is full of text
-and point is on the last line.  A value of nil
-means don't do anything special--scroll normally.
+  "*Controls how interpreter output causes window to scroll.
+If non-nil, then show the maximum output when the window is scrolled.
 
 You may set this to an integer number of lines to keep shown, or a
 floating point percentage of the window size to keep filled.
 A negative number expresses a distance from the bottom, as when using
 a prefix argument with `recenter' (bound to `\\[recenter]').
 
-See also the variable `comint-move-point-for-output' and the function
-`comint-postoutput-scroll-to-bottom'.
-This variable is buffer-local in all Comint buffers."
+See variable `comint-scroll-to-bottom-on-output' and function
+`comint-postoutput-scroll-to-bottom'.  This variable is buffer-local."
   :type '(choice (const :tag "Off" nil)
 		 (const :tag "On" t)
 		 (integer :tag "Number of lines" 20)
@@ -332,20 +249,14 @@ This variable is buffer-local in all Comint buffers."
   :group 'comint)
 
 (defcustom comint-buffer-maximum-size 1024
-  "*The maximum size in lines for Comint buffers.
+  "*The maximum size in lines for comint buffers.
 Comint buffers are truncated from the top to be no greater than this number, if
 the function `comint-truncate-buffer' is on `comint-output-filter-functions'."
   :type 'integer
   :group 'comint)
 
-(defvar comint-input-ring-size 150
+(defvar comint-input-ring-size 32
   "Size of input history ring.")
-
-(defvar comint-input-ring-separator "\n"
-  "Separator between commands in the history file.")
-
-(defvar comint-input-history-ignore "^#"
-  "Regexp for history entries that should be ignored when Comint initializes.")
 
 (defcustom comint-process-echoes nil
   "*If non-nil, assume that the subprocess echoes any input.
@@ -356,17 +267,11 @@ This variable is buffer-local."
   :type 'boolean
   :group 'comint)
 
-;; AIX puts the name of the person being su'd to in front of the prompt.
-;; kinit prints a prompt like `Password for devnull@GNU.ORG: '.
-;; ksu prints a prompt like `Kerberos password for devnull/root@GNU.ORG: '.
-;; ssh-add prints a prompt like `Enter passphrase: '.
-;; Some implementations of passwd use "Password (again)" as the 2nd prompt.
+;; AIX puts the name of the person being su'd to in from of the prompt.
 (defcustom comint-password-prompt-regexp
-  "\\(\\([Oo]ld \\|[Nn]ew \\|'s \\|login \\|\
-Kerberos \\|CVS \\|UNIX \\| SMB \\|^\\)\
-\[Pp]assword\\( (again)\\)?\\|\
-pass phrase\\|\\(Enter\\|Repeat\\|Bad\\) passphrase\\)\
-\\(?:, try again\\)?\\(?: for [^:]+\\)?:\\s *\\'"
+  (if (eq system-type 'aix-v3)
+      "\\(\\([Oo]ld \\|[Nn]ew \\|^\\|^..*s \\)[Pp]assword\\|pass ?phrase\\):\\s *\\'"
+  "\\(\\([Oo]ld \\|[Nn]ew \\|^\\)[Pp]assword\\|pass ?phrase\\):\\s *\\'")
   "*Regexp matching prompts for passwords in the inferior process.
 This is used by `comint-watch-for-password-prompt'."
   :type 'regexp
@@ -374,13 +279,21 @@ This is used by `comint-watch-for-password-prompt'."
 
 ;; Here are the per-interpreter hooks.
 (defvar comint-get-old-input (function comint-get-old-input-default)
-  "Function that returns old text in Comint mode.
-This function is called when return is typed while the point is in old
-text.  It returns the text to be submitted as process input.  The
-default is `comint-get-old-input-default', which either grabs the
-current input field or grabs the current line and strips off leading
-text matching `comint-prompt-regexp', depending on the value of
-`comint-use-prompt-regexp'.")
+  "Function that returns old text in comint mode.
+This function is called when return is typed while the point is in old text.
+It returns the text to be submitted as process input.  The default is
+`comint-get-old-input-default', which grabs the current line, and strips off
+leading text matching `comint-prompt-regexp'.")
+
+(defcustom comint-append-old-input t
+  "*If nil, old text selected by \\[comint-send-input] is re-sent immediately.
+If non-nil, the old text is appended to the end of the buffer,
+and a prompting message is printed.
+
+This flag does not affect the behavior of \\[comint-send-input]
+after the process output mark."
+  :type 'boolean
+  :group 'comint)
 
 (defvar comint-dynamic-complete-functions
   '(comint-replace-by-expanded-history comint-dynamic-complete-filename)
@@ -390,7 +303,6 @@ See also `comint-dynamic-complete'.
 
 This is a good thing to set in mode hooks.")
 
-;; XEmacs change: ignore very short inputs
 (defvar comint-input-filter
   #'(lambda (str)
       (and (not (string-match "\\`\\s *\\'" str))
@@ -416,20 +328,13 @@ inserted.  Note that this might not be the same as the buffer contents between
 `comint-last-output-start' and the buffer's `process-mark', if other filter
 functions have already modified the buffer.
 
-See also `comint-preoutput-filter-functions'.
-
-You can use `add-hook' to add functions to this list
-either globally or locally.")
-
-(defvar comint-input-sender-no-newline nil
-  "Non-nil directs the `comint-input-sender' function not to send a newline.")
+This variable is buffer-local.")
 
 (defvar comint-input-sender (function comint-simple-send)
   "Function to actually send to PROCESS the STRING submitted by user.
 Usually this is just `comint-simple-send', but if your mode needs to
 massage the input string, put a different function here.
 `comint-simple-send' just sends the string plus a newline.
-\(If `comint-input-sender-no-newline' is non-nil, it omits the newline.)
 This is called from the user command `comint-send-input'.")
 
 (defcustom comint-eol-on-send t
@@ -438,139 +343,108 @@ See `comint-send-input'."
   :type 'boolean
   :group 'comint)
 
-;; Note: If it is decided to purge comint-prompt-regexp from the source
-;; entirely, searching for uses of this variable will help to identify
-;; places that need attention.
-(defcustom comint-use-prompt-regexp nil
-  "*If non-nil, use `comint-prompt-regexp' to recognize prompts.
-If nil, then program output and user-input are given different `field'
-properties, which Emacs commands can use to distinguish them (in
-particular, common movement commands such as `beginning-of-line'
-respect field boundaries in a natural way)."
-  :type 'boolean
-  :group 'comint)
-
-;; XEmacs change: we don't need the autoload here since we never used
-;; comint-use-prompt-regexp-instead-of-fields
-(define-obsolete-variable-alias 'comint-use-prompt-regexp-instead-of-fields
-    'comint-use-prompt-regexp)
-
-(defcustom comint-mode-hook nil
-  "Hook run upon entry to `comint-mode'.
+(defcustom comint-mode-hook '()
+  "Called upon entry into comint-mode
 This is run before the process is cranked up."
   :type 'hook
   :group 'comint)
 
-;; XEmacs change: This is initialized by the various language environments.
-;; Do not Custom-ize it.
+;; This is initialized by the various language environments, do not
+;; Custom-ize it.
 (defvar comint-exec-hook '()
   "Called each time a process is exec'd by `comint-exec'.
 This is called after the process is cranked up.  It is useful for things that
-must be done each time a process is executed in a Comint mode buffer (e.g.,
+must be done each time a process is executed in a comint mode buffer (e.g.,
 `(process-kill-without-query)').  In contrast, the `comint-mode-hook' is only
 executed once when the buffer is created.")
 
-;; XEmacs change: we set up the keymap and menus differently.
 (defvar comint-mode-map nil)
 
-;; Fixme: Is this still relevant?
 (defvar comint-ptyp t
   "Non-nil if communications via pty; false if by pipe.  Buffer local.
 This is to work around a bug in Emacs process signaling.")
 
 (defvar comint-input-ring nil)
-(defvar comint-last-input-start nil)
-(defvar comint-last-input-end nil)
-(defvar comint-last-output-start nil)
+(defvar comint-last-input-start)
+(defvar comint-last-input-end)
+(defvar comint-last-output-start)
 (defvar comint-input-ring-index nil
   "Index of last matched history element.")
 (defvar comint-matching-input-from-input-string ""
   "Input previously used to match input history.")
-(defvar comint-save-input-ring-index
-  "Last input ring index which you copied.
-This is to support the command \\[comint-get-next-from-history].")
-
-(defvar comint-accum-marker nil
-  "Non-nil if you are accumulating input lines to send as input together.
-The command \\[comint-accumulate] sets this.")
-
-(defvar comint-stored-incomplete-input nil
-  "Stored input for history cycling.")
 
 (put 'comint-replace-by-expanded-history 'menu-enable 'comint-input-autoexpand)
 (put 'comint-input-ring 'permanent-local t)
 (put 'comint-input-ring-index 'permanent-local t)
-(put 'comint-save-input-ring-index 'permanent-local t)
 (put 'comint-input-autoexpand 'permanent-local t)
 (put 'comint-input-filter-functions 'permanent-local t)
 (put 'comint-output-filter-functions 'permanent-local t)
-(put 'comint-preoutput-filter-functions 'permanent-local t)
 (put 'comint-scroll-to-bottom-on-input 'permanent-local t)
-(put 'comint-move-point-for-output 'permanent-local t)
+(put 'comint-scroll-to-bottom-on-output 'permanent-local t)
 (put 'comint-scroll-show-maximum-output 'permanent-local t)
 (put 'comint-ptyp 'permanent-local t)
 
-(put 'comint-mode 'mode-class 'special)
-
 (defvar comint-1-menubar-menu nil)
 (defconst comint-1-menubar-menu-1
-  '("Complete"
-    ["Complete Before Point" comint-dynamic-complete t]
-    ["Complete File Name" comint-dynamic-complete-filename t]
-    ["File Completion Listing" comint-dynamic-list-filename-completions t]
-    ["Expand File Name" comint-replace-by-expanded-filename t]
-    ;; this is cheesy but the easiest way to get this.
-    ["Complete Env. Variable Name" shell-dynamic-complete-environment-variable
-     :active t :included (eq 'shell-mode major-mode)]
-    ["Expand Directory Reference" shell-replace-by-expanded-directory
-     :active t :included (eq 'shell-mode major-mode)]
-    "---"
-    ("History"
-     :filter comint-history-menu-filter
-     ["Expand History Before Point" comint-replace-by-expanded-history
-      comint-input-autoexpand]
-     ["List Input History" comint-dynamic-list-input-ring t]
+  (purecopy
+   '("Complete"
+     ["Complete Before Point" comint-dynamic-complete t]
+     ["Complete File Name" comint-dynamic-complete-filename t]
+     ["File Completion Listing" comint-dynamic-list-filename-completions t]
+     ["Expand File Name" comint-replace-by-expanded-filename t]
+     ;; this is cheesy but the easiest way to get this.
+     ["Complete Env. Variable Name" shell-dynamic-complete-environment-variable
+      :active t :included (eq 'shell-mode major-mode)]
+     ["Expand Directory Reference" shell-replace-by-expanded-directory
+      :active t :included (eq 'shell-mode major-mode)]
      "---"
-     )))
+     ("History"
+       :filter comint-history-menu-filter
+       ["Expand History Before Point" comint-replace-by-expanded-history
+	comint-input-autoexpand]
+       ["List Input History" comint-dynamic-list-input-ring t]
+       "---"
+       ))))
 
 (defvar comint-2-menubar-menu nil)
 (defconst comint-2-menubar-menu-1
-  '("In/Out"
-    ["Previous Input" comint-previous-input t]
-    ["Next Input" comint-next-input t]
-    ["Previous Matching Current Input"
-     comint-previous-matching-input-from-input t]
-    ["Next Matching Current Input" comint-next-matching-input-from-input t]
-    ["Previous Input Matching Regexp..." comint-previous-matching-input t]
-    ["Next Input Matching Regexp..." comint-next-matching-input t]
-    ["Backward Matching Input..." comint-backward-matching-input t]
-    ["Forward Matching Input..." comint-forward-matching-input t]
-    "---"
-    ["Copy Old Input" comint-copy-old-input t]
-    ["Kill Current Input" comint-kill-input t]
-    ["Show Current Output Group" comint-show-output t]
-    ["Show Maximum Output" comint-show-maximum-output t]
-    ["Backward Output Group" comint-previous-prompt t]
-    ["Forward Output Group" comint-next-prompt t]
-    ["Write Current Output Group to File" comint-write-output t]
-    ["Append Current Output Group to File" comint-append-output-to-file t]
-    ["Delete Current Output Group" comint-delete-output t]
-    ))
+  (purecopy
+   '("In/Out"
+     ["Previous Matching Current Input"
+      comint-previous-matching-input-from-input t]
+     ["Next Matching Current Input" comint-next-matching-input-from-input t]
+     ["Previous Input" comint-previous-input t]
+     ["Next Input" comint-next-input t]
+     ["Previous Input Matching Regexp..." comint-previous-matching-input t]
+     ["Next Input Matching Regexp..." comint-next-matching-input t]
+     ["Backward Matching Input..." comint-backward-matching-input t]
+     ["Forward Matching Input..." comint-forward-matching-input t]
+     "---"
+     ["Copy Old Input" comint-copy-old-input t]
+     ["Kill Current Input" comint-kill-input t]
+     ["Show Current Output Group" comint-show-output t]
+     ["Show Maximum Output" comint-show-maximum-output t]
+     ["Goto Previous Prompt" comint-previous-prompt t]
+     ["Goto Next Prompt" comint-next-prompt t]
+     ["Kill Command Output" comint-kill-output t]
+     )))
 
 (defvar comint-history-menubar-menu nil)
 (defconst comint-history-menubar-menu-1
-  '("Signals"
-    ["Send BREAK"  comint-interrupt-subjob t]
-    ["Send STOP" comint-stop-subjob t]
-    ["Send CONT" comint-continue-subjob t]
-    ["Send QUIT" comint-quit-subjob t]
-    ["Send KILL" comint-kill-subjob t]
-    ["Send EOF"  comint-send-eof t]
-    ))
+  (purecopy
+   '("Signals"
+     ["Send INT"  comint-interrupt-subjob t]
+     ["Send STOP" comint-stop-subjob t]
+     ["Send CONT" comint-continue-subjob t]
+     ["Send QUIT" comint-quit-subjob t]
+     ["Send KILL" comint-kill-subjob t]
+     ["Send EOF"  comint-send-eof t]
+     )))
 
-;; XEmacs hack: autoload a dummy autoload instead of a derived mode
-;;;###autoload(autoload 'comint-mode "comint" nil t)
-(define-derived-mode comint-mode fundamental-mode "Comint"
+
+
+;;;###autoload
+(defun comint-mode ()
   "Major mode for interacting with an inferior interpreter.
 Interpreter name is same as buffer name, sans the asterisks.
 Return at end of buffer sends line as input.
@@ -578,7 +452,7 @@ Return not at end copies rest of line to end and sends it.
 Setting variable `comint-eol-on-send' means jump to the end of the line
 before submitting new input.
 
-This mode is customized to create major modes such as Inferior Lisp
+This mode is customised to create major modes such as Inferior Lisp
 mode, Shell mode, etc.  This can be done by setting the hooks
 `comint-input-filter-functions', `comint-input-filter', `comint-input-sender'
 and `comint-get-old-input' to appropriate functions, and the variable
@@ -597,8 +471,7 @@ Commands with no default key bindings include `send-invisible',
 
 Input to, and output from, the subprocess can cause the window to scroll to
 the end of the buffer.  See variables `comint-output-filter-functions',
-`comint-preoutput-filter-functions', `comint-scroll-to-bottom-on-input',
-and `comint-move-point-for-output'.
+`comint-scroll-to-bottom-on-input', and `comint-scroll-to-bottom-on-output'.
 
 If you accidentally suspend your process, use \\[comint-continue-subjob]
 to continue it.
@@ -606,11 +479,21 @@ to continue it.
 \\{comint-mode-map}
 
 Entry to this mode runs the hooks on `comint-mode-hook'."
+  (interactive)
+  ;; Do not remove this.  All major modes must do this.
+  (kill-all-local-variables)
+  (setq major-mode 'comint-mode)
+  (setq mode-name "Comint")
   (setq mode-line-process '(":%s"))
-  (set (make-local-variable 'comint-last-input-start) (point-min-marker))
-  (set (make-local-variable 'comint-last-input-end) (point-min-marker))
-  (set (make-local-variable 'comint-last-output-start) (make-marker))
-  (make-local-variable 'comint-last-prompt-extent)
+  (use-local-map comint-mode-map)
+  (make-local-variable 'comint-last-input-start)
+  (setq comint-last-input-start (make-marker))
+  (set-marker comint-last-input-start (point-min))
+  (make-local-variable 'comint-last-input-end)
+  (setq comint-last-input-end (make-marker))
+  (set-marker comint-last-input-end (point-min))
+  (make-local-variable 'comint-last-output-start)
+  (setq comint-last-output-start (make-marker))
   (make-local-variable 'comint-prompt-regexp)        ; Don't set; default
   (make-local-variable 'comint-input-ring-size)      ; ...to global val.
   (make-local-variable 'comint-input-ring)
@@ -618,41 +501,30 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (or (and (boundp 'comint-input-ring) comint-input-ring)
       (setq comint-input-ring (make-ring comint-input-ring-size)))
   (make-local-variable 'comint-input-ring-index)
-  (make-local-variable 'comint-save-input-ring-index)
   (or (and (boundp 'comint-input-ring-index) comint-input-ring-index)
       (setq comint-input-ring-index nil))
-  (or (and (boundp 'comint-save-input-ring-index) comint-save-input-ring-index)
-      (setq comint-save-input-ring-index nil))
   (make-local-variable 'comint-matching-input-from-input-string)
   (make-local-variable 'comint-input-autoexpand)
   (make-local-variable 'comint-input-ignoredups)
   (make-local-variable 'comint-delimiter-argument-list)
+  (make-local-hook 'comint-dynamic-complete-functions)
   (make-local-variable 'comint-completion-fignore)
   (make-local-variable 'comint-get-old-input)
+  (make-local-hook 'comint-input-filter-functions)
   (make-local-variable 'comint-input-filter)
   (make-local-variable 'comint-input-sender)
   (make-local-variable 'comint-eol-on-send)
   (make-local-variable 'comint-scroll-to-bottom-on-input)
-  (make-local-variable 'comint-move-point-for-output)
+  (make-local-variable 'comint-scroll-to-bottom-on-output)
   (make-local-variable 'comint-scroll-show-maximum-output)
-  (make-local-variable 'comint-stored-incomplete-input)
-  ;; XEmacs change: add 5 more local hooks
-  (make-local-hook 'comint-dynamic-complete-functions)
-  (make-local-hook 'comint-input-filter-functions)
   (make-local-hook 'pre-command-hook)
+  (add-hook 'pre-command-hook 'comint-preinput-scroll-to-bottom nil t)
   (make-local-hook 'comint-output-filter-functions)
-  (make-local-hook 'comint-exec-hook)
-  ;; XEmacs change: we cannot make scroll-conservatively buffer local
-  (add-hook 'pre-command-hook 'comint-preinput-scroll-to-bottom t t)
   (make-local-variable 'comint-ptyp)
+  (make-local-hook 'comint-exec-hook)
   (make-local-variable 'comint-process-echoes)
   (make-local-variable 'comint-file-name-chars)
   (make-local-variable 'comint-file-name-quote-list)
-  (set (make-local-variable 'comint-accum-marker) (make-marker))
-  ;; XEmacs change: font-lock-unfontify-buffer may not be loaded
-  ;(add-hook 'change-major-mode-hook 'font-lock-unfontify-buffer nil t)
-  ;; This behavior is not useful in comint buffers, and is annoying
-  (set (make-local-variable 'next-line-add-newlines) nil)
   (unless comint-1-menubar-menu
     (easy-menu-define comint-1-menubar-menu nil ""
 		      comint-1-menubar-menu-1))
@@ -669,43 +541,41 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (easy-menu-add comint-history-menubar-menu)
   (run-hooks 'comint-mode-hook))
 
-(unless comint-mode-map
+(if comint-mode-map
+    nil
   ;; Keys:
-  (setq comint-mode-map (make-sparse-keymap 'comint-mode-map))
-  (define-key comint-mode-map "\M-p" 'comint-previous-input)
-  (define-key comint-mode-map "\M-n" 'comint-next-input)
-  (define-key comint-mode-map '(control up) 'comint-previous-matching-input-from-input)
-  (define-key comint-mode-map '(control down) 'comint-next-matching-input-from-input)
-  (define-key comint-mode-map "\M-r" 'comint-previous-matching-input)
-  (define-key comint-mode-map "\M-s" 'comint-next-matching-input)
-  (define-key comint-mode-map "\C-c\M-r" 'comint-previous-matching-input-from-input)
-  (define-key comint-mode-map "\C-c\M-s" 'comint-next-matching-input-from-input)
-  (define-key comint-mode-map "\M-\C-l" 'comint-show-output)
+  (setq comint-mode-map (make-sparse-keymap))
+  (if (fboundp 'set-keymap-name)
+      (set-keymap-name comint-mode-map 'comint-mode-map))
+  (define-key comint-mode-map "\ep" 'comint-previous-input)
+  (define-key comint-mode-map "\en" 'comint-next-input)
+  (define-key comint-mode-map '(control up) 'comint-previous-input)
+  (define-key comint-mode-map '(control down) 'comint-next-input)
+  (define-key comint-mode-map "\er" 'comint-previous-matching-input)
+  (define-key comint-mode-map "\es" 'comint-next-matching-input)
+  ;; (define-key comint-mode-map [?\A-\M-r] 'comint-previous-matching-input-from-input)
+  ;; (define-key comint-mode-map [?\A-\M-s] 'comint-next-matching-input-from-input)
+  ;;(define-key comint-mode-map "\e\C-l" 'comint-show-output)
   (define-key comint-mode-map "\C-m" 'comint-send-input)
   (define-key comint-mode-map "\C-a" 'comint-bol)
   (define-key comint-mode-map "\C-d" 'comint-delchar-or-maybe-eof)
-  (define-key comint-mode-map "\C-c\C-x" 'comint-get-next-from-history)
-  (define-key comint-mode-map "\C-c\C-a" 'comint-bol-or-process-mark)
+  (define-key comint-mode-map "\C-c\C-a" 'comint-bol)
   (define-key comint-mode-map "\C-c\C-u" 'comint-kill-input)
   (define-key comint-mode-map "\C-c\C-w" 'backward-kill-word)
   (define-key comint-mode-map "\C-c\C-c" 'comint-interrupt-subjob)
   (define-key comint-mode-map "\C-c\C-z" 'comint-stop-subjob)
   (define-key comint-mode-map "\C-c\C-\\" 'comint-quit-subjob)
   (define-key comint-mode-map "\C-c\C-m" 'comint-copy-old-input)
-  (define-key comint-mode-map "\C-c\C-o" 'comint-delete-output)
+  (define-key comint-mode-map "\C-c\C-o" 'comint-kill-output)
   (define-key comint-mode-map "\C-c\C-r" 'comint-show-output)
   (define-key comint-mode-map "\C-c\C-e" 'comint-show-maximum-output)
   (define-key comint-mode-map "\C-c\C-l" 'comint-dynamic-list-input-ring)
   (define-key comint-mode-map "\C-c\C-n" 'comint-next-prompt)
   (define-key comint-mode-map "\C-c\C-p" 'comint-previous-prompt)
   (define-key comint-mode-map "\C-c\C-d" 'comint-send-eof)
-  (define-key comint-mode-map "\C-c\C-s" 'comint-write-output)
-  (define-key comint-mode-map "\C-c."    'comint-insert-previous-argument)
   ;; John Rose's suggestion
-  (define-key comint-mode-map "\M-}" 'comint-next-prompt)
-  (define-key comint-mode-map "\M-{" 'comint-previous-prompt)
-  ;; Mouse Buttons:
-  (define-key comint-mode-map 'button2   'comint-insert-input)
+  (define-key comint-mode-map "\e}" 'comint-next-prompt)
+  (define-key comint-mode-map "\e{" 'comint-previous-prompt)
 
   ;;#-infodock (define-key comint-mode-map 'button3 'comint-popup-menu)
   )
@@ -757,53 +627,44 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (insert string))
 
 (defun comint-check-proc (buffer)
-  "Return non-nil if there is a living process associated w/buffer BUFFER.
+  "Return t if there is a living process associated w/buffer BUFFER.
 Living means the status is `open', `run', or `stop'.
 BUFFER can be either a buffer or the name of one."
   (let ((proc (get-buffer-process buffer)))
     (and proc (memq (process-status proc) '(open run stop)))))
 
-;;;###autoload
-(defun make-comint-in-buffer (name buffer program &optional startfile &rest switches)
-  "Make a Comint process NAME in BUFFER, running PROGRAM.
-If BUFFER is nil, it defaults to NAME surrounded by `*'s.
-PROGRAM should be either a string denoting an executable program to create
-via `start-process', or a cons pair of the form (HOST . SERVICE) denoting a TCP
-connection to be opened via `open-network-stream'.  If there is already a
-running process in that buffer, it is not restarted.  Optional fourth arg
-STARTFILE is the name of a file to send the contents of to the process.
-
-If PROGRAM is a string, any more args are arguments to PROGRAM."
+;; #### Hack until FSF comint is integrated.
+(defun make-comint-1 (buffer program &optional startfile &rest switches)
   (or (fboundp 'start-process)
       (error "Multi-processing is not supported for this system"))
-  (setq buffer (get-buffer-create (or buffer (concat "*" name "*"))))
   ;; If no process, or nuked process, crank up a new one and put buffer in
   ;; comint mode.  Otherwise, leave buffer and existing process alone.
-  (unless (comint-check-proc buffer)
-    (with-current-buffer buffer
-      (unless (derived-mode-p 'comint-mode)
-	(comint-mode))) ; Install local vars, mode, keymap, ...
-    (comint-exec buffer name program startfile switches))
+  (cond ((not (comint-check-proc buffer))
+	 (save-excursion
+	   (set-buffer buffer)
+	   (comint-mode)) ; Install local vars, mode, keymap, ...
+	 (comint-exec buffer name program startfile switches)))
   buffer)
 
 ;; Note that this guy, unlike shell.el's make-shell, barfs if you pass it ()
 ;; for the second argument (program).
 ;;;###autoload
 (defun make-comint (name program &optional startfile &rest switches)
-  "Make a Comint process NAME in a buffer, running PROGRAM.
+  "Make a comint process NAME in a buffer, running PROGRAM.
 The name of the buffer is made by surrounding NAME with `*'s.
 PROGRAM should be either a string denoting an executable program to create
 via `start-process', or a cons pair of the form (HOST . SERVICE) denoting a TCP
 connection to be opened via `open-network-stream'.  If there is already a
 running process in that buffer, it is not restarted.  Optional third arg
-STARTFILE is the name of a file to send the contents of the process to.
+STARTFILE is the name of a file to send the contents of to the process.
 
 If PROGRAM is a string, any more args are arguments to PROGRAM."
-  (apply #'make-comint-in-buffer name nil program startfile switches))
+  (apply 'make-comint-1 (get-buffer-create (concat "*" name "*")) program
+	 startfile switches))
 
 ;;;###autoload
 (defun comint-run (program)
-  "Run PROGRAM in a Comint buffer and switch to it.
+  "Run PROGRAM in a comint buffer and switch to it.
 The buffer name is made by surrounding the file name of PROGRAM with `*'s.
 The file name is used to make a symbol name, such as `comint-sh-hook', and any
 hooks on this symbol are run in the buffer.
@@ -814,12 +675,12 @@ See `make-comint' and `comint-exec'."
     (run-hooks (intern-soft (concat "comint-" name "-hook")))))
 
 (defun comint-exec (buffer name command startfile switches)
-  "Start up a process named NAME in buffer BUFFER for Comint modes.
-Runs the given COMMAND with SWITCHES with output to STARTFILE.
+  "Start up a process in buffer BUFFER for comint modes.
 Blasts any old process running in the buffer.  Doesn't set the buffer mode.
-You can use this to cheaply run a series of processes in the same Comint
+You can use this to cheaply run a series of processes in the same comint
 buffer.  The hook `comint-exec-hook' is run after each exec."
-  (with-current-buffer buffer
+  (save-excursion
+    (set-buffer buffer)
     (let ((proc (get-buffer-process buffer)))	; Blast any old process.
       (if proc (delete-process proc)))
     ;; Crank up a new process
@@ -862,43 +723,18 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 	  ;; and there is no way for us to define it here.
 	  ;; Some programs that use terminfo get very confused
 	  ;; if TERM is not a valid terminal type.
-	  (list "TERM=dumb"
-		(format "TERMCAP=emacs:co#%d:tc=unknown:" (frame-width))
-		(format "COLUMNS=%d" (frame-width)))
+	  (if (and (boundp 'system-uses-terminfo) system-uses-terminfo)
+	      (list "TERM=dumb"
+		    (format "COLUMNS=%d" (frame-width)))
+	    (list "TERM=emacs"
+		  (format "TERMCAP=emacs:co#%d:tc=unknown:" (frame-width))))
 	  (if (getenv "EMACS") nil (list "EMACS=t"))
 	  process-environment))
 	(default-directory
-	  (if (file-accessible-directory-p default-directory)
+	  (if (file-directory-p default-directory)
 	      default-directory
 	    "/")))
-    (apply #'start-process name buffer command switches)
-    ;; XEmacs change: the coding-system and EOL convention stuff appears not
-    ;; to be necessary for us.
-    ))
-
-(defun comint-insert-input (event)
-  "In a Comint buffer, set the current input to the previous input at point."
-  ;; This doesn't use "e" because it is supposed to work
-  ;; for events without parameters.
-  (interactive "e")
-  (mouse-set-point event)
-  (let ((pos (point)))
-    (if (not (eq (field-at-pos pos) 'input))
-	;; No input at POS, fall back to the global definition.
-	(let* ((keys (this-command-keys))
-	       (last-key (and (vectorp keys) (aref keys (1- (length keys)))))
-	       (fun (and last-key (lookup-key global-map (vector last-key)))))
-	  (and fun (call-interactively fun)))
-      ;; There's previous input at POS, insert it at the end of the buffer.
-      (goto-char (point-max))
-      ;; First delete any old unsent input at the end
-      (delete-region
-       (or (marker-position comint-accum-marker)
-	   (process-mark (get-buffer-process (current-buffer))))
-       (point))
-      ;; Insert the input at point
-      (insert (field-string-no-properties pos)))))
-
+    (apply 'start-process name buffer command switches)))
 
 ;; Input history processing in a buffer
 ;; ===========================================================================
@@ -924,7 +760,7 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 ;; comint-replace-by-expanded-history-before-point Workhorse function.
 
 (defun comint-read-input-ring (&optional silent)
-  "Set the buffer's `comint-input-ring' from a history file.
+  "Sets the buffer's `comint-input-ring' from a history file.
 The name of the file is given by the variable `comint-input-ring-file-name'.
 The history ring is of size `comint-input-ring-size', regardless of file size.
 If `comint-input-ring-file-name' is nil this function does nothing.
@@ -934,11 +770,8 @@ failure to read the history file.
 
 This function is useful for major mode commands and mode hooks.
 
-The commands stored in the history file are separated by the
-`comint-input-ring-separator', and entries that match
-`comint-input-history-ignore' are ignored.  The most recent command
-comes last.
-
+The structure of the history file should be one input command per line,
+with the most recent command last.
 See also `comint-input-ignoredups' and `comint-write-input-ring'."
   (cond ((or (null comint-input-ring-file-name)
 	     (equal comint-input-ring-file-name ""))
@@ -948,11 +781,10 @@ See also `comint-input-ignoredups' and `comint-write-input-ring'."
 	     (message "Cannot read history file %s"
 		      comint-input-ring-file-name)))
 	(t
-	 (let* ((history-buf (get-buffer-create " *temp*"))
-		(file comint-input-ring-file-name)
-		(count 0)
-		(size comint-input-ring-size)
-		(ring (make-ring size)))
+	 (let ((history-buf (get-buffer-create " *temp*"))
+	       (file comint-input-ring-file-name)
+	       (count 0)
+	       (ring (make-ring comint-input-ring-size)))
 	   (unwind-protect
 	       (save-excursion
 		 (set-buffer history-buf)
@@ -962,22 +794,16 @@ See also `comint-input-ignoredups' and `comint-write-input-ring'."
 		 ;; Save restriction in case file is already visited...
 		 ;; Watch for those date stamps in history files!
 		 (goto-char (point-max))
-		 (let (start end history)
-		   (while (and (< count comint-input-ring-size)
-			       (re-search-backward comint-input-ring-separator nil t)
-			       (setq end (match-beginning 0)))
-		     (if (re-search-backward comint-input-ring-separator nil t)
-			 (setq start (match-end 0))
-		       (setq start (point-min)))
-		     (setq history (buffer-substring start end))
-		     (goto-char start)
-		     (if (and (not (string-match comint-input-history-ignore history))
-			      (or (null comint-input-ignoredups)
-				  (ring-empty-p ring)
-				  (not (string-equal (ring-ref ring 0) history))))
-			 (progn
-			   (ring-insert-at-beginning ring history)
-			   (setq count (1+ count)))))))
+		 (while (and (< count comint-input-ring-size)
+			     (re-search-backward "^[ \t]*\\([^#\n].*\\)[ \t]*$"
+						 nil t))
+		   (let ((history (buffer-substring (match-beginning 1)
+						    (match-end 1))))
+		     (if (or (null comint-input-ignoredups)
+			     (ring-empty-p ring)
+			     (not (string-equal (ring-ref ring 0) history)))
+			 (ring-insert-at-beginning ring history)))
+		   (setq count (1+ count))))
 	     (kill-buffer history-buf))
 	   (setq comint-input-ring ring
 		 comint-input-ring-index nil)))))
@@ -1009,43 +835,31 @@ See also `comint-read-input-ring'."
 	     (erase-buffer)
 	     (while (> index 0)
 	       (setq index (1- index))
-	       (insert (ring-ref ring index) comint-input-ring-separator))
+	       (insert (ring-ref ring index) ?\n))
 	     (write-region (buffer-string) nil file nil 'no-message)
 	     (kill-buffer nil))))))
 
-(defvar comint-dynamic-list-input-ring-window-conf nil
-  "Saved window configuration for Comint.")
-
-;; XEmacs addition
+;; XEmacs - FSF doesn't have this.
 (defun comint-restore-window-config (conf &optional message)
   ;; Don't obscure buffer being edited
   (or (eq (selected-window) (minibuffer-window))
       (message "%s" (or message "Press space to flush")))
   (sit-for 0)
-  (setq comint-dynamic-list-input-ring-window-conf conf)
-  (if (let ((ch (next-command-event)))
-	(if (eq (event-to-character ch) ?\ )
-	    t
-	  (progn (setq unread-command-event ch)
-		 nil)))
+  (if (if (fboundp 'next-command-event)
+          ;; lemacs
+          (let ((ch (next-command-event)))
+            (if (eq (event-to-character ch) ?\ )
+                t
+                (progn (setq unread-command-event ch)
+                       nil)))
+          ;; v19 FSFmacs
+          (let ((ch (read-event)))
+            (if (eq ch ?\ )
+                t
+                (progn (setq unread-command-events (list ch))
+                       nil))))
       (set-window-configuration conf)))
 
-(defun comint-dynamic-list-input-ring-select ()
-  "Choose the input history entry that point is in or next to."
-  (interactive)
-  (let (beg end completion (buffer completion-reference-buffer)
-	(base-size completion-base-size))
-    (if (and (not (eobp)) (get-text-property (point) 'mouse-face))
-	(setq end (point) beg (1+ (point))))
-    (if (and (not (bobp)) (get-text-property (1- (point)) 'mouse-face))
-	(setq end (1- (point)) beg (point)))
-    (if (null beg)
-	(error "No history entry here"))
-    (setq beg (previous-single-property-change beg 'mouse-face))
-    (setq end (or (next-single-property-change end 'mouse-face) (point-max)))
-    (setq completion (buffer-substring beg end))
-    (set-window-configuration comint-dynamic-list-input-ring-window-conf)
-    (choose-completion-string completion buffer base-size)))
 
 (defun comint-dynamic-list-input-ring ()
   "List in help buffer the buffer's input history."
@@ -1066,10 +880,6 @@ See also `comint-read-input-ring'."
       (with-output-to-temp-buffer history-buffer
 	(display-completion-list history)
 	(set-buffer history-buffer)
-	(let ((keymap (make-sparse-keymap)))
-	  (set-keymap-parents keymap (list (current-local-map)))
-	  (define-key keymap "\C-m" 'comint-dynamic-list-input-ring-select)
-	  (use-local-map keymap))
 	(forward-line 3)
 	(let ((buffer-read-only nil))
 	  (while (search-backward "completion" nil 'move)
@@ -1077,8 +887,9 @@ See also `comint-read-input-ring'."
       (comint-restore-window-config conf))))
 
 (defun comint-regexp-arg (prompt)
-  "Return list of regexp and prefix arg using PROMPT."
-  (let* (;; Don't clobber this.
+  ;; Return list of regexp and prefix arg using PROMPT.
+  (let* ((minibuffer-history-sexp-flag nil)
+	 ;; Don't clobber this.
 	 (last-command last-command)
 	 (regexp (read-from-minibuffer prompt nil nil nil
 				       'minibuffer-history-search-history)))
@@ -1102,18 +913,8 @@ See also `comint-read-input-ring'."
 	(t
 	 arg)))
 
-(defun comint-restore-input ()
-  "Restore unfinished input."
-  (interactive)
-  (when comint-input-ring-index
-    (comint-delete-input)
-    (when (> (length comint-stored-incomplete-input) 0)
-      (insert comint-stored-incomplete-input)
-      (message "Input restored"))
-    (setq comint-input-ring-index nil)))
-
 (defun comint-search-start (arg)
-  "Index to start a directional search, starting at `comint-input-ring-index'."
+  ;; Index to start a directional search, starting at comint-input-ring-index
   (if comint-input-ring-index
       ;; If a search is running, offset by 1 in direction of arg
       (mod (+ comint-input-ring-index (if (> arg 0) 1 -1))
@@ -1132,18 +933,9 @@ Moves relative to `comint-input-ring-index'."
 				arg)))
 
 (defun comint-previous-input (arg)
-  "Cycle backwards through input history, saving input."
+  "Cycle backwards through input history."
   (interactive "*p")
-  (if (and comint-input-ring-index 
-	   (or		       ;; leaving the "end" of the ring
-	    (and (< arg 0)		; going down
-		 (eq comint-input-ring-index 0))
-	    (and (> arg 0)		; going up
-		 (eq comint-input-ring-index 
-		     (1- (ring-length comint-input-ring)))))
-	   comint-stored-incomplete-input)
-      (comint-restore-input)
-    (comint-previous-matching-input "." arg)))
+  (comint-previous-matching-input "." arg))
 
 (defun comint-next-input (arg)
   "Cycle forwards through input history."
@@ -1183,43 +975,33 @@ Moves relative to START, or `comint-input-ring-index'."
     (if (string-match regexp (ring-ref comint-input-ring n))
 	n)))
 
-(defun comint-delete-input ()
-  "Delete all input between accumulation or process mark and point."
-  (delete-region
-   ;; Can't use kill-region as it sets this-command
-   (or  (marker-position comint-accum-marker)
-	(process-mark (get-buffer-process (current-buffer))))
-   (point-max)))
-
-(defun comint-previous-matching-input (regexp n)
+(defun comint-previous-matching-input (regexp arg)
   "Search backwards through input history for match for REGEXP.
 \(Previous history elements are earlier commands.)
 With prefix argument N, search for Nth previous match.
 If N is negative, find the next or Nth next match."
   (interactive (comint-regexp-arg "Previous input matching (regexp): "))
-  (setq n (comint-search-arg n))
-  (let ((pos (comint-previous-matching-input-string-position regexp n)))
+  (setq arg (comint-search-arg arg))
+  (let ((pos (comint-previous-matching-input-string-position regexp arg)))
     ;; Has a match been found?
     (if (null pos)
 	(error "Not found")
-      ;; If leaving the edit line, save partial input
-      (if (null comint-input-ring-index)	;not yet on ring
-	  (setq comint-stored-incomplete-input
-		(funcall comint-get-old-input)))
       (setq comint-input-ring-index pos)
       (message "History item: %d" (1+ pos))
-      (comint-delete-input)
+      (delete-region
+       ;; Can't use kill-region as it sets this-command
+       (process-mark (get-buffer-process (current-buffer))) (point))
       (insert (ring-ref comint-input-ring pos)))))
 
-(defun comint-next-matching-input (regexp n)
+(defun comint-next-matching-input (regexp arg)
   "Search forwards through input history for match for REGEXP.
 \(Later history elements are more recent commands.)
 With prefix argument N, search for Nth following match.
 If N is negative, find the previous or Nth previous match."
   (interactive (comint-regexp-arg "Next input matching (regexp): "))
-  (comint-previous-matching-input regexp (- n)))
+  (comint-previous-matching-input regexp (- arg)))
 
-(defun comint-previous-matching-input-from-input (n)
+(defun comint-previous-matching-input-from-input (arg)
   "Search backwards through input history for match for current input.
 \(Previous history elements are earlier commands.)
 With prefix argument N, search for Nth previous match.
@@ -1230,75 +1012,59 @@ If N is negative, search forwards for the -Nth following match."
       ;; Starting a new search
       (setq comint-matching-input-from-input-string
 	    (buffer-substring
-	     (or (marker-position comint-accum-marker)
-		 (process-mark (get-buffer-process (current-buffer))))
+	     (process-mark (get-buffer-process (current-buffer)))
 	     (point))
 	    comint-input-ring-index nil))
   (comint-previous-matching-input
    (concat "^" (regexp-quote comint-matching-input-from-input-string))
-   n))
+   arg))
 
-(defun comint-next-matching-input-from-input (n)
+(defun comint-next-matching-input-from-input (arg)
   "Search forwards through input history for match for current input.
 \(Following history elements are more recent commands.)
 With prefix argument N, search for Nth following match.
 If N is negative, search backwards for the -Nth previous match."
   (interactive "p")
-  (comint-previous-matching-input-from-input (- n)))
+  (comint-previous-matching-input-from-input (- arg)))
 
 
-(defun comint-replace-by-expanded-history (&optional silent start)
+(defun comint-replace-by-expanded-history (&optional silent)
   "Expand input command history references before point.
 Expansion is dependent on the value of `comint-input-autoexpand'.
 
 This function depends on the buffer's idea of the input history, which may not
 match the command interpreter's idea, assuming it has one.
 
-Assumes history syntax is like typical Un*x shells'.  However, since Emacs
+Assumes history syntax is like typical Un*x shells'.  However, since emacs
 cannot know the interpreter's idea of input line numbers, assuming it has one,
 it cannot expand absolute input line number references.
 
 If the optional argument SILENT is non-nil, never complain
 even if history reference seems erroneous.
 
-If the optional argument START is non-nil, that specifies the
-start of the text to scan for history references, rather
-than the logical beginning of line.
-
 See `comint-magic-space' and `comint-replace-by-expanded-history-before-point'.
 
 Returns t if successful."
   (interactive)
   (if (and comint-input-autoexpand
-	   (if comint-use-prompt-regexp
-	       ;; Use comint-prompt-regexp
-	       (save-excursion
-		 (beginning-of-line)
-		 (looking-at (concat comint-prompt-regexp "!\\|\\^")))
-	     ;; Use input fields.  User input that hasn't been entered
-	     ;; yet, at the end of the buffer, has a nil `field' property.
-	     (and (null (get-char-property (point) 'field))
-		  (string-match "!\\|^\\^" (field-string)))))
+	   (string-match "!\\|^\\^" (funcall comint-get-old-input))
+	   (save-excursion (beginning-of-line)
+			   (looking-at comint-prompt-regexp)))
       ;; Looks like there might be history references in the command.
       (let ((previous-modified-tick (buffer-modified-tick)))
-	(comint-replace-by-expanded-history-before-point silent start)
+	(message "Expanding history references...")
+	(comint-replace-by-expanded-history-before-point silent)
 	(/= previous-modified-tick (buffer-modified-tick)))))
 
 
-(defun comint-replace-by-expanded-history-before-point (silent &optional start)
+(defun comint-replace-by-expanded-history-before-point (silent)
   "Expand directory stack reference before point.
-See `comint-replace-by-expanded-history'.  Returns t if successful.
-
-If the optional argument START is non-nil, that specifies the
-start of the text to scan for history references, rather
-than the logical beginning of line."
+See `comint-replace-by-expanded-history'.  Returns t if successful."
   (save-excursion
-    (let ((toend (- (point-at-eol) (point)))
-	  (start (or start (comint-line-beginning-position))))
-      (goto-char start)
-      (while (progn
-	       (skip-chars-forward "^!^" (- (point-at-eol) toend))
-	       (< (point) (- (point-at-eol) toend)))
+    (let ((toend (- (save-excursion (end-of-line nil) (point)) (point)))
+	  (start (progn (comint-bol nil) (point))))
+      (while (re-search-forward
+	      "[!^]" (save-excursion (end-of-line nil) (- (point) toend)) t)
 	;; This seems a bit complex.  We look for references such as !!, !-num,
 	;; !foo, !?foo, !{bar}, !?{bar}, ^oh, ^my^, ^god^it, ^never^ends^.
 	;; If that wasn't enough, the plings can be suffixed with argument
@@ -1306,10 +1072,11 @@ than the logical beginning of line."
 	;; Argument ranges are complex too, so we hive off the input line,
 	;; referenced with plings, with the range string to `comint-args'.
 	(setq comint-input-ring-index nil)
+	(goto-char (match-beginning 0))
 	(cond ((or (= (preceding-char) ?\\)
 		   (comint-within-quotes start (point)))
 	       ;; The history is quoted, or we're in quotes.
-	       (goto-char (1+ (point))))
+	       (goto-char (match-end 0)))
 	      ((looking-at "![0-9]+\\($\\|[^-]\\)")
 	       ;; We cannot know the interpreter's idea of input line numbers.
 	       (goto-char (match-end 0))
@@ -1333,8 +1100,7 @@ than the logical beginning of line."
 	       ;; Just a number of args from the previous input line.
 	       (replace-match
 		(comint-args (comint-previous-input-string 0)
-			     (match-beginning 1) (match-end 1))
-		t t)
+			     (match-beginning 1) (match-end 1)) t t)
 	       (message "History item: previous"))
 	      ((looking-at
 		"!\\??\\({\\(.+\\)}\\|\\(\\sw+\\)\\)\\(:?[0-9^$*-]+\\)?")
@@ -1373,7 +1139,7 @@ than the logical beginning of line."
 		   (replace-match new t t)
 		   (message "History item: substituted"))))
 	      (t
-	       (forward-char 1)))))))
+	       (goto-char (match-end 0))))))))
 
 
 (defun comint-magic-space (arg)
@@ -1419,77 +1185,53 @@ Quotes are single and double."
 			(t nth))))
 	(comint-arguments string nth mth)))))
 
-(defun comint-delim-arg (arg)
-  "Return a list of arguments from ARG.
-Break it up at the delimiters in `comint-delimiter-argument-list'.
-Returned list is backwards."
-  (if (null comint-delimiter-argument-list)
-      (list arg)
-    (let ((args nil)
-	  (pos 0)
-	  (len (length arg)))
-      (while (< pos len)
-	(let ((char (aref arg pos))
-	      (start pos))
-	  (if (memq char comint-delimiter-argument-list)
-	      (while (and (< pos len) (eq (aref arg pos) char))
-		(setq pos (1+ pos)))
-	    (while (and (< pos len)
-			(not (memq (aref arg pos)
-				   comint-delimiter-argument-list)))
-	      (setq pos (1+ pos))))
-	  (setq args (cons (substring arg start pos) args))))
-      args)))
+;; Return a list of arguments from ARG.  Break it up at the
+;; delimiters in comint-delimiter-argument-list.  Returned list is backwards.
+;(defun comint-delim-arg (arg)
+;  (if (null comint-delimiter-argument-list)
+;      (list arg)
+;    (let ((args nil)
+;	  (pos 0)
+;	  (len (length arg)))
+;      (while (< pos len)
+;	(let ((char (aref arg pos))
+;	      (start pos))
+;	  (if (memq char comint-delimiter-argument-list)
+;	      (while (and (< pos len) (eq (aref arg pos) char))
+;		(setq pos (1+ pos)))
+;	    (while (and (< pos len)
+;			(not (memq (aref arg pos)
+;				   comint-delimiter-argument-list)))
+;	      (setq pos (1+ pos))))
+;	  (setq args (cons (substring arg start pos) args))))
+;      args)))
 
 (defun comint-arguments (string nth mth)
   "Return from STRING the NTH to MTH arguments.
 NTH and/or MTH can be nil, which means the last argument.
 Returned arguments are separated by single spaces.
-We assume whitespace separates arguments, except within quotes
-and except for a space or tab that immediately follows a backslash.
+We assume whitespace separates arguments, except within quotes.
 Also, a run of one or more of a single character
 in `comint-delimiter-argument-list' is a separate argument.
 Argument 0 is the command name."
-  ;; The first line handles ordinary characters and backslash-sequences
-  ;; XEmacs omission: we do not support msdos-like shells
-  ;; The second matches "-quoted strings.
-  ;; The third matches '-quoted strings.
-  ;; The fourth matches `-quoted strings.
-  ;; This seems to fit the syntax of BASH 2.0.
-  (let* ((first "[^ \n\t\"'`\\]+\\|\\\\[\"'`\\ \t]+\\|")
-	 (argpart (concat first
-			  "\\(\"\\([^\"\\]\\|\\\\.\\)*\"\\|\
-'[^']*'\\|\
-`[^`]*`\\)"))
-	 (args ()) (pos 0)
-	 (count 0)
-	 beg str quotes)
-    ;; Build a list of all the args until we have as many as we want.
-    (while (and (or (null mth) (<= count mth))
-		(string-match argpart string pos))
-      (if (and beg (= pos (match-beginning 0)))
-	  ;; It's contiguous, part of the same arg.
-	  (setq pos (match-end 0)
-		quotes (or quotes (match-beginning 1)))
-	;; It's a new separate arg.
-	(if beg
-	    ;; Put the previous arg, if there was one, onto ARGS.
-	    (setq str (substring string beg pos)
-		  args (if quotes (cons str args)
-			 (nconc (comint-delim-arg str) args))))
-	(setq count (length args))
-	(setq quotes (match-beginning 1))
-	(setq beg (match-beginning 0))
-	(setq pos (match-end 0))))
-    (if beg
-	(setq str (substring string beg pos)
-	      args (if quotes (cons str args)
-		     (nconc (comint-delim-arg str) args))))
-    (setq count (length args))
-    (let ((n (or nth (1- count)))
-	  (m (if mth (max 0 (1- (- count mth))) 0)))
-      (mapconcat #'identity (nthcdr n (nreverse (nthcdr m args))) " "))))
-
+  (let ((arg-regexp "\\(?:[^ \n\t\"'`]+\\|\"[^\"]*\"\\|'[^']*'\\|`[^`]*`\\)+")
+	(args nil)
+	(pos 0)
+	(count 0))
+    (when comint-delimiter-argument-list
+      (setq arg-regexp
+	    (format "[%s]\\|%s"
+		    (regexp-quote (concat comint-delimiter-argument-list))
+		    arg-regexp)))
+    (while (and (string-match arg-regexp string pos)
+		(or (null mth) (<= count mth)))
+      (when (or (null nth) (<= nth count))
+	(push (substring string (match-beginning 0) (match-end 0)) args))
+      (setq pos (match-end 0))
+      (incf count))
+    (if (null nth)
+	(or (car args) "")
+      (mapconcat 'identity (nreverse args) " "))))
 
 ;;
 ;; Input processing stuff
@@ -1507,15 +1249,15 @@ non-nil then duplicates are ignored."
 				  cmd))))
       (ring-insert comint-input-ring cmd)))
 
-(defun comint-send-input (&optional no-newline artificial)
+(defun comint-send-input ()
   "Send input to process.
 After the process output mark, sends all text from the process mark to
-point as input to the process.  Before the process output mark, calls
-value of variable `comint-get-old-input' to retrieve old input, copies
-it to the process mark, and sends it.
-
-This command also sends and inserts a final newline, unless
-NO-NEWLINE is non-nil.
+point as input to the process.  Before the process output mark, calls value
+of variable `comint-get-old-input' to retrieve old input, copies it to the
+process mark, and sends it.  If variable `comint-process-echoes' is nil,
+a terminal newline is also inserted into the buffer and sent to the process
+\(if it is non-nil, all text from the process mark to point is deleted,
+since it is assumed the remote process will re-echo it).
 
 Any history reference may be expanded depending on the value of the variable
 `comint-input-autoexpand'.  The list of function names contained in the value
@@ -1526,334 +1268,187 @@ The input is entered into the input history ring, if the value of variable
 If variable `comint-eol-on-send' is non-nil, then point is moved to the
 end of line before sending the input.
 
-After the input has been sent, if `comint-process-echoes' is non-nil,
-then `comint-send-input' waits to see if the process outputs a string
-matching the input, and if so, deletes that part of the output.
-If ARTIFICIAL is non-nil, it inhibits such deletion.
-Callers sending input not from the user should use ARTIFICIAL = t.
+If variable `comint-append-old-input' is non-nil, then the results of
+calling `comint-get-old-input' are appended to the end of the buffer.
+The new input will combine with any partially-typed text already present
+after the process output mark.  Point is moved just before the newly
+appended input, and a message is displayed prompting the user to type
+\\[comint-send-input] again.
 
-The values of `comint-get-old-input', `comint-input-filter-functions', and
+The values of `comint-get-old-input', `comint-input-filter-functions' and
 `comint-input-filter' are chosen according to the command interpreter running
 in the buffer.  E.g.,
 
 If the interpreter is the csh,
-    `comint-get-old-input' is the default:
-	If `comint-use-prompt-regexp' is nil, then
-	either return the current input field, if point is on an input
-	field, or the current line, if point is on an output field.
-	If `comint-use-prompt-regexp' is non-nil, then
-	return the current line with any initial string matching the
-	regexp `comint-prompt-regexp' removed.
-    `comint-input-filter-functions' monitors input for \"cd\", \"pushd\", and
-	\"popd\" commands.  When it sees one, it cd's the buffer.
-    `comint-input-filter' is the default: returns t if the input isn't all white
+    comint-get-old-input is the default: take the current line, discard any
+        initial string matching regexp comint-prompt-regexp.
+    comint-input-filter-functions monitors input for \"cd\", \"pushd\", and
+        \"popd\" commands. When it sees one, it cd's the buffer.
+    comint-input-filter is the default: returns t if the input isn't all white
 	space.
 
-If the Comint is Lucid Common Lisp,
-    `comint-get-old-input' snarfs the sexp ending at point.
-    `comint-input-filter-functions' does nothing.
-    `comint-input-filter' returns nil if the input matches input-filter-regexp,
-	which matches (1) all whitespace (2) :a, :c, etc.
+If the comint is Lucid Common Lisp,
+    comint-get-old-input snarfs the sexp ending at point.
+    comint-input-filter-functions does nothing.
+    comint-input-filter returns nil if the input matches input-filter-regexp,
+        which matches (1) all whitespace (2) :a, :c, etc.
 
 Similarly for Soar, Scheme, etc."
   (interactive)
   ;; Note that the input string does not include its terminal newline.
   (let ((proc (get-buffer-process (current-buffer))))
     (if (not proc) (error "Current buffer has no process")
-	(let* ((pmark (process-mark proc))
-	       (intxt (if (>= (point) (marker-position pmark))
-			  (progn (if comint-eol-on-send (end-of-line))
-				 (buffer-substring pmark (point)))
-			(let ((copy (funcall comint-get-old-input)))
-			  (goto-char pmark)
-			  (insert copy)
-			  copy)))
-	       (input (if (not (eq comint-input-autoexpand 'input))
-			  ;; Just whatever's already there
-			  intxt
-			;; Expand and leave it visible in buffer
-			(comint-replace-by-expanded-history t pmark)
-			(buffer-substring pmark (point))))
-	       (history (if (not (eq comint-input-autoexpand 'history))
-			    input
-			  ;; This is messy 'cos ultimately the original
-			  ;; functions used do insertion, rather than return
-			  ;; strings.  We have to expand, then insert back.
-			  (comint-replace-by-expanded-history t pmark)
-			  (let ((copy (buffer-substring pmark (point)))
-				(start (point)))
-			    (insert input)
-			    (delete-region pmark start)
-			    copy))))
-
-	  (unless no-newline
-	    (insert ?\n))
-
+      (let* ((pmark (process-mark proc))
+	     (pmark-val (marker-position pmark))
+	     ;; XEmacs - change by John Rose: confirm before sending input if
+	     ;; not after process mark.
+	     (append-here nil)
+	     (intxt (if (>= (point) pmark-val)
+			(progn (if comint-eol-on-send (end-of-line))
+			       (buffer-substring pmark (point)))
+		      (let ((copy (funcall comint-get-old-input)))
+			(push-mark)
+			(if (not comint-append-old-input)
+			    (goto-char pmark-val)
+			  (setq append-here (point-max))
+			  (goto-char append-here))
+			(insert copy)
+			copy)))
+	     (input (if (not (eq comint-input-autoexpand 'input))
+			;; Just whatever's already there
+			intxt
+		      ;; Expand and leave it visible in buffer
+		      (comint-replace-by-expanded-history t)
+		      (buffer-substring pmark (point))))
+	     (history (if (not (eq comint-input-autoexpand 'history))
+			  (if (eq comint-input-autoexpand nil)
+			      ;; XEmacs - nil means leave it alone!
+			      input
+			    (comint-arguments input 0 nil))
+			;; This is messy 'cos ultimately the original
+			;; functions used do insertion, rather than return
+			;; strings.  We have to expand, then insert back.
+			(comint-replace-by-expanded-history t)
+			(let ((copy (buffer-substring pmark (point))))
+			  (delete-region pmark (point))
+			  (insert input)
+			  (comint-arguments copy 0 nil)))))
+	(if append-here
+	    (progn
+	      (goto-char append-here)
+	      (message
+	       (substitute-command-keys
+		"(\\[comint-send-input] to confirm)")))
+	  (if comint-process-echoes
+	      (delete-region pmark (point))
+	    (insert-before-markers ?\n))
 	  (comint-add-to-input-history history)
 	  ;; Run the input filters on the history instead
 	  ;; of the input, so that the input sentinel is called on the
 	  ;; history-expanded text and sees "cd foo" instead of "cd !$".
 	  (run-hook-with-args 'comint-input-filter-functions
-			      (if no-newline input
-				(concat input "\n")))
-
-	  (let ((beg (marker-position pmark))
-		(end (if no-newline (point) (1- (point)))))
-	    (when (> end beg)
-	      ;; Set text-properties for the input field
-	      (add-text-properties
-	       beg end
-	       '(start-open t
-		 font-lock-face comint-highlight-input
-		 mouse-face highlight
-		 help-echo "button2: insert after prompt as new input"))
-	      (unless comint-use-prompt-regexp
-		;; Give old user input a field property of `input', to
-		;; distinguish it from both process output and unsent
-		;; input.  The terminating newline is put into a special
-		;; `boundary' field to make cursor movement between input
-		;; and output fields smoother.
-		(put-text-property beg end 'field 'input)))
-	    (unless (or no-newline comint-use-prompt-regexp)
-	      ;; Cover the terminating newline
-	      (add-text-properties end (1+ end)
-				   '(end-open t
-				     field boundary
-				     inhibit-line-move-field-capture t))))
-
-	  (comint-snapshot-last-prompt)
-
-	  (setq comint-save-input-ring-index comint-input-ring-index)
+			      (concat history "\n"))
 	  (setq comint-input-ring-index nil)
 	  ;; Update the markers before we send the input
 	  ;; in case we get output amidst sending the input.
 	  (set-marker comint-last-input-start pmark)
 	  (set-marker comint-last-input-end (point))
 	  (set-marker (process-mark proc) (point))
-	  ;; clear the "accumulation" marker
-	  (set-marker comint-accum-marker nil)
-	  (let ((comint-input-sender-no-newline no-newline))
-	    (funcall comint-input-sender proc input))
+	  (comint-input-done)
+	  (funcall comint-input-sender proc input)
+	  (comint-input-setup)
+	  ;; FIX -- Is this necessary?
+	  ;; A kludge to prevent the delay between insert and
+	  ;; process output affecting the display.  A case for a
+	  ;; comint-send-input-hook?
+	  (run-hook-with-args 'comint-output-filter-functions
+			      (concat input "\n"))
+	  (comint-output-filter proc "")
+	  )))))
+(defun comint-input-done ()
+  "Finalized comint-input-extent so nothing more is added."
+;; Disable this for now.  I'm not sure that font-lock doesn't do better
+;;  (if (not comint-input-extent)
+;;      (comint-input-setup))
+;;  (set-extent-property comint-input-extent 'start-closed nil)
+;;  (set-extent-property comint-input-extent 'end-closed nil)
+;;  (set-extent-property comint-input-extent 'detachable t)
+  )
 
-	  ;; Optionally delete echoed input (after checking it).
- 	  (when (and comint-process-echoes (not artificial))
-	    (let ((echo-len (- comint-last-input-end
-			       comint-last-input-start)))
-	      ;; Wait for all input to be echoed:
-	      (while (and (accept-process-output proc)
-			  (> (+ comint-last-input-end echo-len)
-			     (point-max))
-			  (zerop
-			   (compare-buffer-substrings
-			    nil comint-last-input-start
-			    (- (point-max) echo-len)
-			    ;; Above difference is equivalent to
-			    ;; (+ comint-last-input-start
-			    ;;    (- (point-max) comint-last-input-end))
-			    nil comint-last-input-end (point-max)))))
-	      (if (and
-		   (<= (+ comint-last-input-end echo-len)
-		       (point-max))
-		   (zerop
-		    (compare-buffer-substrings
-		     nil comint-last-input-start comint-last-input-end
-		     nil comint-last-input-end
-		     (+ comint-last-input-end echo-len))))
-		  ;; Certain parts of the text to be deleted may have
-		  ;; been mistaken for prompts.  We have to prevent
-		  ;; problems when `comint-prompt-read-only' is non-nil.
-		  (let ((inhibit-read-only t))
-		    (delete-region comint-last-input-end
-				   (+ comint-last-input-end echo-len))
-		    (when comint-prompt-read-only
-		      (save-excursion
-			(goto-char comint-last-input-end)
-			(comint-update-fence)))))))
+(defun comint-input-setup ()
+  "Insure the comint-input-extent is ready."
+;; Disable this for now.  I'm not sure that font-lock doesn't do better
+;  (require 'comint-xemacs)
+;  (setq comint-input-extent (make-extent (point) (point-max)))
+;  (set-extent-property comint-input-extent 'detachable nil)
+;  (set-extent-property comint-input-extent 'start-closed t)
+;  (set-extent-property comint-input-extent 'end-closed t)
+;  (set-extent-face comint-input-extent 'comint-input-face)
+  )
 
-	  ;; This used to call comint-output-filter-functions,
-	  ;; but that scrolled the buffer in undesirable ways.
-	  (run-hook-with-args 'comint-output-filter-functions "")))))
-
-(defvar comint-preoutput-filter-functions nil
-  "List of functions to call before inserting Comint output into the buffer.
-Each function gets one argument, a string containing the text received
-from the subprocess.  It should return the string to insert, perhaps
-the same string that was received, or perhaps a modified or transformed
-string.
-
-The functions on the list are called sequentially, and each one is
-given the string returned by the previous one.  The string returned by
-the last function is the text that is actually inserted in the
-redirection buffer.
-
-You can use `add-hook' to add functions to this list
-either globally or locally.")
-
-;; XEmacs change: don't interpret carriage control characters by default
-(defvar comint-inhibit-carriage-motion t
-  "If nil, Comint will interpret `carriage control' characters in output.
-See `comint-carriage-motion' for details..
-Note: currently this does not work perfectly.  Specifically a bare ASCII
-CR will usually, but not always, result in the current line being erased
-(giving the effect of overwriting it).")
-
-;; When non-nil, this is an extent over the last recognized prompt in
-;; the buffer; it is used when highlighting the prompt.
-(defvar comint-last-prompt-extent nil)
-
-(defun comint-snapshot-last-prompt ()
-  "`snapshot' any current `comint-last-prompt-extent'.
-Freeze its attributes in place, even when more input comes along
-and moves the prompt extent."
-  ;; XEmacs change: we do this in comint-output-filter
-  t)
-
-(defun comint-carriage-motion (start end)
-  "Interpret carriage control characters in the region from START to END.
-Translate carriage return/linefeed sequences to linefeeds.
-Make single carriage returns delete to the beginning of the line.
-Make backspaces delete the previous character."
-  (save-excursion
-    ;; First do a quick check to see if there are any applicable
-    ;; characters, so we can avoid calling save-match-data and
-    ;; save-restriction if not.
-    (goto-char start)
-    (when (< (skip-chars-forward "^\b\r" end) (- end start))
-      (save-match-data
-	(save-restriction
-	  (widen)
-	  (let ((inhibit-field-text-motion t)
-		(inhibit-read-only t))
-	    ;; CR LF -> LF
-	    ;; Note that this won't work properly when the CR and LF
-	    ;; are in different output chunks, but this is probably an
-	    ;; exceedingly rare case (because they are generally
-	    ;; written as a unit), and to delay interpretation of a
-	    ;; trailing CR in a chunk would result in odd interactive
-	    ;; behavior (and this case is probably far more common).
-	    (while (re-search-forward "\r$" end t)
-	      (delete-char -1))
-	    ;; bare CR -> delete preceding line
-	    (goto-char start)
-	    (while (search-forward "\r" end t)
-	      (delete-region (point) (point-at-bol)))
-	    ;; BS -> delete preceding character
-	    (goto-char start)
-	    (while (search-forward "\b" end t)
-	      (delete-char -2))))))))
+(defvar comint-input-extent nil
+  "Current extent used for displaying text in buffer.");
+(make-variable-buffer-local 'comint-input-extent)
 
 ;; The purpose of using this filter for comint processes
 ;; is to keep comint-last-input-end from moving forward
 ;; when output is inserted.
 (defun comint-output-filter (process string)
+  ;; First check for killed buffer
   (let ((oprocbuf (process-buffer process)))
-    ;; First check for killed buffer or no input.
-    (when (and string oprocbuf (buffer-name oprocbuf))
-      (with-current-buffer oprocbuf
-	;; Run preoutput filters
-	(let ((functions comint-preoutput-filter-functions))
-	  (while (and functions string)
-	    (if (eq (car functions) t)
-		(let ((functions (default-value 'comint-preoutput-filter-functions)))
-		  (while (and functions string)
-		    (setq string (funcall (car functions) string))
-		    (setq functions (cdr functions))))
-	      (setq string (funcall (car functions) string)))
-	    (setq functions (cdr functions))))
+    (if (and oprocbuf (buffer-name oprocbuf))
+	(let ((obuf (current-buffer))
+	      (opoint nil) (obeg nil) (oend nil))
+	  (set-buffer oprocbuf)
+	  (setq opoint (point))
+	  (setq obeg (point-min))
+	  (setq oend (point-max))
+	  ;; Keep stuff being output (before input) from using input-extent
+;; Disable this for now.  I'm not sure that font-lock doesn't do better
+;;	  (if comint-input-extent
+;;	      (set-extent-property comint-input-extent 'start-closed nil))
+	  (let ((buffer-read-only nil)
+		(nchars (length string))
+		(ostart nil))
+	    (widen)
+	    (goto-char (process-mark process))
+	    (setq ostart (point))
+	    (if (<= (point) opoint)
+		(setq opoint (+ opoint nchars)))
+	    ;; Insert after old_begv, but before old_zv.
+	    (if (< (point) obeg)
+		(setq obeg (+ obeg nchars)))
+	    (if (<= (point) oend)
+		(setq oend (+ oend nchars)))
+	    (insert-before-markers string)
+	    ;; Don't insert initial prompt outside the top of the window.
+	    (if (= (window-start (selected-window)) (point))
+		(set-window-start (selected-window) (- (point) (length string))))
+	    (if (and comint-last-input-end
+		     (marker-buffer comint-last-input-end)
+		     (= (point) comint-last-input-end))
+		(set-marker comint-last-input-end (- comint-last-input-end nchars)))
+	    (set-marker comint-last-output-start ostart)
+	    (set-marker (process-mark process) (point))
+	    (force-mode-line-update))
+	  ;; Now insure everything inserted after (user input) is in extent
+;; Disable this for now.  I'm not sure that font-lock doesn't do better
+;;	  (if (not comint-input-extent)
+;;	      (comint-input-setup))
+;;	  (set-extent-endpoints comint-input-extent (point) (point-max))
+;;	  (set-extent-property comint-input-extent 'start-closed t)
 
-	;; Insert STRING
-	;; XEmacs change: this code diverges wildly from the Emacs version
-	(let* ((inhibit-read-only t)
-	       (opoint (point))
-	       (obeg (point-min))
-	       (oend (point-max))
-	       (nchars (length string))
-	       (mark (process-mark process))
-	       (ostart (marker-position mark)))
-	  (widen)
-	  (goto-char mark)
-	  (if (<= ostart opoint)
-	      (setq opoint (+ opoint nchars)))
-	  ;; Insert after old_begv, but before old_zv.
-	  (if (< ostart obeg)
-	      (setq obeg (+ obeg nchars)))
-	  (if (<= ostart oend)
-	      (setq oend (+ oend nchars)))
-	  (insert-before-markers string)
-	  ;; Don't insert initial prompt outside the top of the window.
-	  (if (= (window-start (selected-window)) (point))
-	      (set-window-start (selected-window) (- (point) nchars)))
-	  (if (and comint-last-input-end
-		   (marker-buffer comint-last-input-end)
-		   (= (point) comint-last-input-end))
-	      (set-marker comint-last-input-end
-			  (- comint-last-input-end nchars)))
-	  (set-marker comint-last-output-start ostart)
-	  (set-marker (process-mark process) (point))
-	  (force-mode-line-update)
-
-	  (unless comint-inhibit-carriage-motion
-	    ;; oend needs to be adjusted if the buffer content is changed.
-	    ;; Specifically, an error occurs if oend points beyond EOB.
-	    ;; Use of a marker seems to (mostly) work (see docstring of
-	    ;; `comint-inhibit-carriage-motion').
-	    (setq oend (copy-marker oend))
-	    ;; Interpret any carriage motion characters (newline, backspace)
-	    (comint-carriage-motion comint-last-output-start (point)))
-
-	  ;; Run these hooks with point where the user had it.
 	  (narrow-to-region obeg oend)
 	  (goto-char opoint)
 	  (run-hook-with-args 'comint-output-filter-functions string)
-	  (setq opoint (point))
+	  (set-buffer obuf)))))
 
-	  (goto-char (process-mark process)) ; in case a filter moved it
-
-	  (unless comint-use-prompt-regexp
-	    (let ((inhibit-read-only t))
-	      (add-text-properties comint-last-output-start (point)
-				   '(end-open t
-				     field output
-				     inhibit-line-move-field-capture t))))
-
-	  ;; Highlight the prompt, where we define `prompt' to mean
-	  ;; the most recent output that doesn't end with a newline.
-	  (let ((prompt-start (save-excursion (forward-line 0) (point)))
-		(inhibit-read-only t))
-	    (when comint-prompt-read-only
-	      (or (= (point-min) prompt-start)
-		  (get-text-property (1- prompt-start) 'read-only)
-		  (put-text-property
-		   (1- prompt-start) prompt-start 'read-only 'fence))
-	      (add-text-properties
-	       prompt-start (point)
-	       '(read-only t end-open t start-open (read-only))))
-
-	    (unless (and (bolp) (null comint-last-prompt-extent))
-	      ;; Need to create or move the prompt extent (in the case
-	      ;; where there is no prompt ((bolp) == t), we still do
-	      ;; this if there's already an existing extent).
-	      (if comint-last-prompt-extent
-		  ;; Just move an existing extent
-		  (set-extent-endpoints comint-last-prompt-extent
-					prompt-start (point))
-		;; Need to create the extent
-		(setq comint-last-prompt-extent
-		      (make-extent prompt-start (point)))
-		(set-extent-property
-		 comint-last-prompt-extent
-		 'font-lock-face 'comint-highlight-prompt))))
-
-	  ;; Put point back where the user left it
-	  (goto-char opoint))))))
-
-;; XEmacs: Use a variable for this so that new commands can be added easily.
-(defcustom comint-scroll-to-bottom-on-input-commands
+;; Use a variable for this so that new commands can be added easily.
+(defvar comint-scroll-to-bottom-on-input-commands
   '(self-insert-command
     mouse-yank
     mouse-yank-at-click
     x-insert-selection
-    comint-magic-space
     comint-previous-input
     comint-next-input
     comint-previous-matching-input
@@ -1861,14 +1456,12 @@ Make backspaces delete the previous character."
     comint-previous-matching-input-from-input
     comint-next-matching-input-from-input
     )
-  "List of functions which will cause the point to move to the end of comint buffers."
-  :type 'hook
-  :group 'comint)
+  "List of functions which will cause the point to move to the end of comint buffers.")
 
 (defun comint-preinput-scroll-to-bottom ()
   "Go to the end of buffer in all windows showing it.
 Movement occurs if point in the selected window is not after the process mark,
-and `this-command' is an insertion command.  Insertion commands recognized
+and `this-command' is an insertion command.  Insertion commands recognised
 are those in `comint-scroll-to-bottom-on-input-commands'.
 Depends on the value of `comint-scroll-to-bottom-on-input'.
 
@@ -1884,68 +1477,65 @@ This function should be a pre-command hook."
 	    (if (eq scroll 'this)
 		(goto-char (point-max))
 	      (walk-windows
-	       #'(lambda (window)
-		   (if (and (eq (window-buffer window) current)
-			    (or (eq scroll t) (eq scroll 'all)))
-		       (set-window-point window (point-max))
-		     ))
+	       (function (lambda (window)
+			   (if (and (eq (window-buffer window) current)
+				    (or (eq scroll t) (eq scroll 'all)))
+			       (set-window-point window (point-max))
+			     )))
 	       'not-minibuf t))))))
 
 (defun comint-postoutput-scroll-to-bottom (string)
-  "Go to the end of buffer in some or all windows showing it.
+  "Go to the end of buffer in all windows showing it.
 Does not scroll if the current line is the last line in the buffer.
-Depends on the value of `comint-move-point-for-output' and
+Depends on the value of `comint-scroll-to-bottom-on-output' and
 `comint-scroll-show-maximum-output'.
 
 This function should be in the list `comint-output-filter-functions'."
   (let* ((selected (selected-window))
 	 (current (current-buffer))
 	 (process (get-buffer-process current))
-	 (scroll comint-move-point-for-output))
+	 (scroll comint-scroll-to-bottom-on-output))
     ;; Don't select windows as they're walked.
-    (unwind-protect
-	(if process
-	    (walk-windows
-	     (function (lambda (window)
-	       (if (eq (window-buffer window) current)
-		   (progn
-		     (if (and (< (window-point window)
-				 (process-mark process))
-			      (or (eq scroll t) (eq scroll 'all)
-				  ;; Maybe user wants point to jump to end.
-				  (and (eq scroll 'this) (eq selected window))
-				  (and (eq scroll 'others)
-				       (not (eq selected window)))
-				  ;; If point was at the end, keep it at end.
-				  (and (marker-position comint-last-output-start)
-				       (>= (window-point window)
-					   comint-last-output-start))))
-			 (set-window-point window (process-mark process)))
-		     ;; Optionally scroll so that the text
-		     ;; ends at the bottom of the window.
-		     (if (and comint-scroll-show-maximum-output
-			      (>= (window-point window)
-				  (process-mark process))
-			      ;; XEmacs addition
-			      (not (pos-visible-in-window-p
-				    (point-max) window)))
-			 (save-excursion
-			   (set-window-point window (point-max))
-			   (recenter
-			    ;; XEmacs addition
-			    (cond ((integerp comint-scroll-show-maximum-output)
-				   comint-scroll-show-maximum-output)
-				  ((floatp comint-scroll-show-maximum-output)
-				   (floor (* (window-height window)
-					     comint-scroll-show-maximum-output)
-					  1))
-				  (t
-				   -1))
-			    window)
-			   (sit-for 0)))
-		     ))))
-	     nil t))
-      (set-buffer current))))
+    (if process
+	(walk-windows
+	  (function (lambda (window)
+            (if (eq (window-buffer window) current)
+	       (progn
+		 (if (and (< (window-point window)
+			     (process-mark process))
+                          (or (eq scroll t) (eq scroll 'all)
+                              ;; Maybe user wants point to jump to the end.
+                              (and (eq scroll 'this)
+                                   (eq selected window))
+                              (and (eq scroll 'others)
+                                   (not (eq selected window)))
+                              ;; If point was at the end, keep it at the end.
+                              (>= (window-point window)
+                                  (- (process-mark process) (length string)))))
+		     (set-window-point window (process-mark process)))
+		 ;; Optionally scroll so that the text
+		 ;; ends at the bottom of the window.
+		 (if (and comint-scroll-show-maximum-output
+			  (>= (window-point window)
+			      (process-mark process))
+                          ;; XEmacs - lemacs addition
+                          (not (pos-visible-in-window-p (point-max) window)))
+		     (save-excursion
+		       (set-window-point window (point-max))
+		       (recenter
+			;; XEmacs - lemacs addition
+                         (cond ((integerp comint-scroll-show-maximum-output)
+                                comint-scroll-show-maximum-output)
+                               ((floatp comint-scroll-show-maximum-output)
+                                (floor (* (window-height window)
+                                          comint-scroll-show-maximum-output)
+                                       1))
+                               (t
+                                -1))
+			 window)
+		       (sit-for 0)))
+		 ))))
+	 nil t))))
 
 (defun comint-truncate-buffer (&optional string)
   "Truncate the buffer to `comint-buffer-maximum-size'.
@@ -1955,8 +1545,7 @@ This function could be on `comint-output-filter-functions' or bound to a key."
     (goto-char (process-mark (get-buffer-process (current-buffer))))
     (forward-line (- comint-buffer-maximum-size))
     (beginning-of-line)
-    (let ((inhibit-read-only t))
-      (delete-region (point-min) (point)))))
+    (delete-region (point-min) (point))))
 
 (defun comint-strip-ctrl-m (&optional string)
   "Strip trailing `^M' characters from the current output group.
@@ -1981,24 +1570,21 @@ This function could be on `comint-output-filter-functions' or bound to a key."
 
 (defun comint-get-old-input-default ()
   "Default for `comint-get-old-input'.
-If `comint-use-prompt-regexp' is nil, then either
-return the current input field, if point is on an input field, or the
-current line, if point is on an output field.
-If `comint-use-prompt-regexp' is non-nil, then return
-the current line with any initial string matching the regexp
-`comint-prompt-regexp' removed."
-  (let ((bof (field-beginning)))
-    (if (eq (get-char-property bof 'field) 'input)
-	(field-string-no-properties bof)
-      (comint-bol)
-      (buffer-substring-no-properties (point) (point-at-eol)))))
+Take the current line, and discard any initial text matching
+`comint-prompt-regexp'."
+  (save-excursion
+    (beginning-of-line)
+    (comint-skip-prompt)
+    (let ((beg (point)))
+      (end-of-line)
+      (buffer-substring beg (point)))))
 
 (defun comint-copy-old-input ()
   "Insert after prompt old input at point as new input to be edited.
 Calls `comint-get-old-input' to get old input."
   (interactive)
   (let ((input (funcall comint-get-old-input))
-	(process (get-buffer-process (current-buffer))))
+ 	(process (get-buffer-process (current-buffer))))
     (if (not process)
 	(error "Current buffer has no process")
       (goto-char (process-mark process))
@@ -2007,9 +1593,16 @@ Calls `comint-get-old-input' to get old input."
 (defun comint-skip-prompt ()
   "Skip past the text matching regexp `comint-prompt-regexp'.
 If this takes us past the end of the current line, don't skip at all."
-  (if (and (looking-at comint-prompt-regexp)
-	   (<= (match-end 0) (point-at-eol)))
-      (goto-char (match-end 0))))
+  (let ((eol (save-excursion (end-of-line) (point)))
+	;; XEmacs - Arbitrary limit:  prompt can be up to 10 lines long.
+	(search-limit (save-excursion (forward-line -10) (point))))
+    (if (and (save-excursion
+	       (goto-char eol)
+	       (re-search-backward comint-prompt-regexp search-limit t))
+	     (<= (match-beginning 0) (point))
+	     (> (match-end 0) (point))
+	     (<= (match-end 0) eol))
+	(goto-char (match-end 0)))))
 
 (defun comint-after-pmark-p ()
   "Return t if point is after the process output marker."
@@ -2018,77 +1611,121 @@ If this takes us past the end of the current line, don't skip at all."
 
 (defun comint-simple-send (proc string)
   "Default function for sending to PROC input STRING.
-This just sends STRING plus a newline.  To override this,
+This just sends STRING plus a newline. To override this,
 set the hook `comint-input-sender'."
   (comint-send-string proc string)
-  (if comint-input-sender-no-newline
-      (if (not (string-equal string ""))
-	  (process-send-eof))
-    (comint-send-string proc "\n")))
+  (comint-send-string proc "\n"))
 
-(defun comint-line-beginning-position ()
-  "Return the buffer position of the beginning of the line, after any prompt.
-If `comint-use-prompt-regexp' is non-nil, then the prompt skip is done by
-skipping text matching the regular expression `comint-prompt-regexp',
-a buffer local variable."
-  (if comint-use-prompt-regexp
-      ;; Use comint-prompt-regexp
-      (save-excursion
-	(beginning-of-line)
-	(comint-skip-prompt)
-	(point))
-    ;; Use input fields.  Note that, unlike the behavior of
-    ;; `point-at-bol' inside a field, this function will
-    ;; return the position of the end of a prompt, even if the point is
-    ;; already inside the prompt.  In order to do this, it assumes that
-    ;; if there are two fields on a line, then the first one is the
-    ;; prompt, and the second one is an input field, and is start-open
-    ;; (as input fields should be).
-    (constrain-to-field (point-at-bol) (point-at-eol))))
-
-(defun comint-bol (&optional arg)
-  "Go to the beginning of line, then skip past the prompt, if any.
+(defun comint-bol (arg)
+  "Goes to the beginning of line, then skips past the prompt, if any.
 If prefix argument is given (\\[universal-argument]) the prompt is not skipped.
-If `comint-use-prompt-regexp' is non-nil, then the prompt skip is done
-by skipping text matching the regular expression `comint-prompt-regexp',
-a buffer local variable."
-  (interactive "_P")
-  (if arg
-      ;; Unlike `beginning-of-line', forward-line ignores field boundaries
-      (forward-line 0)
-    (goto-char (comint-line-beginning-position))))
 
-;; For compatibility.
-(defun comint-read-noecho (prompt &optional ignore)
-  (read-passwd prompt))
+The prompt skip is done by skipping text matching the regular expression
+`comint-prompt-regexp', a buffer local variable."
+  (interactive "_P")
+  (let ((skip (and (null arg)
+		       ;; If the buffer's process has gone bye-bye
+		       ;; revert to being just beginning-of-line.
+		       (or (not (get-buffer-process (current-buffer)))
+			   (comint-after-pmark-p)))))
+    (beginning-of-line)
+    (if skip (comint-skip-prompt))))
+
+;; XEmacs - more like an xterm interaction model...
+(defun comint-universal-argument ()
+  "Erase the current line of input, or begin a numeric argument.
+
+In buffers with interactive subprocesses, this modified version of
+`universal-argument' erases the current line of user input just as ^U erases a
+line of text at the UNIX command prompt.
+
+Otherwise, begin a numeric argument for the following command.
+Digits or minus sign following \\[universal-argument] make up the numeric argument.
+\\[universal-argument] following the digits or minus sign ends the argument.
+\\[universal-argument] without digits or minus sign provides 4 as argument.
+Repeating \\[universal-argument] without digits or minus sign
+ multiplies the argument by 4 each time."
+  (interactive)
+  (let ((proc (get-buffer-process (current-buffer))))
+    (if (and proc (> (point) (process-mark proc)))
+	(progn (comint-bol nil)
+	       (kill-region (point) (save-excursion (end-of-line) (point))))
+      (let (key)
+	(setq key (read-key-sequence nil t))
+	(while (equal (key-binding key) 'universal-argument)
+	  (setq key (read-key-sequence nil t)))))))
 
 ;; These three functions are for entering text you don't want echoed or
 ;; saved -- typically passwords to ftp, telnet, or somesuch.
-;; Just enter m-x send-invisible and type in your line.
+;; Just enter m-x send-invisible and type in your line, or add
+;; `comint-watch-for-password-prompt' to `comint-output-filter-functions'.
 
-(defun send-invisible (&optional prompt)
+(defun comint-read-noecho (prompt &optional stars)
+  "Read a single line of text from user without echoing, and return it.
+Prompt with argument PROMPT, a string.  Optional argument STARS causes
+input to be echoed with '*' characters on the prompt line.  Input ends with
+RET, LFD, or ESC.  DEL or C-h rubs out.  C-u kills line.  C-g aborts (if
+`inhibit-quit' is set because e.g. this function was called from a process
+filter and C-g is pressed, this function returns nil rather than a string).
+
+Note that the keystrokes comprising the text can still be recovered
+\(temporarily) with \\[view-lossage].  This may be a security bug for some
+applications."
+  (if (fboundp 'read-passwd)
+      (read-passwd prompt)
+    (let ((ans "")
+	  (c 0)
+	  (echo-keystrokes 0)
+	  (cursor-in-echo-area t)
+	  (message-log-max nil)		;turn of logging in GNU Emacs
+	  (inhibit-input-event-recording t) ; and XEmacs
+	  (done nil))
+      (while (not done)
+	(if stars
+	    (message "%s%s" prompt (make-string (length ans) ?*))
+	  (message "%s" prompt))
+	;; Use this instead of `read-char' to avoid "Non-character input-event".
+	(setq c (read-char-exclusive))
+	(cond ((= c ?\C-g)
+	       ;; This function may get called from a process filter, where
+	       ;; inhibit-quit is set.  In later versions of emacs read-char
+	       ;; may clear quit-flag itself and return C-g.  That would make
+	       ;; it impossible to quit this loop in a simple way, so
+	       ;; re-enable it here (for backward-compatibility the check for
+	       ;; quit-flag below would still be necessary, so this seems
+	       ;; like the simplest way to do things).
+	       (setq quit-flag t
+		     done t))
+	      ((or (= c ?\r) (= c ?\n) (= c ?\e))
+	       (setq done t))
+	      ((= c ?\C-u)
+	       (setq ans ""))
+	      ((and (/= c ?\b) (/= c ?\177))
+	       (setq ans (concat ans (char-to-string c))))
+	      ((> (length ans) 0)
+	       (setq ans (substring ans 0 -1)))))
+      (if quit-flag
+	  ;; Emulate a true quit, except that we have to return a value.
+	  (prog1
+	      (setq quit-flag nil)
+	    (message "Quit")
+	    (beep t))
+	(message "")
+	ans))))
+
+(defun send-invisible (str)
   "Read a string without echoing.
 Then send it to the process running in the current buffer.  A new-line
 is additionally sent.  String is not saved on comint input history list.
-The string is sent using `comint-input-sender'.
 Security bug: your string can still be temporarily recovered with
 \\[view-lossage]."
-  (interactive "P")			; Defeat snooping via C-x ESC ESC
-  (let ((proc (get-buffer-process (current-buffer)))
-	(prefix
-	 (if (eq (window-buffer (selected-window)) (current-buffer))
-	     ""
-	   (format "(In buffer %s) "
-		   (current-buffer)))))
-    (if proc
-	(let ((str (read-passwd (concat prefix
-					(or prompt "Non-echoed text: ")))))
-	  (if (stringp str)
-	      (progn
-		(comint-snapshot-last-prompt)
-		(funcall comint-input-sender proc str))
-	    (message "Warning: text will be echoed")))
-      (error "Buffer %s has no process" (current-buffer)))))
+  (interactive "P") ; Defeat snooping via C-x ESC ESC
+  (let ((proc (get-buffer-process (current-buffer))))
+    (if (not proc)
+	(error "Current buffer has no process")
+      (comint-send-string
+       proc (if (stringp str) str (comint-read-noecho "Non-echoed text: " t)))
+      (comint-send-string proc "\n"))))
 
 (defun comint-watch-for-password-prompt (string)
   "Prompt in the minibuffer for password and send without echoing.
@@ -2097,46 +1734,25 @@ process if STRING contains a password prompt defined by
 `comint-password-prompt-regexp'.
 
 This function could be in the list `comint-output-filter-functions'."
-  (when (string-match comint-password-prompt-regexp string)
-    (when (string-match "^[ \n\r\t\v\f\b\a]+" string)
-      (setq string (replace-match "" t t string)))
-    (send-invisible string)))
+  (if (string-match comint-password-prompt-regexp string)
+      (send-invisible nil)))
 
 ;; Low-level process communication
 
-(defun comint-send-string (process string)
-  "Like `process-send-string', but also does extra bookkeeping for Comint mode."
-  (if process
-      (with-current-buffer (if (processp process)
-			       (process-buffer process)
-			     (get-buffer process))
-	(comint-snapshot-last-prompt))
-    (comint-snapshot-last-prompt))
-  (process-send-string process string))
-
-(defun comint-send-region (process start end)
-  "Like `process-send-region', but also does extra bookkeeping for Comint mode."
-  (if process
-      (with-current-buffer (if (processp process)
-			       (process-buffer process)
-			     (get-buffer process))
-	(comint-snapshot-last-prompt))
-    (comint-snapshot-last-prompt))
-  (process-send-region process start end))
-
+(defalias 'comint-send-string 'process-send-string)
+(defalias 'comint-send-region 'process-send-region)
 
 ;; Random input hackage
 
-(defun comint-delete-output ()
-  "Delete all output from interpreter since last input.
+(defun comint-kill-output ()
+  "Kill all output from interpreter since last input.
 Does not delete the prompt."
   (interactive)
   (let ((proc (get-buffer-process (current-buffer)))
-	(replacement nil)
-	(inhibit-read-only t))
+	(replacement nil))
     (save-excursion
       (let ((pmark (progn (goto-char (process-mark proc))
-			  (forward-line 0)
+			  (beginning-of-line nil)
 			  (point-marker))))
 	;; kill in case we want it back...
 	(kill-region comint-last-input-end pmark)
@@ -2147,102 +1763,45 @@ Does not delete the prompt."
     ;; Output message and put back prompt
     (comint-output-filter proc replacement)))
 
-(define-obsolete-function-alias 'comint-kill-output 'comint-delete-output)
-
-(defun comint-write-output (filename &optional append mustbenew)
-  "Write output from interpreter since last input to FILENAME.
-Any prompt at the end of the output is not written.
-
-If the optional argument APPEND (the prefix argument when interactive)
-is non-nil, the output is appended to the file instead.
-
-If the optional argument MUSTBENEW is non-nil, check for an existing
-file with the same name.  If MUSTBENEW is `excl', that means to get an
-error if the file already exists; never overwrite.  If MUSTBENEW is
-neither nil nor `excl', that means ask for confirmation before
-overwriting, but do go ahead and overwrite the file if the user
-confirms.  When interactive, MUSTBENEW is nil when appending, and t
-otherwise."
-  (interactive
-   (list (read-file-name
-	  (if current-prefix-arg
-	      "Append output to file: "
-	    "Write output to file: "))
-	 current-prefix-arg
-	 (not current-prefix-arg)))
-  (save-excursion
-    (goto-char (process-mark (get-buffer-process (current-buffer))))
-    (forward-line 0)
-    (write-region comint-last-input-end (point) filename
-		  append nil nil mustbenew)))
-
-;; This function exists for the benefit of the menu; from the keyboard,
-;; users can just use `comint-write-output' with a prefix arg.
-(defun comint-append-output-to-file (filename)
-  "Append output from interpreter since last input to FILENAME.
-Any prompt at the end of the output is not written."
-  (interactive "fAppend output to file: ")
-  (comint-write-output filename t))
-
 ;; don't move cursor unless necessary...
 (defun comint-show-output ()
   "Display start of this batch of interpreter output at top of window.
 Also put cursor there if the current position is not visible.
 If the cursor is moved, then a mark is set at its old location."
   (interactive)
-  (push-mark)
-  (let ((pos (or (marker-position comint-last-input-end) (point-max))))
-    (cond (comint-use-prompt-regexp
-	   (goto-char pos)
-	   (beginning-of-line 0)
-	   (set-window-start (selected-window) (point))
-	   (comint-skip-prompt))
-	  (t
-	   (let* ((beg (field-beginning pos))
-		  (pt (if (= (point-min) beg)
-			  (point-min)
-			(1+ beg))))
-	     (goto-char pt))
-	   (set-window-start (selected-window) (point))))))
-
+  (let ((pos (point)))
+    (goto-char (or (marker-position comint-last-input-end) (point-max)))
+    (beginning-of-line 0)
+    (set-window-start (selected-window) (point))
+    (if (pos-visible-in-window-p pos)
+	(goto-char pos)
+      (save-excursion
+	(goto-char pos)
+	(push-mark))
+      (comint-skip-prompt))))
 
 (defun comint-interrupt-subjob ()
-  "Interrupt the current subjob.
-This command also kills the pending input
-between the process mark and point."
+  "Interrupt the current subjob."
   (interactive)
-  (comint-skip-input)
-  (interrupt-process nil comint-ptyp)
-;;  (process-send-string nil "\n")
-)
+  (interrupt-process nil comint-ptyp))
 
 (defun comint-kill-subjob ()
-  "Send kill signal to the current subjob.
-This command also kills the pending input
-between the process mark and point."
+  "Send kill signal to the current subjob."
   (interactive)
-  (comint-skip-input)
   (kill-process nil comint-ptyp))
 
 (defun comint-quit-subjob ()
-  "Send quit signal to the current subjob.
-This command also kills the pending input
-between the process mark and point."
+  "Send quit signal to the current subjob."
   (interactive)
-  (comint-skip-input)
   (quit-process nil comint-ptyp))
 
 (defun comint-stop-subjob ()
   "Stop the current subjob.
-This command also kills the pending input
-between the process mark and point.
-
 WARNING: if there is no current subjob, you can end up suspending
-the top-level process running in the buffer.  If you accidentally do
-this, use \\[comint-continue-subjob] to resume the process.  (This
+the top-level process running in the buffer. If you accidentally do
+this, use \\[comint-continue-subjob] to resume the process. (This
 is not a problem with most shells, since they ignore this signal.)"
   (interactive)
-  (comint-skip-input)
   (stop-process nil comint-ptyp))
 
 (defun comint-continue-subjob ()
@@ -2250,19 +1809,6 @@ is not a problem with most shells, since they ignore this signal.)"
 Useful if you accidentally suspend the top-level process."
   (interactive)
   (continue-process nil comint-ptyp))
-
-(defun comint-skip-input ()
-  "Skip all pending input, from last stuff output by interpreter to point.
-This means mark it as if it had been sent as input, without sending it."
-  (let ((comint-input-sender 'ignore)
-	(comint-input-filter-functions nil))
-    (comint-send-input t t))
-  (end-of-line)
-  (let ((pos (point))
-	(marker (process-mark (get-buffer-process (current-buffer)))))
-    (insert "  " (key-description (this-command-keys)))
-    (if (= marker pos)
-	(set-marker marker (point)))))
 
 (defun comint-kill-input ()
   "Kill all text from last stuff output by interpreter to point."
@@ -2272,245 +1818,64 @@ This means mark it as if it had been sent as input, without sending it."
 	(kill-region pmark (point)))))
 
 (defun comint-delchar-or-maybe-eof (arg)
-  "Delete ARG characters forward or send an EOF to subprocess.
-Sends an EOF only if point is at the end of the buffer and there is no input."
+  "Delete ARG characters forward, or (if at eob) send an EOF to subprocess."
   (interactive "p")
-  (let ((proc (get-buffer-process (current-buffer))))
-    (if (and (eobp) proc (= (point) (marker-position (process-mark proc))))
-	(comint-send-eof)
-      (delete-char arg))))
+  (if (eobp)
+      (process-send-eof)
+    (delete-char arg)))
 
 (defun comint-send-eof ()
   "Send an EOF to the current buffer's process."
   (interactive)
-  (comint-send-input t t)
   (process-send-eof))
 
 
-(defun comint-backward-matching-input (regexp n)
-  "Search backward through buffer for input fields that match REGEXP.
-If `comint-use-prompt-regexp' is non-nil, then input fields are identified
-by lines that match `comint-prompt-regexp'.
-
+(defun comint-backward-matching-input (regexp arg)
+  "Search backward through buffer for match for REGEXP.
+Matches are searched for on lines that match `comint-prompt-regexp'.
 With prefix argument N, search for Nth previous match.
 If N is negative, find the next or Nth next match."
   (interactive (comint-regexp-arg "Backward input matching (regexp): "))
-  (if comint-use-prompt-regexp
-      ;; Use comint-prompt-regexp
-      (let* ((re (concat comint-prompt-regexp ".*" regexp))
-	     (pos (save-excursion (end-of-line (if (> n 0) 0 1))
-				  (if (re-search-backward re nil t n)
-				      (point)))))
-	(if (null pos)
-	    (progn (message "Not found")
-		   (ding))
-	  (goto-char pos)
-	  (comint-bol nil)))
-    ;; Use input fields
-    (let* ((dir (if (< n 0) -1 1))
-	   (pos
-	    (save-excursion
-	      (while (/= n 0)
-		(unless (re-search-backward regexp nil t dir)
-		  (error "Not found"))
-		(when (eq (get-char-property (point) 'field) 'input)
-		  (setq n (- n dir))))
-	      (field-beginning))))
-      (goto-char pos))))
+  (let* ((re (concat comint-prompt-regexp ".*" regexp))
+	 (pos (save-excursion (end-of-line (if (> arg 0) 0 1))
+			      (if (re-search-backward re nil t arg)
+				  (point)))))
+    (if (null pos)
+	(progn (message "Not found")
+	       (ding))
+      (goto-char pos)
+      (comint-bol nil))))
 
-
-(defun comint-forward-matching-input (regexp n)
-  "Search forward through buffer for input fields that match REGEXP.
-If `comint-use-prompt-regexp' is non-nil, then input fields are identified
-by lines that match `comint-prompt-regexp'.
-
+(defun comint-forward-matching-input (regexp arg)
+  "Search forward through buffer for match for REGEXP.
+Matches are searched for on lines that match `comint-prompt-regexp'.
 With prefix argument N, search for Nth following match.
 If N is negative, find the previous or Nth previous match."
   (interactive (comint-regexp-arg "Forward input matching (regexp): "))
-  (comint-backward-matching-input regexp (- n)))
+  (comint-backward-matching-input regexp (- arg)))
 
 
 (defun comint-next-prompt (n)
   "Move to end of Nth next prompt in the buffer.
-If `comint-use-prompt-regexp' is nil, then this means the beginning of
-the Nth next `input' field, otherwise, it means the Nth occurrence of
-text matching `comint-prompt-regexp'."
+See `comint-prompt-regexp'."
   (interactive "_p")			; XEmacs - zmacs-regions
-  (if comint-use-prompt-regexp
-      ;; Use comint-prompt-regexp
-      (let ((paragraph-start comint-prompt-regexp))
-	(end-of-line (if (> n 0) 1 0))
-	(forward-paragraph n)
-	(comint-skip-prompt))
-    ;; Use input fields
-    (let ((pos (point))
-	  (input-pos nil)
-	  prev-pos)
-      (while (/= n 0)
-	(setq prev-pos pos)
-	(setq pos
-	      (if (> n 0)
-		  (next-single-property-change pos 'field)
-		(previous-single-property-change pos 'field)))
-	(cond ((or (null pos) (= pos prev-pos))
-	       ;; Ran off the end of the buffer.
-	       (when (> n 0)
-		 ;; There's always an input field at the end of the
-		 ;; buffer, but it has a `field' property of nil.
-		 (setq input-pos (point-max)))
-	       ;; stop iterating
-	       (setq n 0))
-	      ((eq (get-char-property pos 'field) 'input)
-	       (setq n (if (< n 0) (1+ n) (1- n)))
-	       (setq input-pos pos))))
-      (when input-pos
-	(goto-char input-pos)))))
-
+  (let ((paragraph-start comint-prompt-regexp))
+    (end-of-line (if (> n 0) 1 0))
+    (forward-paragraph n)
+    (comint-skip-prompt)))
 
 (defun comint-previous-prompt (n)
   "Move to end of Nth previous prompt in the buffer.
-If `comint-use-prompt-regexp' is nil, then this means the beginning of
-the Nth previous `input' field, otherwise, it means the Nth occurrence of
-text matching `comint-prompt-regexp'."
+See `comint-prompt-regexp'."
   (interactive "_p")			; XEmacs
   (comint-next-prompt (- n)))
-
-;; State used by `comint-insert-previous-argument' when cycling.
-(defvar comint-insert-previous-argument-last-start-pos nil)
-(make-variable-buffer-local 'comint-insert-previous-argument-last-start-pos)
-(defvar comint-insert-previous-argument-last-index nil)
-(make-variable-buffer-local 'comint-insert-previous-argument-last-index)
-
-;; Needs fixing:
-;;  make comint-arguments understand negative indices as bash does
-(defun comint-insert-previous-argument (index)
-  "Insert the INDEXth argument from the previous Comint command-line at point.
-Spaces are added at beginning and/or end of the inserted string if
-necessary to ensure that it's separated from adjacent arguments.
-Interactively, if no prefix argument is given, the last argument is inserted.
-Repeated interactive invocations will cycle through the same argument
-from progressively earlier commands (using the value of INDEX specified
-with the first command).
-This command is like `M-.' in bash."
-  (interactive "P")
-  (unless (null index)
-    (setq index (prefix-numeric-value index)))
-  (cond ((eq last-command this-command)
-	 ;; Delete last input inserted by this command.
-	 (delete-region comint-insert-previous-argument-last-start-pos (point))
-	 (setq index comint-insert-previous-argument-last-index))
-	(t
-	 ;; This is a non-repeat invocation, so initialize state.
-	 (setq comint-input-ring-index nil)
-	 (setq comint-insert-previous-argument-last-index index)
-	 (when (null comint-insert-previous-argument-last-start-pos)
-	   ;; First usage; initialize to a marker
-	   (setq comint-insert-previous-argument-last-start-pos
-		 (make-marker)))))
-  ;; Make sure we're not in the prompt, and add a beginning space if necess.
-  (if (<= (point) (comint-line-beginning-position))
-      (comint-bol)
-    (just-one-space))
-  ;; Remember the beginning of what we insert, so we can delete it if
-  ;; the command is repeated.
-  (set-marker comint-insert-previous-argument-last-start-pos (point))
-  ;; Insert the argument.
-  (let ((input-string (comint-previous-input-string 0)))
-    (when (string-match "[ \t\n]*&" input-string)
-      ;; strip terminating '&'
-      (setq input-string (substring input-string 0 (match-beginning 0))))
-    (insert (comint-arguments input-string index index)))
-  ;; Make next invocation return arg from previous input
-  (setq comint-input-ring-index (1+ (or comint-input-ring-index 0)))
-  ;; Add a terminating space if necessary.
-  (unless (eolp)
-    (just-one-space)))
-
-
-;; Support editing with `comint-prompt-read-only' set to t.
-
-(defun comint-update-fence ()
-  "Update read-only status of newline before point.
-The `fence' read-only property is used to indicate that a newline
-is read-only for no other reason than to \"fence off\" a
-following start-open read-only region.  This is used to
-implement comint read-only prompts.  If the text after a newline
-changes, the read-only status of that newline may need updating.
-That is what this function does.
-
-This function does nothing if point is not at the beginning of a
-line, or is at the beginning of the accessible portion of the buffer.
-Otherwise, if the character after point has a start-open
-read-only property, then the preceding newline is given a
-read-only property of `fence', unless it already is read-only.
-If the character after point does not have a start-open
-read-only property, any read-only property of `fence' on the
-preceding newline is removed."
-  (let* ((pt (point))
-	 (lst (get-text-property pt 'start-open)))
-    (and (bolp)
-	 (not (bobp))
-	 (if (and (get-text-property pt 'read-only)
-		  (if (listp lst) (memq 'read-only lst) t))
-	     (unless (get-text-property (1- pt) 'read-only)
-	       (put-text-property (1- pt) pt 'read-only 'fence))
-	   (when (eq (get-text-property (1- pt) 'read-only) 'fence)
-	     (remove-text-properties (1- pt) pt '(read-only nil)))))))
-
-(defun comint-kill-whole-line (&optional count)
-  "Kill current line, ignoring read-only and field properties.
-With prefix arg COUNT, kill that many lines starting from the current line.
-If COUNT is negative, kill backward.  Also kill the preceding newline,
-instead of the trailing one.  \(This is meant to make \\[repeat] work well
-with negative arguments.)
-If COUNT is zero, kill current line but exclude the trailing newline.
-The read-only status of newlines is updated with `comint-update-fence',
-if necessary."
-  (interactive "p")
-  (let ((inhibit-read-only t) (inhibit-field-text-motion t))
-    (kill-entire-line count)
-    (when (>= count 0) (comint-update-fence))))
-
-(defun comint-kill-region (beg end &optional yank-handler)
-  "Like `kill-region', but ignores read-only properties, if safe.
-This command assumes that the buffer contains read-only
-\"prompts\" which are regions with start-open read-only
-properties at the beginning of a line, with the preceding newline
-being read-only to protect the prompt.  This is true of the
-comint prompts if `comint-prompt-read-only' is non-nil.  This
-command will not delete the region if this would create mutilated
-or out of place prompts.  That is, if any part of a prompt is
-deleted, the entire prompt must be deleted and all remaining
-prompts should stay at the beginning of a line.  If this is not
-the case, this command just calls `kill-region' with all
-read-only properties intact.  The read-only status of newlines is
-updated using `comint-update-fence', if necessary."
-  (interactive "r")
-  (save-excursion
-    (let* ((true-beg (min beg end))
-	   (true-end (max beg end))
-	   (beg-bolp (progn (goto-char true-beg) (bolp)))
-	   (beg-lst (get-text-property true-beg 'start-open))
-	   (beg-bad (and (get-text-property true-beg 'read-only)
-			 (if (listp beg-lst) (memq 'read-only beg-lst) t)))
-	   (end-bolp (progn (goto-char true-end) (bolp)))
-	   (end-lst (get-text-property true-end 'start-open))
-	   (end-bad (and (get-text-property true-end 'read-only)
-			 (if (listp end-lst) (memq 'read-only end-lst) t))))
-      (if (or (and (not beg-bolp) (or beg-bad end-bad))
-	      (and (not end-bolp) end-bad))
-	  (kill-region beg end yank-handler)
-	(let ((inhibit-read-only t))
-	  (kill-region beg end yank-handler)
-	  (comint-update-fence))))))
-
 
 ;; Support for source-file processing commands.
 ;;============================================================================
 ;; Many command-interpreters (e.g., Lisp, Scheme, Soar) have
 ;; commands that process files of source text (e.g. loading or compiling
-;; files).  So the corresponding process-in-a-buffer modes have commands
-;; for doing this (e.g., lisp-load-file).  The functions below are useful
+;; files). So the corresponding process-in-a-buffer modes have commands
+;; for doing this (e.g., lisp-load-file). The functions below are useful
 ;; for defining these commands.
 ;;
 ;; Alas, these guys don't do exactly the right thing for Lisp, Scheme
@@ -2518,9 +1883,9 @@ updated using `comint-update-fence', if necessary."
 ;; So the compile/load interface gets the wrong default occasionally.
 ;; The load-file/compile-file default mechanism could be smarter -- it
 ;; doesn't know about the relationship between filename extensions and
-;; whether the file is source or executable.  If you compile foo.lisp
+;; whether the file is source or executable. If you compile foo.lisp
 ;; with compile-file, then the next load-file should use foo.bin for
-;; the default, not foo.lisp.  This is tricky to do right, particularly
+;; the default, not foo.lisp. This is tricky to do right, particularly
 ;; because the extension for executable files varies so much (.o, .bin,
 ;; .lbin, .mo, .vo, .ao, ...).
 
@@ -2535,35 +1900,39 @@ updated using `comint-update-fence', if necessary."
 ;; COMINT-GET-SOURCE -- used by the source-file processing commands to prompt
 ;; for the file to process.
 
+;; (COMINT-SOURCE-DEFAULT previous-dir/file source-modes)
+;;============================================================================
+;; This function computes the defaults for the load-file and compile-file
+;; commands for tea, soar, cmulisp, and cmuscheme modes.
+;;
+;; - PREVIOUS-DIR/FILE is a pair (directory . filename) from the last
+;; source-file processing command. NIL if there hasn't been one yet.
+;; - SOURCE-MODES is a list used to determine what buffers contain source
+;; files: if the major mode of the buffer is in SOURCE-MODES, it's source.
+;; Typically, (lisp-mode) or (scheme-mode).
+;;
+;; If the command is given while the cursor is inside a string, *and*
+;; the string is an existing filename, *and* the filename is not a directory,
+;; then the string is taken as default. This allows you to just position
+;; your cursor over a string that's a filename and have it taken as default.
+;;
+;; If the command is given in a file buffer whose major mode is in
+;; SOURCE-MODES, then the the filename is the default file, and the
+;; file's directory is the default directory.
+;;
+;; If the buffer isn't a source file buffer (e.g., it's the process buffer),
+;; then the default directory & file are what was used in the last source-file
+;; processing command (i.e., PREVIOUS-DIR/FILE).  If this is the first time
+;; the command has been run (PREVIOUS-DIR/FILE is nil), the default directory
+;; is the cwd, with no default file. (\"no default file\" = nil)
+;;
+;; SOURCE-REGEXP is typically going to be something like (tea-mode)
+;; for T programs, (lisp-mode) for Lisp programs, (soar-mode lisp-mode)
+;; for Soar programs, etc.
+;;
+;; The function returns a pair: (default-directory . default-file).
+
 (defun comint-source-default (previous-dir/file source-modes)
-  "Compute the defaults for `load-file' and `compile-file' commands.
-
-PREVIOUS-DIR/FILE is a pair (DIRECTORY . FILENAME) from the last
-source-file processing command, or nil if there hasn't been one yet.
-SOURCE-MODES is a list used to determine what buffers contain source
-files: if the major mode of the buffer is in SOURCE-MODES, it's source.
-Typically, (lisp-mode) or (scheme-mode).
-
-If the command is given while the cursor is inside a string, *and*
-the string is an existing filename, *and* the filename is not a directory,
-then the string is taken as default.  This allows you to just position
-your cursor over a string that's a filename and have it taken as default.
-
-If the command is given in a file buffer whose major mode is in
-SOURCE-MODES, then the filename is the default file, and the
-file's directory is the default directory.
-
-If the buffer isn't a source file buffer (e.g., it's the process buffer),
-then the default directory & file are what was used in the last source-file
-processing command (i.e., PREVIOUS-DIR/FILE).  If this is the first time
-the command has been run (PREVIOUS-DIR/FILE is nil), the default directory
-is the cwd, with no default file.  (\"no default file\" = nil)
-
-SOURCE-MODES is typically going to be something like (tea-mode)
-for T programs, (lisp-mode) for Lisp programs, (soar-mode lisp-mode)
-for Soar programs, etc.
-
-The function returns a pair: (default-directory . default-file)."
   (cond ((and buffer-file-name (memq major-mode source-modes))
 	 (cons (file-name-directory    buffer-file-name)
 	       (file-name-nondirectory buffer-file-name)))
@@ -2572,13 +1941,15 @@ The function returns a pair: (default-directory . default-file)."
 	 (cons default-directory nil))))
 
 
+;; (COMINT-CHECK-SOURCE fname)
+;;============================================================================
+;; Prior to loading or compiling (or otherwise processing) a file (in the CMU
+;; process-in-a-buffer modes), this function can be called on the filename.
+;; If the file is loaded into a buffer, and the buffer is modified, the user
+;; is queried to see if he wants to save the buffer before proceeding with
+;; the load or compile.
+
 (defun comint-check-source (fname)
-  "Check whether to save buffers visiting file FNAME.
-Prior to loading or compiling (or otherwise processing) a file (in the CMU
-process-in-a-buffer modes), this function can be called on the filename.
-If the file is loaded into a buffer, and the buffer is modified, the user
-is queried to see if he wants to save the buffer before proceeding with
-the load or compile."
   (let ((buff (get-file-buffer fname)))
     (if (and buff
 	     (buffer-modified-p buff)
@@ -2589,47 +1960,55 @@ the load or compile."
 	  (save-buffer)
 	  (set-buffer old-buffer)))))
 
+
+;; (COMINT-GET-SOURCE prompt prev-dir/file source-modes mustmatch-p)
+;;============================================================================
+;; COMINT-GET-SOURCE is used to prompt for filenames in command-interpreter
+;; commands that process source files (like loading or compiling a file).
+;; It prompts for the filename, provides a default, if there is one,
+;; and returns the result filename.
+;;
+;; See COMINT-SOURCE-DEFAULT for more on determining defaults.
+;;
+;; PROMPT is the prompt string. PREV-DIR/FILE is the (directory . file) pair
+;; from the last source processing command.  SOURCE-MODES is a list of major
+;; modes used to determine what file buffers contain source files.  (These
+;; two arguments are used for determining defaults). If MUSTMATCH-P is true,
+;; then the filename reader will only accept a file that exists.
+;;
+;; A typical use:
+;; (interactive (comint-get-source "Compile file: " prev-lisp-dir/file
+;;                                 '(lisp-mode) t))
+
+;; This is pretty stupid about strings. It decides we're in a string
+;; if there's a quote on both sides of point on the current line.
 (defun comint-extract-string ()
   "Return string around POINT that starts the current line, or nil."
-  ;; XEmacs change: we do this entirely differently.
   (save-excursion
     (let* ((point (point))
-	   (bol (point-at-bol))
-	   (eol (point-at-eol))
-	   (start (and (search-backward "\"" bol t) (1+ (point))))
+	   (bol (progn (beginning-of-line) (point)))
+	   (eol (progn (end-of-line) (point)))
+	   (start (progn (goto-char point)
+			 (and (search-backward "\"" bol t)
+			      (1+ (point)))))
 	   (end (progn (goto-char point)
 		       (and (search-forward "\"" eol t)
 			    (1- (point))))))
       (and start end
-	   (buffer-substring-no-properties start end)))))
+	   (buffer-substring start end)))))
 
 (defun comint-get-source (prompt prev-dir/file source-modes mustmatch-p)
-  "Prompt for filenames in commands that process source files,
-e.g. loading or compiling a file.
-Provides a default, if there is one, and returns the result filename.
-
-See `comint-source-default' for more on determining defaults.
-
-PROMPT is the prompt string.  PREV-DIR/FILE is the (DIRECTORY . FILE) pair
-from the last source processing command.  SOURCE-MODES is a list of major
-modes used to determine what file buffers contain source files.  (These
-two arguments are used for determining defaults.)  If MUSTMATCH-P is true,
-then the filename reader will only accept a file that exists.
-
-A typical use:
- (interactive (comint-get-source \"Compile file: \" prev-lisp-dir/file
-                                 '(lisp-mode) t))"
   (let* ((def (comint-source-default prev-dir/file source-modes))
-	 (stringfile (comint-extract-string))
+         (stringfile (comint-extract-string))
 	 (sfile-p (and stringfile
 		       (condition-case ()
 			   (file-exists-p stringfile)
 			 (error nil))
 		       (not (file-directory-p stringfile))))
 	 (defdir  (if sfile-p (file-name-directory stringfile)
-		      (car def)))
+                      (car def)))
 	 (deffile (if sfile-p (file-name-nondirectory stringfile)
-		      (cdr def)))
+                      (cdr def)))
 	 (ans (read-file-name (if deffile (format "%s(default %s) "
 						  prompt    deffile)
 				  prompt)
@@ -2660,10 +2039,9 @@ A typical use:
 ;; process responds with and put it in a pop-up window or on the message
 ;; line. We just display the buffer. Low tech. Simple. Works good.
 
+;; Send to the inferior process PROC the string STR. Pop-up but do not select
+;; a window for the inferior process so that its response can be seen.
 (defun comint-proc-query (proc str)
-  "Send to the inferior process PROC the string STR.
-Pop-up but do not select a window for the inferior process so that
-its response can be seen."
   (let* ((proc-buf (process-buffer proc))
 	 (proc-mark (process-mark proc)))
     (display-buffer proc-buf)
@@ -2675,13 +2053,13 @@ its response can be seen."
       ;; Try to position the proc window so you can see the answer.
       ;; This is bogus code. If you delete the (sit-for 0), it breaks.
       ;; I don't know why. Wizards invited to improve it.
-      (unless (pos-visible-in-window-p proc-pt proc-win)
-	(let ((opoint (window-point proc-win)))
-	  (set-window-point proc-win proc-mark)
-	  (sit-for 0)
-	  (if (not (pos-visible-in-window-p opoint proc-win))
-	      (push-mark opoint)
-	    (set-window-point proc-win opoint)))))))
+      (if (not (pos-visible-in-window-p proc-pt proc-win))
+	  (let ((opoint (window-point proc-win)))
+	    (set-window-point proc-win proc-mark)
+	    (sit-for 0)
+	    (if (not (pos-visible-in-window-p opoint proc-win))
+		(push-mark opoint)
+	      (set-window-point proc-win opoint)))))))
 
 
 ;; Filename/command/history completion in a buffer
@@ -2717,11 +2095,7 @@ This mirrors the optional behavior of tcsh."
 If a cons pair, it should be of the form (DIRSUFFIX . FILESUFFIX) where
 DIRSUFFIX and FILESUFFIX are strings added on unambiguous or exact completion.
 This mirrors the optional behavior of tcsh."
-  :type '(choice (const :tag "None" nil)
-		 (const :tag "Add /" t)
-		 (cons :tag "Suffix pair"
-		       (string :tag "Directory suffix")
-		       (string :tag "File suffix")))
+  :type 'boolean
   :group 'comint-completion)
 
 (defcustom comint-completion-recexact nil
@@ -2740,19 +2114,16 @@ Note that this applies to `comint-dynamic-complete-filename' only."
   :type '(repeat (string :tag "Suffix"))
   :group 'comint-completion)
 
-;;;###autoload
 (defvar comint-file-name-prefix ""
   "Prefix prepended to absolute file names taken from process input.
-This is used by Comint's and shell's completion functions, and by shell's
+This is used by comint's and shell's completion functions, and by shell's
 directory tracking functions.")
 
 (defvar comint-file-name-chars
-  (if (memq system-type '(windows-nt cygwin32))
-      "~/A-Za-z0-9_^$!#%&{}@`'.,:()-"
-    "~/A-Za-z0-9+@:_.$#%,={}-") ; XEmacs bug? [] really messes us up
+  (if (memq system-type '(ms-dos windows-nt))
+      "~/A-Za-z0-9_^$!#%&{}@`'.()-"
+    "~/A-Za-z0-9+@:_.$#%,={}-")
   "String of characters valid in a file name.
-Note that all non-ASCII characters are considered valid in a file name
-regardless of what this variable says.
 
 This is a good thing to set in mode hooks.")
 
@@ -2763,18 +2134,17 @@ This is a good thing to set in mode hooks.")
 
 
 (defun comint-directory (directory)
-  "Return expanded DIRECTORY, with `comint-file-name-prefix' if absolute."
+  ;; Return expanded DIRECTORY, with `comint-file-name-prefix' if absolute.
   (expand-file-name (if (file-name-absolute-p directory)
 			(concat comint-file-name-prefix directory)
 		      directory)))
 
 
 (defun comint-word (word-chars)
-  "Return the word of WORD-CHARS at point, or nil if none is found.
+  "Return the word of WORD-CHARS at point, or nil if non is found.
 Word constituents are considered to be those in WORD-CHARS, which is like the
-inside of a \"[...]\" (see `skip-chars-forward'), plus all non-ASCII characters."
+inside of a \"[...]\" (see `skip-chars-forward')."
   (save-excursion
-    ;; XEmacs: significantly different implementation
     (let ((non-word-chars (concat "[^\\\\" word-chars "]")) (here (point)))
       (while (and (re-search-backward non-word-chars nil 'move)
 		  ;(memq (char-after (point)) shell-file-name-quote-list)
@@ -2784,16 +2154,16 @@ inside of a \"[...]\" (see `skip-chars-forward'), plus all non-ASCII characters.
       (if (or (not (bobp)) (looking-at non-word-chars))
 	  (forward-char 1))
       ;; Set match-data to match the entire string.
-      (when (< (point) here)
-	(store-match-data (list (point) here))
-	(match-string 0)))))
+      (if (< (point) here)
+	  (progn (store-match-data (list (point) here))
+		 (match-string 0))))))
 
 (defun comint-substitute-in-file-name (filename)
   "Return FILENAME with environment variables substituted.
 Supports additional environment variable syntax of the command
 interpreter (e.g., the percent notation of cmd.exe on NT)."
   (let ((name (substitute-in-file-name filename)))
-    (if (memq system-type '(windows-nt cygwin32))
+    (if (memq system-type '(ms-dos windows-nt))
 	(let (env-var-name
 	      env-var-val)
 	  (save-match-data
@@ -2803,7 +2173,7 @@ interpreter (e.g., the percent notation of cmd.exe on NT)."
 	      (setq env-var-val (if (getenv env-var-name)
 				    (getenv env-var-name)
 				  ""))
-	      (setq name (replace-match env-var-val t t name))))))
+	      (setq name (replace-match env-var-val nil nil name))))))
     name))
 
 (defun comint-match-partial-filename ()
@@ -2819,10 +2189,13 @@ Environment variables are substituted.  See `comint-word'."
 Magic characters are those in `comint-file-name-quote-list'."
   (if (null comint-file-name-quote-list)
       filename
-    (mapconcat (lambda (x)
-		 (concat (if (memq x comint-file-name-quote-list) "\\" "")
-			 (char-to-string x)))
-	       filename "")))
+    (let ((regexp
+	   (format "\\(^\\|[^\\]\\)\\([%s]\\)"
+	    (mapconcat 'char-to-string comint-file-name-quote-list ""))))
+      (save-match-data
+	(while (string-match regexp filename)
+	  (setq filename (replace-match "\\1\\\\\\2" nil nil filename)))
+	filename))))
 
 (defun comint-unquote-filename (filename)
   "Return FILENAME with quoted characters unquoted."
@@ -2861,16 +2234,16 @@ completions listing is dependent on the value of `comint-completion-autolist'.
 
 Returns t if successful."
   (interactive)
-  (when (comint-match-partial-filename)
-    (unless (window-minibuffer-p (selected-window))
-      (message "Completing file name..."))
-    (or (comint-dynamic-complete-as-username)
-	(comint-dynamic-complete-as-filename))))
+  (if (comint-match-partial-filename)
+      (prog2 (or (window-minibuffer-p (selected-window))
+		 (message "Completing file name..."))
+	  (or (comint-dynamic-complete-as-username)
+	      (comint-dynamic-complete-as-filename)))))
 
 (defun comint-dynamic-complete-as-filename ()
   "Dynamically complete at point as a filename.
 See `comint-dynamic-complete-filename'.  Returns t if successful."
-  (let* ((completion-ignore-case (memq system-type '(windows-nt cygwin32)))
+  (let* ((completion-ignore-case (memq system-type '(ms-dos windows-nt)))
 	 (completion-ignored-extensions comint-completion-fignore)
 	 ;; If we bind this, it breaks remote directory tracking in rlogin.el.
 	 ;; I think it was originally bound to solve file completion problems,
@@ -2891,50 +2264,46 @@ See `comint-dynamic-complete-filename'.  Returns t if successful."
 			   (t
 			    (cdr comint-completion-addsuffix))))
 	 (filename (or (comint-match-partial-filename) ""))
-	 (filedir (file-name-directory filename))
-	 (filenondir (file-name-nondirectory filename))
-	 (directory (if filedir (comint-directory filedir) default-directory))
-	 (completion (file-name-completion filenondir directory)))
+	 (pathdir (file-name-directory filename))
+	 (pathnondir (file-name-nondirectory filename))
+	 (directory (if pathdir (comint-directory pathdir) default-directory))
+	 (completion (file-name-completion pathnondir directory)))
     (cond ((null completion)
-	   (if minibuffer-p (ding) (message "No completions of %s" filename))
-	   (setq success nil))
-	  ((eq completion t)            ; Means already completed "file".
-	   (insert filesuffix)
-	   (unless minibuffer-p
-	     (message "Sole completion")))
-	  ((string-equal completion "") ; Means completion on "directory/".
-	   (comint-dynamic-list-filename-completions))
-	  (t                            ; Completion string returned.
-	   (let ((file (concat (file-name-as-directory directory) completion)))
+           (if minibuffer-p (ding) (message "No completions of %s" filename))
+           (setq success nil))
+          ((eq completion t)            ; Means already completed "file".
+           (insert filesuffix)
+           (or minibuffer-p (message "Sole completion")))
+          ((string-equal completion "") ; Means completion on "directory".
+           (comint-dynamic-list-filename-completions))
+          (t                            ; Completion string returned.
+           (let ((file (concat (file-name-as-directory directory) completion)))
 	     (insert (comint-quote-filename
 		      (substring (directory-file-name completion)
-				 (length filenondir))))
-	     (cond ((symbolp (file-name-completion completion directory))
-		    ;; We inserted a unique completion.
+				 (length pathnondir))))
+             (cond ((symbolp (file-name-completion completion directory))
+                    ;; We inserted a unique completion.
 		    (insert (if (file-directory-p file) dirsuffix filesuffix))
-		    (unless minibuffer-p
-		      (message "Completed")))
-		   ((and comint-completion-recexact comint-completion-addsuffix
-			 (string-equal filenondir completion)
-			 (file-exists-p file))
-		    ;; It's not unique, but user wants shortest match.
-		    (insert (if (file-directory-p file) dirsuffix filesuffix))
-		    (unless minibuffer-p
-		      (message "Completed shortest")))
-		   ((or comint-completion-autolist
-			(string-equal filenondir completion))
-		    ;; It's not unique, list possible completions.
-		    (comint-dynamic-list-filename-completions))
-		   (t
-		    (unless minibuffer-p
-		      (message "Partially completed")))))))
+                    (or minibuffer-p (message "Completed")))
+                   ((and comint-completion-recexact comint-completion-addsuffix
+                         (string-equal pathnondir completion)
+                         (file-exists-p file))
+                    ;; It's not unique, but user wants shortest match.
+                    (insert (if (file-directory-p file) dirsuffix filesuffix))
+                    (or minibuffer-p (message "Completed shortest")))
+                   ((or comint-completion-autolist
+                        (string-equal pathnondir completion))
+                    ;; It's not unique, list possible completions.
+                    (comint-dynamic-list-filename-completions))
+                   (t
+                    (or minibuffer-p (message "Partially completed")))))))
     success))
 
-;; XEmacs addition
+
 (defun comint-dynamic-complete-as-username ()
   "Attempt to dynamically complete at point as a ~username.
 See `comint-dynamic-complete-filename'.  Returns t if successful."
-  (let* ((completion-ignore-case (memq system-type '(windows-nt cygwin32)))
+  (let* ((completion-ignore-case (memq system-type '(ms-dos windows-nt)))
 	 (completion-ignored-extensions comint-completion-fignore)
 	 ;; If we bind this, it breaks remote directory tracking in rlogin.el.
 	 ;; I think it was originally bound to solve file completion problems,
@@ -2942,25 +2311,21 @@ See `comint-dynamic-complete-filename'.  Returns t if successful."
 	 ;;(file-name-handler-alist nil)
 	 (minibuffer-p (window-minibuffer-p (selected-window)))
 	 (success t)
-	 (dirsuffix (cond ((not comint-completion-addsuffix)
-			   "")
-			  ((not (consp comint-completion-addsuffix))
-			   (char-to-string directory-sep-char))
-			  (t
-			   (car comint-completion-addsuffix))))
+	 (dirsuffix (cond ((not comint-completion-addsuffix) "")
+			  ((not (consp comint-completion-addsuffix)) "/")
+			  (t (car comint-completion-addsuffix))))
 	 (filename (or (comint-match-partial-filename) ""))
-	 (filedir (file-name-directory filename))
-	 (filenondir (file-name-nondirectory filename)))
-    (if (and (string-match "^[~]" filenondir)
-             (not filedir))
-        (let* ((user (substring filenondir 1))
+	 (pathdir (file-name-directory filename))
+	 (pathnondir (file-name-nondirectory filename)))
+    (if (and (fboundp 'user-name-completion-1)
+             (string-match "^[~]" pathnondir)
+             (not pathdir))
+        (let* ((user (substring pathnondir 1))
                (compl+uniq (user-name-completion-1 user))
                (completion (car compl+uniq))
                (uniq (cdr compl+uniq)))
           (cond ((null completion)
-                 (if minibuffer-p
-		     (ding)
-		   (message "No completions of %s" filename))
+                 (if minibuffer-p (ding) (message "No completions of %s" filename))
                  (setq success nil))
                 ((eq completion t)           ; Means already completed "file".
                  (insert dirsuffix)
@@ -2968,19 +2333,19 @@ See `comint-dynamic-complete-filename'.  Returns t if successful."
                 (t                           ; Completion string returned.
                  (let ((file (concat "~" completion)))
                    (insert (comint-quote-filename
-                            (substring file (length filenondir))))
+                            (substring file (length pathnondir))))
                    (cond (uniq
                           ;; We inserted a unique completion.
                           (insert dirsuffix)
                           (or minibuffer-p (message "Completed")))
                          ((and comint-completion-recexact comint-completion-addsuffix
-                               (string-equal filenondir file)
+                               (string-equal pathnondir file)
                                (file-exists-p file))
                           ;; It's not unique, but user wants shortest match.
                           (insert dirsuffix)
                           (or minibuffer-p (message "Completed shortest")))
                          ((or comint-completion-autolist
-                              (string-equal filenondir file))
+                              (string-equal pathnondir file))
                           ;; It's not unique, list possible completions.
                           (comint-dynamic-list-filename-completions))
                          (t
@@ -2988,19 +2353,18 @@ See `comint-dynamic-complete-filename'.  Returns t if successful."
       (setq success nil))
     success))
 
+
 (defun comint-replace-by-expanded-filename ()
   "Dynamically expand and complete the filename at point.
-Replace the filename with an expanded, canonicalized and completed replacement.
+Replace the filename with an expanded, canonicalised and completed replacement.
 \"Expanded\" means environment variables (e.g., $HOME) and `~'s are replaced
-with the corresponding directories.  \"Canonicalized\" means `..'  and `.' are
+with the corresponding directories.  \"Canonicalised\" means `..'  and `.' are
 removed, and the filename is made absolute instead of relative.  For expansion
 see `expand-file-name' and `substitute-in-file-name'.  For completion see
 `comint-dynamic-complete-filename'."
   (interactive)
-  (let ((filename (comint-match-partial-filename)))
-    (when filename
-      (replace-match (expand-file-name filename) t t)
-      (comint-dynamic-complete-filename))))
+  (replace-match (expand-file-name (comint-match-partial-filename)) t t)
+  (comint-dynamic-complete-filename))
 
 
 (defun comint-dynamic-simple-complete (stub candidates)
@@ -3016,40 +2380,40 @@ Returns `partial' if completed as far as possible with the completion matches.
 Returns `listed' if a completion listing was shown.
 
 See also `comint-dynamic-complete-filename'."
-  (let* ((completion-ignore-case (memq system-type '(windows-nt cygwin32)))
+  (let* ((completion-ignore-case (memq system-type '(ms-dos windows-nt)))
 	 (suffix (cond ((not comint-completion-addsuffix) "")
 		       ((not (consp comint-completion-addsuffix)) " ")
 		       (t (cdr comint-completion-addsuffix))))
-	 (candidates (mapcar #'list candidates))
+	 (candidates (mapcar (function (lambda (x) (list x))) candidates))
 	 (completions (all-completions stub candidates)))
     (cond ((null completions)
-	   (message "No completions of %s" stub)
+ 	   (message "No completions of %s" stub)
 	   nil)
-	  ((= 1 (length completions))	; Gotcha!
-	   (let ((completion (car completions)))
-	     (if (string-equal completion stub)
-		 (message "Sole completion")
-	       (insert (substring completion (length stub)))
-	       (message "Completed"))
+ 	  ((= 1 (length completions))	; Gotcha!
+ 	   (let ((completion (car completions)))
+ 	     (if (string-equal completion stub)
+ 		 (message "Sole completion")
+ 	       (insert (substring completion (length stub)))
+ 	       (message "Completed"))
 	     (insert suffix)
 	     'sole))
-	  (t				; There's no unique completion.
-	   (let ((completion (try-completion stub candidates)))
-	     ;; Insert the longest substring.
-	     (insert (substring completion (length stub)))
-	     (cond ((and comint-completion-recexact comint-completion-addsuffix
-			 (string-equal stub completion)
-			 (member completion completions))
-		    ;; It's not unique, but user wants shortest match.
-		    (insert suffix)
-		    (message "Completed shortest")
+ 	  (t				; There's no unique completion.
+ 	   (let ((completion (try-completion stub candidates)))
+ 	     ;; Insert the longest substring.
+ 	     (insert (substring completion (length stub)))
+ 	     (cond ((and comint-completion-recexact comint-completion-addsuffix
+ 			 (string-equal stub completion)
+ 			 (member completion completions))
+ 		    ;; It's not unique, but user wants shortest match.
+ 		    (insert suffix)
+ 		    (message "Completed shortest")
 		    'shortest)
-		   ((or comint-completion-autolist
-			(string-equal stub completion))
-		    ;; It's not unique, list possible completions.
-		    (comint-dynamic-list-completions completions)
+ 		   ((or comint-completion-autolist
+ 			(string-equal stub completion))
+ 		    ;; It's not unique, list possible completions.
+ 		    (comint-dynamic-list-completions completions)
 		    'listed)
-		   (t
+ 		   (t
 		    (message "Partially completed")
 		    'partial)))))))
 
@@ -3057,531 +2421,43 @@ See also `comint-dynamic-complete-filename'."
 (defun comint-dynamic-list-filename-completions ()
   "List in help buffer possible completions of the filename at point."
   (interactive)
-  (let* ((completion-ignore-case (memq system-type '(windows-nt cygwin32)))
+  (let* ((completion-ignore-case (memq system-type '(ms-dos windows-nt)))
 	 ;; If we bind this, it breaks remote directory tracking in rlogin.el.
 	 ;; I think it was originally bound to solve file completion problems,
 	 ;; but subsequent changes may have made this unnecessary.  sm.
 	 ;;(file-name-handler-alist nil)
 	 (filename (or (comint-match-partial-filename) ""))
-	 (filedir (file-name-directory filename))
-	 (filenondir (file-name-nondirectory filename)))
-    (if (and (string-match "^[~]" filenondir)
-             (not filedir))
+	 (pathdir (file-name-directory filename))
+	 (pathnondir (file-name-nondirectory filename)))
+    (if (and (fboundp 'user-name-all-completions)
+             (string-match "^[~]" pathnondir)
+             (not pathdir))
         ;; ~username completion
-        (let* ((user (substring filenondir 1))
+        (let* ((user (substring pathnondir 1))
                (completions (user-name-all-completions user)))
           (if (not completions)
               (message "No completions of %s" filename)
             (comint-dynamic-list-completions
-             (mapcar #'comint-quote-filename
+             (mapcar 'comint-quote-filename
                      (mapcar #'(lambda (p) (concat "~" p))
                              completions)))))
       ;; normal file completion
-      (let* ((directory (if filedir (comint-directory filedir) default-directory))
-             (completions (file-name-all-completions filenondir directory)))
+      (let* ((directory (if pathdir (comint-directory pathdir) default-directory))
+             (completions (file-name-all-completions pathnondir directory)))
         (if (not completions)
             (message "No completions of %s" filename)
           (comint-dynamic-list-completions
            (mapcar 'comint-quote-filename completions)))))))
 
-;; This is bound locally in a *Completions* buffer to the list of
-;; completions displayed, and is used to detect the case where the same
-;; command is repeatedly used without the set of completions changing.
-(defvar comint-displayed-dynamic-completions nil)
-
-(defvar comint-dynamic-list-completions-config nil)
 
 ;;;###autoload
 (defun comint-dynamic-list-completions (completions)
   "List in help buffer sorted COMPLETIONS.
 Typing SPC flushes the help buffer."
-  (let ((window (get-buffer-window "*Completions*")))
-    (setq completions (sort completions 'string-lessp))
-    (if (and (eq last-command this-command)
-	     window (window-live-p window) (window-buffer window)
-	     (buffer-name (window-buffer window))
-	     ;; The above tests are not sufficient to detect the case where we
-	     ;; should scroll, because the top-level interactive command may
-	     ;; not have displayed a completions window the last time it was
-	     ;; invoked, and there may be such a window left over from a
-	     ;; previous completion command with a different set of
-	     ;; completions.  To detect that case, we also test that the set
-	     ;; of displayed completions is in fact the same as the previously
-	     ;; displayed set.
-	     (equal completions
-		    (buffer-local-value 'comint-displayed-dynamic-completions
-					(window-buffer window))))
-	;; If this command was repeated, and
-	;; there's a fresh completion window with a live buffer,
-	;; and this command is repeated, scroll that window.
-	(with-current-buffer (window-buffer window)
-	  (if (pos-visible-in-window-p (point-max) window)
-	      (set-window-start window (point-min))
-	    (save-selected-window
-	      (select-window window)
-	      (scroll-up))))
-
-      ;; Display a completion list for the first time.
-      (setq comint-dynamic-list-completions-config
-	    (current-window-configuration))
-      (with-output-to-temp-buffer "*Completions*"
-	(display-completion-list completions))
-      (message "Type space to flush; repeat completion command to scroll"))
-
-    ;; Read the next key, to process SPC.
-    (let (key first)
-      (if (with-current-buffer (get-buffer "*Completions*")
-	    (set (make-local-variable 'comint-displayed-dynamic-completions)
-		 completions)
-	    (setq key (read-key-sequence nil)
-		  first (aref key 0))
-	    (and (consp first) (motion-event-p first)
-		 (eq (window-buffer (event-window first))
-		     (get-buffer "*Completions*"))
-		 (eq (key-binding key) 'mouse-choose-completion)))
-	  ;; If the user does mouse-choose-completion with the mouse,
-	  ;; execute the command, then delete the completion window.
-	  (progn
-	    (mouse-choose-completion first)
-	    (set-window-configuration comint-dynamic-list-completions-config))
-	(unless (eq first ?\s)
-	  (setq unread-command-events (mapcar #'identity key)))
-	(unless (eq first ?\t)
-	  (set-window-configuration comint-dynamic-list-completions-config))))))
-
-
-(defun comint-get-next-from-history ()
-  "After fetching a line from input history, this fetches the following line.
-In other words, this recalls the input line after the line you recalled last.
-You can use this to repeat a sequence of input lines."
-  (interactive)
-  (if comint-save-input-ring-index
-      (progn
-	(setq comint-input-ring-index (1+ comint-save-input-ring-index))
-	(comint-next-input 1))
-    (message "No previous history command")))
-
-(defun comint-accumulate ()
-  "Accumulate a line to send as input along with more lines.
-This inserts a newline so that you can enter more text
-to be sent along with this line.  Use \\[comint-send-input]
-to send all the accumulated input, at once.
-The entire accumulated text becomes one item in the input history
-when you send it."
-  (interactive)
-  (insert "\n")
-  (set-marker comint-accum-marker (point))
-  (if comint-input-ring-index
-      (setq comint-save-input-ring-index
-	    (- comint-input-ring-index 1))))
-
-(defun comint-goto-process-mark ()
-  "Move point to the process mark.
-The process mark separates output, and input already sent,
-from input that has not yet been sent."
-  (interactive)
-  (let ((proc (or (get-buffer-process (current-buffer))
-		  (error "Current buffer has no process"))))
-    (goto-char (process-mark proc))
-    (when (interactive-p)
-      (message "Point is now at the process mark"))))
-
-(defun comint-bol-or-process-mark ()
-  "Move point to beginning of line (after prompt) or to the process mark.
-The first time you use this command, it moves to the beginning of the line
-\(but after the prompt, if any).  If you repeat it again immediately,
-it moves point to the process mark.
-
-The process mark separates the process output, along with input already sent,
-from input that has not yet been sent.  Ordinarily, the process mark
-is at the beginning of the current input line; but if you have
-used \\[comint-accumulate] to send multiple lines at once,
-the process mark is at the beginning of the accumulated input."
-  (interactive)
-  (if (not (eq last-command 'comint-bol-or-process-mark))
-      (comint-bol nil)
-    (comint-goto-process-mark)))
-
-(defun comint-set-process-mark ()
-  "Set the process mark at point."
-  (interactive)
-  (let ((proc (or (get-buffer-process (current-buffer))
-		  (error "Current buffer has no process"))))
-    (set-marker (process-mark proc) (point))
-    (message "Process mark set")))
-
-
-;; Author:  Peter Breton <pbreton@cs.umb.edu>
-
-;; This little add-on for comint is intended to make it easy to get
-;; output from currently active comint buffers into another buffer,
-;; or buffers, and then go back to using the comint shell.
-;;
-;; My particular use is SQL interpreters; I want to be able to execute a
-;; query using the process associated with a comint-buffer, and save that
-;; somewhere else.  Because the process might have state (for example, it
-;; could be in an uncommitted transaction), just running starting a new
-;; process and having it execute the query and then finish, would not
-;; work.  I'm sure there are other uses as well, although in many cases
-;; starting a new process is the simpler, and thus preferable, approach.
-;;
-;; The basic implementation is as follows: comint-redirect changes the
-;; preoutput filter functions (`comint-preoutput-filter-functions') to use
-;; its own filter.  The filter puts the output into the designated buffer,
-;; or buffers, until it sees a regexp that tells it to stop (by default,
-;; this is the prompt for the interpreter, `comint-prompt-regexp'). When it
-;; sees the stop regexp, it restores the old filter functions, and runs
-;; `comint-redirect-hook'.
-;;
-;; Each comint buffer may only use one redirection at a time, but any number
-;; of different comint buffers may be simultaneously redirected.
-;;
-;; NOTE: It is EXTREMELY important that `comint-prompt-regexp' be set to the
-;; correct prompt for your interpreter, or that you supply a regexp that says
-;; when the redirection is finished.  Otherwise, redirection will continue
-;; indefinitely.  The code now does a sanity check to ensure that it can find
-;; a prompt in the comint buffer; however, it is still important to ensure that
-;; this prompt is set correctly.
-;;
-;; XXX: This doesn't work so well unless `comint-prompt-regexp' is set;
-;; perhaps it should prompt for a terminating string (with an
-;; appropriate magic default by examining what we think is the prompt)?
-;;
-;; Fixme: look for appropriate fields, rather than regexp, if
-;; `comint-use-prompt-regexp' is true.
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Variables
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defcustom comint-redirect-verbose nil
-  "*If non-nil, print messages each time the redirection filter is invoked.
-Also print a message when redirection is completed."
-  :group 'comint
-  :type 'boolean)
-
-;; Directly analagous to comint-preoutput-filter-functions
-(defvar comint-redirect-filter-functions nil
-  "List of functions to call before inserting redirected process output.
-Each function gets one argument, a string containing the text received
-from the subprocess.  It should return the string to insert, perhaps
-the same string that was received, or perhaps a modified or transformed
-string.
-
-The functions on the list are called sequentially, and each one is given
-the string returned by the previous one.  The string returned by the
-last function is the text that is actually inserted in the redirection buffer.
-
-You can use `add-hook' to add functions to this list
-either globally or locally.")
-
-;; Internal variables
-
-(defvar comint-redirect-output-buffer nil
-  "The buffer or list of buffers to put output into.")
-
-(defvar comint-redirect-finished-regexp nil
-  "Regular expression that determines when to stop redirection in Comint.
-When the redirection filter function is given output that matches this regexp,
-the output is inserted as usual, and redirection is completed.")
-
-(defvar comint-redirect-insert-matching-regexp nil
-  "If non-nil, the text that ends a redirection is included in it.
-More precisely, the text that matches `comint-redirect-finished-regexp'
-and therefore terminates an output redirection is inserted in the
-redirection target buffer, along with the preceding output.")
-
-(defvar comint-redirect-echo-input nil
-  "Non-nil means echo input in the process buffer even during redirection.")
-
-(defvar comint-redirect-completed nil
-  "Non-nil if redirection has completed in the current buffer.")
-
-(defvar comint-redirect-original-mode-line-process nil
-  "Original mode line for redirected process.")
-
-(defvar comint-redirect-perform-sanity-check t
-  "If non-nil, check that redirection is likely to complete successfully.
-More precisely, before starting a redirection, verify that the
-regular expression `comint-redirect-finished-regexp' that controls
-when to terminate it actually matches some text already in the process
-buffer.  The idea is that this regular expression should match a prompt
-string, and that there ought to be at least one copy of your prompt string
-in the process buffer already.")
-
-(defvar comint-redirect-original-filter-function nil
-  "The process filter that was in place when redirection is started.
-When redirection is completed, the process filter is restored to
-this value.")
-
-(defvar comint-redirect-subvert-readonly nil
-  "Non-nil means `comint-redirect' can insert into read-only buffers.
-This works by binding `inhibit-read-only' around the insertion.
-This is useful, for instance, for insertion into Help mode buffers.
-You probably want to set it locally to the output buffer.")
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Functions
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defun comint-redirect-setup (output-buffer
-			      comint-buffer
-			      finished-regexp
-			      &optional echo-input)
-  "Set up for output redirection.
-This function sets local variables that are used by `comint-redirect-filter'
-to perform redirection.
-
-Output from COMINT-BUFFER is redirected to OUTPUT-BUFFER, until something
-in the output matches FINISHED-REGEXP.
-
-If optional argument ECHO-INPUT is non-nil, output is echoed to the
-original Comint buffer.
-
-This function is called by `comint-redirect-send-command-to-process',
-and does not normally need to be invoked by the end user or programmer."
-  (with-current-buffer comint-buffer
-
-    (make-local-variable 'comint-redirect-original-mode-line-process)
-    (setq comint-redirect-original-mode-line-process mode-line-process)
-
-    (make-local-variable 'comint-redirect-output-buffer)
-    (setq comint-redirect-output-buffer output-buffer)
-
-    (make-local-variable 'comint-redirect-finished-regexp)
-    (setq comint-redirect-finished-regexp finished-regexp)
-
-    (make-local-variable 'comint-redirect-echo-input)
-    (setq comint-redirect-echo-input echo-input)
-
-    (make-local-variable 'comint-redirect-completed)
-    (setq comint-redirect-completed nil)
-
-    (setq mode-line-process
-	  (if mode-line-process
-	      (list (concat (elt mode-line-process 0) " Redirection"))
-	    (list ":%s Redirection")))))
-
-(defun comint-redirect-cleanup ()
-  "End a Comint redirection.  See `comint-redirect-send-command'."
-  (interactive)
-  ;; Restore the process filter
-  (set-process-filter (get-buffer-process (current-buffer))
-		      comint-redirect-original-filter-function)
-  ;; Restore the mode line
-  (setq mode-line-process comint-redirect-original-mode-line-process)
-  ;; Set the completed flag
-  (setq comint-redirect-completed t))
-
-;; Because the cleanup happens as a callback, it's not easy to guarantee
-;; that it really occurs.
-(defalias 'comint-redirect-remove-redirection 'comint-redirect-cleanup)
-
-(defun comint-redirect-filter (process input-string)
-  "Filter function which redirects output from PROCESS to a buffer or buffers.
-The variable `comint-redirect-output-buffer' says which buffer(s) to
-place output in.
-
-INPUT-STRING is the input from the Comint process.
-
-This function runs as a process filter, and does not need to be invoked by the
-end user."
-  (and process
-       (with-current-buffer (process-buffer process)
-	 (comint-redirect-preoutput-filter input-string)
-	 ;; If we have to echo output, give it to the original filter function
-	 (and comint-redirect-echo-input
-	      comint-redirect-original-filter-function
-	      (funcall comint-redirect-original-filter-function
-		       process input-string)))))
-
-
-(defun comint-redirect-preoutput-filter (input-string)
-  "Comint filter function which redirects Comint output to a buffer or buffers.
-The variable `comint-redirect-output-buffer' says which buffer(s) to
-place output in.
-
-INPUT-STRING is the input from the Comint process.
-
-This function does not need to be invoked by the end user."
-  (let ((output-buffer-list
-	 (if (listp comint-redirect-output-buffer)
-	    comint-redirect-output-buffer
-	   (list comint-redirect-output-buffer)))
-	(filtered-input-string input-string))
-
-    ;; If there are any filter functions, give them a chance to modify the string
-    (let ((functions comint-redirect-filter-functions))
-      (while (and functions filtered-input-string)
-	(if (eq (car functions) t)
-	    ;; If a local value says "use the default value too",
-	    ;; do that.
-	    (let ((functions (default-value 'comint-redirect-filter-functions)))
-	      (while (and functions filtered-input-string)
-		(setq filtered-input-string
-		      (funcall (car functions) filtered-input-string))
-		(setq functions (cdr functions))))
-	  (setq filtered-input-string
-		(funcall (car functions) filtered-input-string)))
-	(setq functions (cdr functions))))
-
-    ;; Clobber `comint-redirect-finished-regexp'
-    (or comint-redirect-insert-matching-regexp
-	(and (string-match comint-redirect-finished-regexp filtered-input-string)
-	     (setq filtered-input-string
-		   (replace-match "" nil nil filtered-input-string))))
-
-    ;; Send output to all registered buffers
-    (save-excursion
-      (dolist (buf output-buffer-list)
-	;; Set this buffer to the output buffer
-	(set-buffer (get-buffer-create buf))
-	;; Go to the end of the buffer
-	(goto-char (point-max))
-	;; Insert the output
-	(let ((inhibit-read-only comint-redirect-subvert-readonly))
-	  (insert filtered-input-string))))
-
-    ;; Message
-    (and comint-redirect-verbose
-	 (message "Redirected output to buffer(s) %s"
-		  (mapconcat #'identity output-buffer-list " ")))
-
-    ;; If we see the prompt, tidy up
-    ;; We'll look for the prompt in the original string, so nobody can
-    ;; clobber it
-    (and (string-match comint-redirect-finished-regexp input-string)
-	 (progn
-	   (and comint-redirect-verbose
-		(message "Redirection completed"))
-	   (comint-redirect-cleanup)
-	   (run-hooks 'comint-redirect-hook)))
-    ;; Echo input?
-    (if comint-redirect-echo-input
-	filtered-input-string
-      "")))
-
-;;;###autoload
-(defun comint-redirect-send-command (command output-buffer echo &optional no-display)
-  "Send COMMAND to process in current buffer, with output to OUTPUT-BUFFER.
-With prefix arg ECHO, echo output in process buffer.
-
-If NO-DISPLAY is non-nil, do not show the output buffer."
-  (interactive "sCommand: \nBOutput Buffer: \nP")
-  (let ((process (get-buffer-process (current-buffer))))
-    (if process
-	(comint-redirect-send-command-to-process
-	 command output-buffer (current-buffer) echo no-display)
-      (error "No process for current buffer"))))
-
-;;;###autoload
-(defun comint-redirect-send-command-to-process
-  (command output-buffer process echo &optional no-display)
-  "Send COMMAND to PROCESS, with output to OUTPUT-BUFFER.
-With prefix arg, echo output in process buffer.
-
-If NO-DISPLAY is non-nil, do not show the output buffer."
-  (interactive "sCommand: \nBOutput Buffer: \nbProcess Buffer: \nP")
-  (let* (;; The process buffer
-	 (process-buffer (if (processp process)
-			     (process-buffer process)
-			   process))
-	 (proc (get-buffer-process process-buffer)))
-    ;; Change to the process buffer
-    (with-current-buffer process-buffer
-
-      ;; Make sure there's a prompt in the current process buffer
-      (and comint-redirect-perform-sanity-check
-	   (save-excursion
-	     (goto-char (point-max))
-	     (or (re-search-backward comint-prompt-regexp nil t)
-		 (error "No prompt found or `comint-prompt-regexp' not set properly"))))
-
-    ;;;;;;;;;;;;;;;;;;;;;
-      ;; Set up for redirection
-    ;;;;;;;;;;;;;;;;;;;;;
-      (comint-redirect-setup
-       ;; Output Buffer
-       output-buffer
-       ;; Comint Buffer
-       (current-buffer)
-       ;; Finished Regexp
-       comint-prompt-regexp
-       ;; Echo input
-       echo)
-
-    ;;;;;;;;;;;;;;;;;;;;;
-      ;; Set the filter
-    ;;;;;;;;;;;;;;;;;;;;;
-      ;; Save the old filter
-      (setq comint-redirect-original-filter-function
-	    (process-filter proc))
-      (set-process-filter proc 'comint-redirect-filter)
-
-    ;;;;;;;;;;;;;;;;;;;;;
-      ;; Send the command
-    ;;;;;;;;;;;;;;;;;;;;;
-      (process-send-string
-       (current-buffer)
-       (concat command "\n"))
-
-    ;;;;;;;;;;;;;;;;;;;;;
-      ;; Show the output
-    ;;;;;;;;;;;;;;;;;;;;;
-      (or no-display
-	  (display-buffer
-	   (get-buffer-create
-	    (if (listp output-buffer)
-		(car output-buffer)
-	      output-buffer)))))))
-
-;;;###autoload
-(defun comint-redirect-results-list (command regexp regexp-group)
-  "Send COMMAND to current process.
-Return a list of expressions in the output which match REGEXP.
-REGEXP-GROUP is the regular expression group in REGEXP to use."
-  (comint-redirect-results-list-from-process
-   (get-buffer-process (current-buffer))
-   command regexp regexp-group))
-
-;;;###autoload
-(defun comint-redirect-results-list-from-process (process command regexp regexp-group)
-  "Send COMMAND to PROCESS.
-Return a list of expressions in the output which match REGEXP.
-REGEXP-GROUP is the regular expression group in REGEXP to use."
-  (let ((output-buffer " *Comint Redirect Work Buffer*")
-	results)
-    (save-excursion
-      (set-buffer (get-buffer-create output-buffer))
-      (erase-buffer)
-      (comint-redirect-send-command-to-process command
-					       output-buffer process nil t)
-      ;; Wait for the process to complete
-      (set-buffer (process-buffer process))
-      (while (null comint-redirect-completed)
-	(accept-process-output nil 1))
-      ;; Collect the output
-      (set-buffer output-buffer)
-      (goto-char (point-min))
-      ;; Skip past the command, if it was echoed
-      (and (looking-at command)
-	   (forward-line))
-      (while (re-search-forward regexp nil t)
-	(setq results
-	      (cons (buffer-substring-no-properties
-		     (match-beginning regexp-group)
-		     (match-end regexp-group))
-		    results)))
-      results)))
-
-(mapc (lambda (x)
-	(add-to-list 'debug-ignored-errors x))
-      '("^Not at command line$"
-	"^Empty input ring$"
-	"^No history$"
-	"^Not found$"			; Too common?
-	"^Current buffer has no process$"))
-
+  (let ((conf (current-window-configuration)))
+    (with-output-to-temp-buffer "*Completions*"
+      (display-completion-list (sort completions 'string-lessp)))
+    (comint-restore-window-config conf)))
 
 ;; #### - FSFmacs doesn't have this and I'm not gonna nuke it just yet, but
 ;; it seems awfully redundant to have this here when compile.el does pretty
@@ -3692,10 +2568,10 @@ MSTART and MEND give the limits of the matched source location.
 If MARKERS is true, return no strings, but rather cons cells
 of the form (beg-marker . end-marker).
 "
-  (if (null start)
-    (setq start (point-at-bol)))
-  (if (null end)
-    (setq end (point-at-eol)))
+  (if (not start)
+      (progn
+	(setq start (save-excursion (beginning-of-line) (point)))
+	(setq end (save-excursion (end-of-line) (point)))))
   (if (stringp start)
       (save-excursion
 	(set-buffer (get-buffer-create "*Extract File and Line*"))
@@ -3715,12 +2591,12 @@ of the form (beg-marker . end-marker).
 	  found-data
 	  set-found-data)
       (setq set-found-data
-	    #'(lambda (data)
-		(while found-data
-		  (let ((m (car found-data)))
-		    (if (markerp m) (set-marker m nil)))
-		  (setq found-data (cdr found-data)))
-		(setq found-data data)))
+	    (function (lambda (data)
+			(while found-data
+			  (let ((m (car found-data)))
+			    (if (markerp m) (set-marker m nil)))
+			  (setq found-data (cdr found-data)))
+			(setq found-data data))))
       (if (and commands (not (listp commands)))
 	  (setq commands (list commands)))
       (save-excursion
@@ -3774,15 +2650,15 @@ of the form (beg-marker . end-marker).
 		  (f2 (nth 1 fields))
 		  (f3 (nth 2 fields))
 		  (get-field
-		   #'(lambda (fn)
-		       (and fn
-			    (let ((beg (match-beginning fn))
-				  (end (match-end fn)))
-			      (and beg end (> end beg)
-				   (if markers
-				       (cons (copy-marker beg)
-					     (copy-marker end))
-				     (buffer-substring beg end))))))))
+		   (function
+		    (lambda (fn)
+		      (and fn
+			   (let ((beg (match-beginning fn))
+				 (end (match-end fn)))
+			     (and beg end (> end beg)
+				  (if markers
+				      (cons (copy-marker beg) (copy-marker end))
+				    (buffer-substring beg end)))))))))
 	     (store-match-data found-data)
 	     (funcall set-found-data nil)
 	     (let ((file (funcall get-field f1))
@@ -3847,7 +2723,7 @@ point to that location, so that another use of \\[comint-find-source-code\\]
 will go to the indicated place.
 
 If no source location is found, then try to extract a filename
-around the point, using `ffap-next-guess'.
+around the point, using ffap-next-guess.
 
 In any case, if the file does not exist, prompt the user for
 a pathname that does.  Sometimes the file's directory needs
@@ -3863,7 +2739,7 @@ to interpret them."
 		    (forward-line (min 0 (- comint-find-source-code-max-lines)))
 		  (beginning-of-line))
 		(point)))
-	 (end (point-at-eol))
+	 (end (save-excursion (end-of-line) (point)))
 	 (res (or (comint-extract-source-location beg end)
 		  (save-excursion
 		    (save-restriction
@@ -3882,7 +2758,10 @@ to interpret them."
 	  (mbeg (nth 4 res))
 	  (mend (nth 5 res))
 	  dofind)
-      (setq dofind (not (and multi-line mend (< mend (point-at-bol)))))
+      (setq dofind
+	    (not (and multi-line
+		      mend
+		      (< mend (save-excursion (beginning-of-line) (point))))))
       (if (not dofind)
 	  (goto-char mbeg)
 	(progn
@@ -3957,21 +2836,21 @@ It returns its line argument."
 ;; ones:
 ;; Local variables:
 ;;	last-input-start	comint-last-input-start
-;;	last-input-end		comint-last-input-end
+;; 	last-input-end		comint-last-input-end
 ;;	shell-prompt-pattern	comint-prompt-regexp
 ;;     shell-set-directory-error-hook <no equivalent>
 ;; Miscellaneous:
 ;;	shell-set-directory	<unnecessary>
-;;	shell-mode-map		comint-mode-map
+;; 	shell-mode-map		comint-mode-map
 ;; Commands:
 ;;	shell-send-input	comint-send-input
 ;;	shell-send-eof		comint-delchar-or-maybe-eof
-;;	kill-shell-input	comint-kill-input
+;; 	kill-shell-input	comint-kill-input
 ;;	interrupt-shell-subjob	comint-interrupt-subjob
 ;;	stop-shell-subjob	comint-stop-subjob
 ;;	quit-shell-subjob	comint-quit-subjob
 ;;	kill-shell-subjob	comint-kill-subjob
-;;	kill-output-from-shell	comint-delete-output
+;;	kill-output-from-shell	comint-kill-output
 ;;	show-output-from-shell	comint-show-output
 ;;	copy-last-shell-input	Use comint-previous-input/comint-next-input
 ;;
@@ -4018,7 +2897,8 @@ It returns its line argument."
 ;;   (make-local-variable 'shell-directory-stack)
 ;;   (setq shell-directory-stack nil)
 ;;   (add-hook 'comint-input-filter-functions 'shell-directory-tracker)
-;;   (run-mode-hooks 'shell-mode-hook))
+;;   (run-hooks 'shell-mode-hook))
+;;
 ;;
 ;; Note that make-comint is different from make-shell in that it
 ;; doesn't have a default program argument. If you give make-shell
@@ -4033,11 +2913,21 @@ It returns its line argument."
 ;; non-nil if completion occurs (i.e., further completion should not occur).
 ;; You could use comint-dynamic-simple-complete to do the bulk of the
 ;; completion job.
+
+
+;;; XEmacs customization
+(when (featurep 'xemacs)
+  (define-key comint-mode-map "\ep" 'comint-previous-matching-input-from-input)
+  (define-key comint-mode-map "\en" 'comint-next-matching-input-from-input)
+  (define-key comint-mode-map '(control up)
+    'comint-previous-matching-input-from-input)
+  (define-key comint-mode-map '(control down) 'comint-next-matching-input-from-input))
+
 
 ;;; Do the user's customisation...
 
 (defvar comint-load-hook nil
-  "This hook is run when comint is loaded.
+  "This hook is run when comint is loaded in.
 This is a good place to put keybindings.")
 
 (run-hooks 'comint-load-hook)
