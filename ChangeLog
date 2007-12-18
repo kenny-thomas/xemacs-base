@@ -1,3 +1,7 @@
+2007-12-18  Mike Sperber  <mike@xemacs.org>
+
+	* etc/enriched.doc: Fix trivial typo.
+
 2007-05-22  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 2.11 released.

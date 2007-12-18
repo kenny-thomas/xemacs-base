@@ -1,7 +1,7 @@
 Content-Type: text/enriched
 Text-Width: 80
 
-<x-bg-color><param>blue</param><x-color><param>white</param><bold><fixed><bigger><center>enriched.el:</center></bigger></fixed></bold></x-color></x-bg-color><center>
+<x-bg-color><param>blue</param><x-color><param>white</param><bold><fixed><center>enriched.el:</center></fixed></bold></x-color></x-bg-color><center>
 <x-bg-color><param>blue</param><bold>WYSIWYG rich text editing for GNU Emacs</bold></x-bg-color>
 </center><bold><x-bg-color><param>blue</param><x-color><param>white</param>INTRODUCTION
 
@@ -44,8 +44,8 @@ mouse button).
 <bold>Faces:</bold> default, <bold>bold</bold>, <italic>italic</italic>, <underline>underline</underline>, <fixed>fixed</fixed>, etc.
 
 <bold>Colors:</bold> <x-color><param>red</param><x-bg-color><param>DarkSlateGray</param>any</x-bg-color></x-color><x-bg-color><param>DarkSlateGray</param><x-color><param>orange</param>thing</x-color> <x-color><param>yellow</param>your</x-color><x-color><param>green</param> screen</x-color><x-color><param>blue</param> </x-color><x-color><param>light blue</param>can</x-color><x-color><param>violet</param> display...</x-color></x-bg-color>
-<bold>Sizes:</bold> things can get <bigger>larger</bigger>, <smaller>smaller</smaller>, <bigger><bigger><bigger><bigger><bigger>much larger</bigger></bigger></bigger></bigger></bigger>, and <smaller><smaller><smaller><smaller><smaller>much
-    smaller</smaller></smaller></smaller></smaller></smaller>.
+<bold>Sizes:</bold> things can get larger, smaller, much larger, and much
+    smaller.
 
 <bold>Newlines:</bold> <indent>Which ones are real ("hard") newlines, and which can be
 changed to fit lines into the ma</indent>rgins.
@@ -135,12 +135,12 @@ that is the unit over which filling gets done.
 </flushboth></indent><x-bg-color><param>blue</param><x-color><param>white</param><bold>EXCERPTS
 
 </bold></x-color></x-bg-color>
-<indent><excerpt>This is an example of an excerpt.  You can use them for quoted
+<excerpt><indent>This is an example of an excerpt.  You can use them for quoted
 parts of other people's email messages and the like.  It is just a
-face, which is the same as the `italic' face by default.</excerpt></indent>
+face, which is the same as the `italic' face by default.</indent></excerpt>
 <x-bg-color><param>blue</param><x-color><param>white</param><bold>THE FILE FORMAT<indent>
 </indent></bold></x-color></x-bg-color><indent>
-Enriched-mode docuemnts are saved in an extended version of a
+Enriched-mode documents are saved in an extended version of a
 format called <italic>text/enriched</italic>, which is defined as part of the MIME
 standard.  This means that your documents are transportable (even
 through email) to many</indent> <indent>other systems.  In the future other file
