@@ -1,3 +1,9 @@
+2007-12-18  Aidan Kehoe  <kehoea@parhasard.net>
+
+	* advice.el (ad-special-form-p):
+	If #'special-form-p is available, don't hardcode the list of
+	special forms, call on the function in question instead. 
+
 2007-12-18  Mike Sperber  <mike@xemacs.org>
 
 	* etc/enriched.doc: Fix trivial typo.

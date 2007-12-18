@@ -2470,7 +2470,13 @@ will clear the cache."
 
 (defmacro ad-special-form-p (definition)
   ;;"non-nil if DEFINITION is a special form."
-  (list 'memq definition 'ad-special-forms))
+  (if (fboundp #'if-fboundp)
+      `(if-fboundp #'special-form-p
+        (special-form-p ,definition)
+        (memq ,definition ad-special-forms))
+    `(if (fboundp #'special-form-p)
+      (special-form-p ,definition)
+      (memq ,definition ad-special-forms))))
 
 (defmacro ad-interactive-p (definition)
   ;;"non-nil if DEFINITION can be called interactively."
