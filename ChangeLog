@@ -1,3 +1,7 @@
+2007-12-18  Norbert Koch  <viteno@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 2.12 released.
+
 2007-12-18  Aidan Kehoe  <kehoea@parhasard.net>
 
 	* advice.el (ad-special-form-p):
