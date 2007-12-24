@@ -1,3 +1,14 @@
+2007-12-24  Aidan Kehoe  <kehoea@parhasard.net>
+
+	* enriched.el:
+	* enriched.el (put-display-table): New.
+	* enriched.el (get-display-table): New.
+	Both made available with #'defun-when-void, so the native
+	implementation on 21.5 overrides them. 
+	* enriched.el (?\f):
+	Use put-display-table instead of aset to configure how ?\f is
+	displayed. 
+
 2007-12-18  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 2.12 released.

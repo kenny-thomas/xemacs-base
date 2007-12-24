@@ -54,6 +54,14 @@
 
 (provide 'enriched)
 
+(defun-when-void put-display-table (range value display-table)
+  "Set the value for char RANGE to VALUE in DISPLAY-TABLE.  "
+  (ecase (type-of display-table)
+    (vector
+     (aset display-table range value))
+    (char-table
+     (put-char-table range value display-table))))
+
 ;;;
 ;;; Variables controlling the display
 ;;;
@@ -93,7 +101,7 @@ This is used in enriched-mode for text explicitly marked as an excerpt."
   ;; (or (copy-sequence standard-display-table)
   ;;     (make-display-table)))
   (make-display-table))
-(aset enriched-display-table ?\f (make-vector (1- (frame-width)) ?-))
+(put-display-table ?\f (make-vector (1- (frame-width)) ?-) enriched-display-table)
 
 (defconst enriched-par-props '(left-margin right-margin justification)
   "Text-properties that usually apply to whole paragraphs.
