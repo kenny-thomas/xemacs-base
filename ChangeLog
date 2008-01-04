@@ -1,3 +1,7 @@
+2008-01-04  Norbert Koch  <viteno@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 2.14 released.
+
 2008-01-03  Ville Skyttä  <scop@xemacs.org>
 
 	* shell.el (shell-file-name-quote-list): Include `(' and `)'.
