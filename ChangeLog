@@ -1,3 +1,8 @@
+2008-01-11  Aidan Kehoe  <kehoea@parhasard.net>
+
+	* regexp-opt.el: Merge revision 1.34 from GNU, of
+	2007-01-21. Thank you GNU.
+
 2008-01-04  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 2.14 released.
