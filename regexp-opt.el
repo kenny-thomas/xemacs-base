@@ -88,13 +88,18 @@
 
 ;;; Code:
 
+;; XEmacs; correct the docstring, make it clearer.
 ;;;###autoload
 (defun regexp-opt (strings &optional paren)
-  "Return a regexp to match a string in the list STRINGS.
-Each string should be unique in STRINGS and should not contain any regexps,
-quoted or not.  If optional PAREN is non-nil, ensure that the returned regexp
-is enclosed by at least one regexp grouping construct.
-The returned regexp is typically more efficient than the equivalent regexp:
+  "Return a regexp which matches exactly those strings in STRINGS.
+
+Each string in STRINGS should be unique.  Regexp special characters in
+the elements of STRINGS will not be treated specially in matching;
+they will be escaped as necessary in constructing the regexp.
+
+If optional PAREN is non-nil, ensure that the returned regexp is enclosed by
+at least one regexp grouping construct.  The returned regexp is typically
+more efficient than the equivalent regexp:
 
  (let ((open (if PAREN \"\\\\(\" \"\")) (close (if PAREN \"\\\\)\" \"\")))
    (concat open (mapconcat 'regexp-quote STRINGS \"\\\\|\") close))
@@ -117,7 +122,8 @@ by \\=\\< and \\>."
 	   (re (regexp-opt-group sorted-strings open)))
       (if words (concat "\\<" re "\\>") re))))
 
-;; XEmacs; added here. This is in subr.el in GNU. 
+;; XEmacs; added here. This is in subr.el in GNU; this implementation is
+;; from their revision 1.541 of 2007-01-04, under GPL 2. 
 (defun-when-void subregexp-context-p (regexp pos &optional start)
   "Return non-nil if POS is in a normal subregexp context in REGEXP. 
 A subregexp context is one where a sub-regexp can appear. 
