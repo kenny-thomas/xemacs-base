@@ -1,3 +1,7 @@
+2008-02-25  Norbert Koch  <viteno@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 2.16 released.
+
 2008-02-23  Michael Sperber  <mike@xemacs.org>
 
 	* autoload-operators.el: Add this file, parameterizes autoload.el
