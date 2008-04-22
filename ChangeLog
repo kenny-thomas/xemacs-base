@@ -1,3 +1,7 @@
+2008-04-22  Norbert Koch  <viteno@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 2.17 released.
+
 2008-04-20  Aidan Kehoe  <kehoea@parhasard.net>
 
 	* sort.el (sort-regexp-fields-numerically): 
