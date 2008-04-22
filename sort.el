@@ -274,7 +274,7 @@ the sort order."
     (setq sort-fields-syntax-table table)))
 
 (defcustom sort-numeric-base 10
-  "*The default base used by `sort-numeric-fields'."
+  "*Fallback base for `sort-numeric-fields', `sort-regexp-fields-numerically'."
   :group 'sort
   :type 'integer)
 
@@ -500,21 +500,26 @@ For example: to sort lines in the region by the first word on each line
 RECORD-REGEXP specifies the textual units which should be sorted.
   For example, to sort lines RECORD-REGEXP would be \"^.*$\"
 KEY specifies the part of each record (ie each match for RECORD-REGEXP)
-  is to be used for sorting.
+  which is to be used for sorting.
   If it is \"\\\\digit\" then the digit'th \"\\\\(...\\\\)\" match field from
   RECORD-REGEXP is used.
   If it is \"\\\\&\" then the whole record is used.
   Otherwise, it is a regular-expression for which to search within the record.
 If a match for KEY is not found within a record then that record is ignored.
 
+If the match for KEY starts with \"0x\", it specifies hexadecimal as the
+conversion base.  A match for KEY starting with \"0\" is interpreted as
+octal; otherwise `sort-numeric-base' is consulted for the conversion base to
+use.  You can avoid the automatic detection of a field's base by specifying
+RECORD-REGEXP appropriately; \"0*\" before the start of the KEY will prevent
+detection as octal, and including \"[^xX]\" in the group corresponding to
+KEY will prevent detection as hex.
+
 With a negative prefix arg sorts in reverse order.
 
-The variable `sort-fold-case' determines whether alphabetic case affects
-the sort order.
-
-For example: to sort lines in the region by the first word on each line
- starting with the letter \"f\",
- RECORD-REGEXP would be \"^.*$\" and KEY would be \"\\\\=\\<f\\\\w*\\\\>\""
+For example: to sort lines in the region by the numerical value of the first
+ C hexadecimal constant,
+ RECORD-REGEXP would be \"^.*$\" and KEY would be \"0[xX][0-9A-Fa-f]+\""
   ;; using negative prefix arg to mean "reverse" is now inconsistent with
   ;; other sort-.*fields functions but then again this was before, since it
   ;; didn't use the magnitude of the arg to specify anything.
@@ -529,9 +534,27 @@ For example: to sort lines in the region by the first word on each line
 	   (read-string "Regexp specifying key within record: "
 			nil 'sort-regexp-history)
 	   beg end)))
-  (sort-regexp-fields reverse record-regexp key-regexp beg end
-		      #'(lambda (a b)
-			  (< (string-to-number a) (string-to-number b)))))
+  (let ((base-sniff-regexp "\\(0[xX]\\)[0-9a-fA-F]\\|\\(0\\)[0-7]"))
+    (sort-regexp-fields reverse record-regexp key-regexp beg end
+                        #'(lambda (a b)
+                            ;; If I replace #'< with #'max, the warning
+                            ;; 
+                            ;; ** variable base-sniff-regexp bound but not
+                            ;; referenced
+                            ;;
+                            ;; goes away. Byte compiler bug. 
+                            (< (string-to-number a
+                                (if (string-match base-sniff-regexp a)
+                                    (cond ((match-beginning 1) 16)
+                                          ((match-beginning 2) 8)
+                                          (t sort-numeric-base))
+                                  sort-numeric-base))
+                               (string-to-number b
+                                (if (string-match base-sniff-regexp b)
+                                    (cond ((match-beginning 1) 16)
+                                          ((match-beginning 2) 8)
+                                          (t sort-numeric-base))
+                                  sort-numeric-base)))))))
 
 
 (defvar sort-columns-subprocess t)

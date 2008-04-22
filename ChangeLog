@@ -1,3 +1,14 @@
+2008-04-20  Aidan Kehoe  <kehoea@parhasard.net>
+
+	* sort.el (sort-regexp-fields-numerically): 
+	Support `sort-numeric-base' in #'s-r-f-n, implement the same
+	sniffing of a number's base used in #'sort-numeric-fields, correct
+	and extend the docstring (`sort-fold-case' is not used, the
+	example has been changed to one where numeric sorting is
+	relevant. 
+	(sort-numeric-base): 
+	Document its use in #'s-r-f-n. 
+
 2008-02-25  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 2.16 released.
