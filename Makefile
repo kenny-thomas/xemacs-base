@@ -29,8 +29,9 @@ PACKAGE_SUPPRESS = \
   (package-suppress 'xemacs-base \"regexp-opt\" '(fboundp 'package-suppress)) \
   (package-suppress 'xemacs-base \"easy-mmode\" '(fboundp 'package-suppress))
 
+# local change: add bytedecl.elc
 ELCS = add-log.elc advice.elc annotations.elc assoc.elc autoload-operators.elc \
-	case-table.elc \
+	bytedecl.elc case-table.elc \
 	chistory.elc comint.elc comint-xemacs.elc compile.elc debug.elc \
 	easy-mmode.elc ebuff-menu.elc echistory.elc ehelp.elc edmacro.elc \
 	electric.elc enriched.elc env.elc facemenu.elc ffap.elc field.elc \
