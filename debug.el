@@ -682,10 +682,12 @@ Redefining FUNCTION also cancels it."
   (interactive "aDebug on entry (to function): ")
   (debugger-reenable)
   ;; Handle a function that has been aliased to some other function.
-  ;; #### We have no way of determining if a subr is unevalled
-;   (if (and (subrp (symbol-function function))
-; 	   (eq (cdr (subr-arity (symbol-function function))) 'unevalled))
-;       (error "Function %s is a special form" function))
+  (if (and (subrp (symbol-function function))
+           ;; XEmacs change; 21.4 has no way of checking if a subr is a
+           ;; special form, early 21.5 does not have #'subr-arity. 
+           (fboundp 'special-form-p)
+           (special-form-p (symbol-function function)))
+      (error "Function %s is a special form" function))
   (if (or (symbolp (symbol-function function))
 	  (subrp (symbol-function function)))
       ;; Create a wrapper in which we can then add the necessary debug call.
