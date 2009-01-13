@@ -1,3 +1,7 @@
+2009-01-13  Norbert Koch  <viteno@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 2.19 released.
+
 2009-01-11  Aidan Kehoe  <kehoea@parhasard.net>
 
 	* debug.el (debug-on-entry): 
