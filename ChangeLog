@@ -1,3 +1,10 @@
+2010-01-08  Aidan Kehoe  <kehoea@parhasard.net>
+
+	* regexp-opt.el (regexp-opt): New compiler macro for this
+	function, for cases where STRINGS and, if specified, PAREN are
+	constant. This functionality is in bytecomp.el in GNU, since their
+	regexp-opt.el is in core code.
+
 2009-01-13  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 2.19 released.

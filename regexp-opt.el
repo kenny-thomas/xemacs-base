@@ -122,6 +122,14 @@ by \\=\\< and \\>."
 	   (re (regexp-opt-group sorted-strings open)))
       (if words (concat "\\<" re "\\>") re))))
 
+;; XEmacs change; this functionality is in bytecomp.el in GNU Emacs, since
+;; regexp-opt.el is in core.
+(define-compiler-macro regexp-opt (&whole form strings &optional paren)
+  (if (and (cl-const-exprs-p (cdr form))
+           (function-allows-args #'regexp-opt (length (cdr form))))
+      (apply #'regexp-opt (cdr form))
+    form))
+
 ;; XEmacs; added here. This is in subr.el in GNU; this implementation is
 ;; from their revision 1.541 of 2007-01-04, under GPL 2. 
 (defun-when-void subregexp-context-p (regexp pos &optional start)
