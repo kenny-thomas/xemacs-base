@@ -127,7 +127,7 @@ by \\=\\< and \\>."
 (define-compiler-macro regexp-opt (&whole form strings &optional paren)
   (if (and (cl-const-exprs-p (cdr form))
            (function-allows-args #'regexp-opt (length (cdr form))))
-      (apply #'regexp-opt (cdr form))
+      (condition-case nil (eval form) (error form))
     form))
 
 ;; XEmacs; added here. This is in subr.el in GNU; this implementation is

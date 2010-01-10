@@ -1,3 +1,9 @@
+2010-01-10  Aidan Kehoe  <kehoea@parhasard.net>
+
+	* regexp-opt.el (regexp-opt):
+	Use #'condition-case with #'eval in this compiler macro, so any
+	problems at compile time don't interrupt compilation of the file.
+
 2010-01-08  Aidan Kehoe  <kehoea@parhasard.net>
 
 	* regexp-opt.el (regexp-opt): New compiler macro for this
