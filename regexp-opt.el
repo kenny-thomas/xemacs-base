@@ -124,7 +124,7 @@ by \\=\\< and \\>."
 
 ;; XEmacs change; this functionality is in bytecomp.el in GNU Emacs, since
 ;; regexp-opt.el is in core.
-(define-compiler-macro regexp-opt (&whole form strings &optional paren)
+(define-compiler-macro regexp-opt (&whole form &rest arguments)
   (if (and (cl-const-exprs-p (cdr form))
            (function-allows-args #'regexp-opt (length (cdr form))))
       (condition-case nil (eval form) (error form))
