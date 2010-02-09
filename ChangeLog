@@ -1,3 +1,8 @@
+2010-02-09  Didier Verna  <didier@xemacs.org>
+
+	* add-log.el (patch-to-change-log): Improve file-re2 regexp to
+	understand +++ lines without time information.
+
 2010-01-11  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 2.20 released.

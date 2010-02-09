@@ -1096,7 +1096,7 @@ The following keys are allowed:
     (let* ((old-font-lock-auto-fontify font-lock-auto-fontify)
 	   (font-lock-auto-fontify nil)
 	   (file-re1 "^Index: \\([^\n]*\\)")
-	   (file-re2 "^\\+\\+\\+ \\([^\t]*\\)")
+	   (file-re2 "^\\+\\+\\+ \\(.*?\\)\\(\t\\|\n\\)")
 	   (hunk-re "^@@ -[0-9]+,[0-9]+ \\+\\([0-9]+\\),\\([0-9]+\\) @@")
 	   (basename-re "\\`\\(.*\\)/\\(.*\\)\\'")
 	   (lisp-defun-re "(def[a-z-]* \\([^ \n]+\\)")
