@@ -1,3 +1,7 @@
+2010-02-11  Norbert Koch  <viteno@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 2.21 released.
+
 2010-02-09  Didier Verna  <didier@xemacs.org>
 
 	* add-log.el (patch-to-change-log): Improve file-re2 regexp to
