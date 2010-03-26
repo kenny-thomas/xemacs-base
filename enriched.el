@@ -97,11 +97,22 @@ This is used in enriched-mode for text explicitly marked as an excerpt."
   :group 'enriched)
 
 (defconst enriched-display-table
-  ;; XEmacs change
-  ;; (or (copy-sequence standard-display-table)
-  ;;     (make-display-table)))
-  (make-display-table))
-(put-display-table ?\f (make-vector (1- (frame-width)) ?-) enriched-display-table)
+  ;; XEmacs change.
+  ;; This is actually broken in several ways:
+  ;;
+  ;; -- It's not used; search for the string enriched-display-table in this
+  ;;    file, it's commented out.
+  ;; -- Its initialisation reflects the frame width at the time this file
+  ;;    was loaded, not the current frame width in the frame being displayed.
+  ;; -- (A general problem with display tables:) the visible cursor won't
+  ;;    ever display on it.
+  ;; 
+  ;; There are other more important and more interesting things to fix at
+  ;; the moment, though.
+  (let ((table (make-display-table)))
+    (put-display-table ?\f (make-string (max (1- (frame-width)) 24) ?-)
+                       table)
+    table))
 
 (defconst enriched-par-props '(left-margin right-margin justification)
   "Text-properties that usually apply to whole paragraphs.

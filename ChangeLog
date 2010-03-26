@@ -1,3 +1,9 @@
+2010-03-26  Aidan Kehoe  <kehoea@parhasard.net>
+
+	* enriched.el (enriched-display-table):
+	Improve the initialisation of this variable, now #'frame-width can
+	give zero. It's still very buggy; note this in a comment.
+
 2010-02-11  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 2.21 released.
