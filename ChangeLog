@@ -1,3 +1,8 @@
+2010-04-23  Mike Sperber  <mike@xemacs.org>
+
+	* outline.el: Replace with slightly hacked noutline.el from
+	current org-mode.
+
 2010-03-30  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 2.22 released.
