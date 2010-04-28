@@ -46,6 +46,7 @@
 
 (require 'xemacs)
 (require 'easymenu)
+(require 'easy-mmode)
 
 ;; XEmacs and compatibility
 
