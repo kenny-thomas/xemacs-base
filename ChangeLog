@@ -1,3 +1,10 @@
+2010-05-08  Adrian Aichner  <adrian@xemacs.org>
+
+	* compile.el (compilation-error-regexp-alist-alist): Support error
+	message output of Xerces-J jaxp.SourceValidator.
+	* compile.el (compilation-error-regexp-systems-list): Ditto. Fix
+	RPX typo.
+
 2010-04-28  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 2.23 released.

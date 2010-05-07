@@ -376,6 +376,12 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2)
       1 2 3)
      )
 
+    ;; Xerces-J jaxp.SourceValidator output
+    (xerces-j
+     ;; Each elt has the form (REGEXP FILE-IDX LINE-IDX [COLUMN-IDX FILE-FORMAT...])
+;; [Error] Sample.xml:3:39: s4s-elt-character: ...
+     ("\\[Error\\] \\([^:]+\\):\\([0-9]+\\):\\([0-9]+\\)" 1 2 3))
+
     ;; RXP - GPL XML validator at http://www.cogsci.ed.ac.uk/~richard/rxp.html:
     ;; Error: Mismatched end tag: expected </geroup>, got </group>
     ;; in unnamed entity at line 71 char 8 of file:///home/reto/test/group.xml
@@ -456,7 +462,8 @@ The list of known systems is:
   oracle:     Using Oracle pro*c
   perl:       perl -w
   python:     Using python
-  rxp:        Using RPX GPL XML validator
+  xerces-j:   Xerces-J jaxp.SourceValidator
+  rxp:        Using RXP GPL XML validator
   sgi:        Using SGI
   sgimipspro: Using SGI Mipspro 7.3
   sun:        Using Sun F90 compiler
@@ -484,6 +491,7 @@ See also the variable `compilation-error-regexp-alist-alist'."
 	       (const oracle)
 	       (const perl)
 	       (const python)
+	       (const xerces-j)
 	       (const rxp)
 	       (const sgi)
 	       (const sgimipspro)
