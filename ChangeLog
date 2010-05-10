@@ -1,3 +1,7 @@
+2010-05-10  Norbert Koch  <viteno@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 2.24 released.
+
 2010-05-08  Adrian Aichner  <adrian@xemacs.org>
 
 	* compile.el (compilation-error-regexp-alist-alist): Support error
