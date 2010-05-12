@@ -1,3 +1,8 @@
+2010-05-12  Mike Sperber  <mike@xemacs.org>
+
+	* outline.el (outline-next-visible-heading): Fix eobp / bopb
+	checking, thus preventing endless loops in outl-mouse.
+
 2010-05-10  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 2.24 released.

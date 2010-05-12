@@ -665,7 +665,7 @@ A heading line is one that starts with a `*' (or that
   (if (< arg 0)
       (beginning-of-line)
     (end-of-line))
-  (while (and (not (bobp)) (< arg 0))
+  (while (< arg 0)
     (block nil
       (while (and (not (bobp))
 		  (re-search-backward (concat "^\\(?:" outline-regexp "\\)")
@@ -674,7 +674,7 @@ A heading line is one that starts with a `*' (or that
 	    (return)))
       (error "Beginning of file"))
     (setq arg (1+ arg)))
-  (while (and (not (eobp)) (> arg 0))
+  (while (> arg 0)
     (block nil
       (while (and (not (eobp))
 		  (re-search-forward (concat "^\\(?:" outline-regexp "\\)")
