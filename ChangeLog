@@ -1,3 +1,44 @@
+2010-05-30  Aidan Kehoe  <kehoea@parhasard.net>
+
+	* advice.el:
+	* advice.el (ad-xemacs-p): Removed.
+	* advice.el (special-operator-p): New.
+	* advice.el (ad-substitute-tree): Removed.
+	* advice.el (ad-copy-tree): Removed.
+	* advice.el (ad-dolist): Removed.
+	* advice.el (ad-do-return): Removed.
+	* advice.el (ad-special-forms): Removed.
+	* advice.el (ad-special-form-p): Removed.
+	* advice.el (ad-do-advised-functions):
+	* advice.el (ad-copy-advice-info):
+	* advice.el (ad-has-enabled-advice):
+	* advice.el (ad-has-any-advice):
+	* advice.el (ad-get-enabled-advices):
+	* advice.el (ad-read-advised-function):
+	* advice.el (ad-advice-class-completion-table):
+	* advice.el (ad-read-advice-class):
+	* advice.el (ad-find-some-advice):
+	* advice.el (ad-enable-advice-internal):
+	* advice.el (ad-interactive-p):
+	* advice.el (ad-arglist):
+	* advice.el (ad-definition-type):
+	* advice.el (ad-set-arguments):
+	* advice.el (ad-make-advised-docstring):
+	* advice.el (ad-advised-arglist):
+	* advice.el (ad-advised-interactive-form):
+	* advice.el (ad-make-advised-definition):
+	* advice.el (ad-assemble-advised-definition):
+	* advice.el (ad-verify-cache-class-id):
+	* advice.el (ad-insert-argument-access-forms):	
+	Don't reinvent the wheel, advice.el. This means:
+	-- Use `special-operator-p', providing it with `defun-when-void'
+	if unavailable.
+	-- Use `dolist', not `ad-dolist', `copy-tree', not `ad-copy-tree',
+	-- Use `nsubst' instead of `ad-substitute-tree'
+	-- In the one instance where the FUNCTION argument of
+	`ad-substitute-tree' was necessary,
+	#'ad-insert-argument-access-forms, recurse explicitly.
+
 2010-05-12  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 2.25 released.
