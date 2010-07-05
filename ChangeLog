@@ -1,3 +1,7 @@
+2010-07-05  Norbert Koch  <viteno@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 2.26 released.
+
 2010-05-30  Aidan Kehoe  <kehoea@parhasard.net>
 
 	* advice.el:
