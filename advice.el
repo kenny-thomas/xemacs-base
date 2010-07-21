@@ -2797,7 +2797,7 @@ will clear the cache."
 	       index arglist)
       (if (= (length set-forms) 1)
 	  ;; For exactly one set-form we can use values-form directly,...
-          (nsubst 'ad-vAlUeS values-form (car set-forms))
+          (nsubst values-form 'ad-vAlUeS (car set-forms))
 	;; ...if we have more we have to bind it to a variable:
 	(` (let ((ad-vAlUeS (, values-form)))
 	     (,@ (reverse set-forms))
@@ -3092,7 +3092,7 @@ Example: `(ad-map-arglists '(a &rest args) '(w x y z))' will return
       (if (ad-advice-protected advice)
 	  (setq around-form-protected t))
       (setq around-form
-            (nsubst 'ad-do-it around-form 
+            (nsubst around-form 'ad-do-it
                     (ad-prognify
                      (ad-body-forms (ad-advice-definition advice))))))
     (setq after-forms

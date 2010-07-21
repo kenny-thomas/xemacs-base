@@ -1,3 +1,11 @@
+2010-07-21  Aidan Kehoe  <kehoea@parhasard.net>
+
+	* advice.el (ad-set-arguments):
+	* advice.el (ad-assemble-advised-definition):
+	Correct the order of arguments to #'nsubst; thank you Katsumi
+	Yamaoka for the bug report and testing, and Stephen Turbull for
+	the fix.
+
 2010-07-05  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 2.26 released.
