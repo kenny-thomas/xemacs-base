@@ -2145,7 +2145,8 @@ This is a good thing to set in mode hooks.")
 Word constituents are considered to be those in WORD-CHARS, which is like the
 inside of a \"[...]\" (see `skip-chars-forward')."
   (save-excursion
-    (let ((non-word-chars (concat "[^\\\\" word-chars "]")) (here (point)))
+    (let ((non-word-chars (concat "[^\\\\" word-chars "]"))
+          (here (point-marker)))
       (while (and (re-search-backward non-word-chars nil 'move)
 		  ;(memq (char-after (point)) shell-file-name-quote-list)
 		  (eq (preceding-char) ?\\))
@@ -2155,7 +2156,7 @@ inside of a \"[...]\" (see `skip-chars-forward')."
 	  (forward-char 1))
       ;; Set match-data to match the entire string.
       (if (< (point) here)
-	  (progn (store-match-data (list (point) here))
+	  (progn (store-match-data (list (point-marker) here))
 		 (match-string 0))))))
 
 (defun comint-substitute-in-file-name (filename)

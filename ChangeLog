@@ -1,3 +1,11 @@
+2010-08-28  Aidan Kehoe  <kehoea@parhasard.net>
+
+	* comint.el (comint-word):
+	Preserve match buffer information in this function, avoiding
+	problems in #'comint-match-partial-file-name described in
+	http://mid.gmane.org/4C728493.70107@gmail.com . Thank you for the
+	bug report, Raymond Toy!
+
 2010-07-22  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 2.27 released.
