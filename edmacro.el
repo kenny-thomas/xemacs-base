@@ -499,11 +499,12 @@ doubt, use whitespace."
 			     arg))))
 	   (add
 	    (cond
-	     ((string-match "^\\\\[0-7]+" word)
-	      ;; Octal value of character.
-	      (list
-	       (edmacro-int-char
-		(hexl-octal-string-to-integer (substring word 1)))))
+	     ((prog1 nil
+                (string-match "^\\\\[0-7]\\{1,3\\}$" word)
+                ;; Octal value of a character. If it's numerically out of
+                ;; range, allow the Lisp reader to error. If read succedds,
+                ;; we handle the actual numeric value further down.
+                (setq word (read (concat "\"" word "\"")))))
 	     ((string-match "^<<.+>>$" word)
 	      ;; Extended command.
 	      (nconc
@@ -547,6 +548,20 @@ doubt, use whitespace."
 		    ;; because of the way `edmacro-format-keys' works.
 		    (mapcar 'identity word)
 		  (list (nconc (nreverse r1) (list (funcall conv follow)))))))
+             ((string-match "^[\x00-\x1f]$" word)
+              ;; Bug; we can't do this for \C-m, \C-j, \C-i, because
+              ;; edmacro-parse-keys, above, treats this as whitespace.
+              `((control
+                 ,(intern (downcase (concat (list (+ (aref word 0) ?@))
+                                            nil))))))
+             ((string-match "^[\x80-\xff]$" word)
+              `((meta ,@(if (< (aref word 0) #xa0)
+                            `(control ,(intern (downcase
+                                                (concat (list (- (aref word 0)
+                                                                 ?@)) nil))))
+                          `(,(intern (downcase (concat
+                                                (list (- (aref word 0) #x80))
+                                                nil))))))))
 	     (force-sym
 	      ;; This must be a symbol
 	      (list (intern word)))

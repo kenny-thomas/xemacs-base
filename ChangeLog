@@ -1,3 +1,14 @@
+2010-09-02  Aidan Kehoe  <kehoea@parhasard.net>
+
+	* edmacro.el (edmacro-parse-word):
+	If we're handed control or meta characters in WORD, return
+	appropriate lists (in the canonical form) with ((control X)) or
+	((meta X)) instead of the character itself (which is
+	non-canonical).
+	Also, if handed an octal escape, error if it wouldn't represent a
+	valid character, and parse it in the same way if it does represent
+	a valid character.
+
 2010-08-28  Aidan Kehoe  <kehoea@parhasard.net>
 
 	* comint.el (comint-word):
