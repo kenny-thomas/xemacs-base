@@ -474,7 +474,7 @@ doubt, use whitespace."
     (when (string-match "^<\\([^<>]+\\)>$" word)
       (setq word (match-string 1 word))
       (setq force-sym t))
-    (let* ((word-to-sym '(("NUL" . ?\0)
+    (let* ((word-to-sym '(("NUL" . (control @))
 			  ("RET" . return)
 			  ("LFD" . linefeed)
 			  ("TAB" . tab)
@@ -493,10 +493,28 @@ doubt, use whitespace."
 			   (cdr match)
 			 (intern arg))))))
 	   (conv-chars (lambda (arg)
-			 (let ((match (assoc arg edmacro-char-to-word)))
-			   (if match
-			       (cdr (assoc (cdr match) word-to-sym))
-			     arg))))
+                         (cond
+                          ((cdr (assoc (cdr (assoc arg edmacro-char-to-word))
+                                       word-to-sym)))
+                          ((<= ?\x00 arg ?\x1f)
+                           ;; Bug; we can't do this for \C-m, \C-j, \C-i,
+                           ;; because edmacro-parse-keys, above, treats
+                           ;; this as whitespace.
+                           `(control
+                             ,(intern (downcase (concat (list (+ arg ?@))
+                                                        nil)))))
+                          ((<= ?\x80 arg ?\x9f)
+                           `(meta control
+                             ,(intern (downcase (concat (list (- arg ?@))
+                                                        nil)))))
+                          ((<= ?\xa0 arg ?\xff)
+                           `(meta
+                             ,(intern (downcase (concat (list (- arg ?\x80))
+                                                        nil)))))
+                          ;; The symbol is the canonical form. To be even
+                          ;; more canonical, we should return a list of
+                          ;; length one comprised of the symbol.
+                          (t (intern (string arg))))))
 	   (add
 	    (cond
 	     ((prog1 nil
@@ -548,20 +566,6 @@ doubt, use whitespace."
 		    ;; because of the way `edmacro-format-keys' works.
 		    (mapcar 'identity word)
 		  (list (nconc (nreverse r1) (list (funcall conv follow)))))))
-             ((string-match "^[\x00-\x1f]$" word)
-              ;; Bug; we can't do this for \C-m, \C-j, \C-i, because
-              ;; edmacro-parse-keys, above, treats this as whitespace.
-              `((control
-                 ,(intern (downcase (concat (list (+ (aref word 0) ?@))
-                                            nil))))))
-             ((string-match "^[\x80-\xff]$" word)
-              `((meta ,@(if (< (aref word 0) #xa0)
-                            `(control ,(intern (downcase
-                                                (concat (list (- (aref word 0)
-                                                                 ?@)) nil))))
-                          `(,(intern (downcase (concat
-                                                (list (- (aref word 0) #x80))
-                                                nil))))))))
 	     (force-sym
 	      ;; This must be a symbol
 	      (list (intern word)))

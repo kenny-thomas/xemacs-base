@@ -1,6 +1,12 @@
 2010-09-02  Aidan Kehoe  <kehoea@parhasard.net>
 
 	* edmacro.el (edmacro-parse-word):
+	My last change worked on individual characters, not strings.
+	Extend it to work on multiple characters, supplied as strings.
+
+2010-09-02  Aidan Kehoe  <kehoea@parhasard.net>
+
+	* edmacro.el (edmacro-parse-word):
 	If we're handed control or meta characters in WORD, return
 	appropriate lists (in the canonical form) with ((control X)) or
 	((meta X)) instead of the character itself (which is
