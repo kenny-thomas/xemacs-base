@@ -517,12 +517,13 @@ doubt, use whitespace."
                           (t (intern (string arg))))))
 	   (add
 	    (cond
-	     ((prog1 nil
-                (string-match "^\\\\[0-7]\\{1,3\\}$" word)
-                ;; Octal value of a character. If it's numerically out of
-                ;; range, allow the Lisp reader to error. If read succedds,
-                ;; we handle the actual numeric value further down.
-                (setq word (read (concat "\"" word "\"")))))
+	     ((and (string-match "^\\\\[0-7]\\{1,3\\}$" word)
+                   ;; Octal value of a character. If it's numerically out of
+                   ;; range, allow the Lisp reader to error.
+                   (setq word (read (concat "\"" word "\"")))
+                   ;; This clause never succeeds, we want to handle the
+                   ;; actual numeric value further down:
+                   nil))
 	     ((string-match "^<<.+>>$" word)
 	      ;; Extended command.
 	      (nconc

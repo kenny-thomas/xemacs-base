@@ -1,3 +1,10 @@
+2010-09-03  Aidan Kehoe  <kehoea@parhasard.net>
+
+	* edmacro.el (edmacro-parse-word):
+	Only #'read if WORD actually matched the regexp avoiding errors
+	when WORD is not valid Lisp syntax. Logic error on my part, caught
+	by the smoketest; thank you Mats Lidell!
+
 2010-09-02  Aidan Kehoe  <kehoea@parhasard.net>
 
 	* edmacro.el (edmacro-parse-word):
