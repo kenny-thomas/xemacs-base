@@ -1,3 +1,7 @@
+2010-09-06  Norbert Koch  viteno@xemacs.org
+
+	* Makefile (VERSION): XEmacs package 2.28 released.
+
 2010-09-03  Aidan Kehoe  <kehoea@parhasard.net>
 
 	* edmacro.el (edmacro-parse-word):
