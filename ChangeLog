@@ -1,3 +1,8 @@
+2010-10-06  Didier Verna  <didier@xemacs.org>
+
+	* add-log.el (patch-to-change-log): Recognize defun* and the like
+	as function names.
+
 2010-09-06  Norbert Koch  viteno@xemacs.org
 
 	* Makefile (VERSION): XEmacs package 2.28 released.

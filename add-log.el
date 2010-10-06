@@ -1099,7 +1099,7 @@ The following keys are allowed:
 	   (file-re2 "^\\+\\+\\+ \\(.*?\\)\\(\t\\|\n\\)")
 	   (hunk-re "^@@ -[0-9]+,[0-9]+ \\+\\([0-9]+\\),\\([0-9]+\\) @@")
 	   (basename-re "\\`\\(.*\\)/\\(.*\\)\\'")
-	   (lisp-defun-re "(def[a-z-]* \\([^ \n]+\\)")
+	   (lisp-defun-re "(def[a-z-]*\\*? \\([^ \n]+\\)")
 ; 	   (c-token-re "[][_a-zA-Z0-9]+")
 ; 	   (ws-re "\\(\\s-\\|\n\\+\\)*")
 ; 	   (c-multi-token-re (concat c-token-re "\\(" ws-re c-token-re "\\)*"))
