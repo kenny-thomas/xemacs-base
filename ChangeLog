@@ -1,3 +1,7 @@
+2010-10-11  Norbert Koch  <viteno@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 2.29 released.
+
 2010-10-06  Didier Verna  <didier@xemacs.org>
 
 	* add-log.el (patch-to-change-log): Recognize defun* and the like
