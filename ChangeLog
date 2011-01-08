@@ -1,3 +1,13 @@
+2011-01-08  Aidan Kehoe  <kehoea@parhasard.net>
+
+	* add-log.el (patch-to-change-log):
+	Use defun*, not cl-parsing-keywords, now the latter is gone from
+	21.5. Isn't it a shame the diff command doesn't understand Lisp
+	indentation.
+	Document that an explicit nil was equivalent to the default for
+	the :my-name and :my-email keys, something that
+	cl-parsing-keywords did which defun* (correctly enough) doesn't.
+
 2010-10-11  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 2.29 released.

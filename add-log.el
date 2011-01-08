@@ -1056,7 +1056,11 @@ old-style time formats for entries are supported."
 	    (insert-buffer-substring other-buf start)))))))
 
 ;;;###autoload
-(defun patch-to-change-log (devdir &rest cl-keys)
+(defun* patch-to-change-log (devdir &key dry-run keep-source-files
+                             extent-property extent-property-value
+                             (my-name (or add-log-full-name (user-full-name)))
+                             (my-email (or add-log-mailing-address
+                                           (user-mail-address))))
   "Convert the unified diff in the current buffer into a ChangeLog.
 DEVDIR (queried interactively) specifies the directory the diff was
 made relative to.  The ChangeLog entries are added to the appropriate
@@ -1073,9 +1077,11 @@ should fix this to handle context diffs as well.
 
 The following keys are allowed:
 - :my-name defines the name to use in ChangeLog entries
-  (defaults to `(or add-log-full-name (user-full-name))'),
+  (defaults to `(or add-log-full-name (user-full-name))'; an explicit nil is
+  regarded as equivalent to the default),
 - :my-email defines the email address to use in ChangeLog entries
-  (defaults to `(or add-log-mailing-address (user-mail-address))'),
+  (defaults to `(or add-log-mailing-address (user-mail-address))'; an
+  explicit nil is regarded as equivalent to the default),
 - :dry-run prevents `patch-to-changelog' from generating the ChangeLog
    entries: ChangeLog files are only loaded (defaults to nil),
 - :keep-source-files prevents `patch-to-changelog' from killing the source
@@ -1088,266 +1094,248 @@ The following keys are allowed:
   specify a value for the extent property
   (defaults to nil)."
   (interactive "DBase directory of patch: ")
-  (cl-parsing-keywords
-      ((:my-name (or add-log-full-name (user-full-name)))
-       (:my-email (or add-log-mailing-address (user-mail-address)))
-       :dry-run :keep-source-files :extent-property :extent-property-value)
-      ()
-    (let* ((old-font-lock-auto-fontify font-lock-auto-fontify)
-	   (font-lock-auto-fontify nil)
-	   (file-re1 "^Index: \\([^\n]*\\)")
-	   (file-re2 "^\\+\\+\\+ \\(.*?\\)\\(\t\\|\n\\)")
-	   (hunk-re "^@@ -[0-9]+,[0-9]+ \\+\\([0-9]+\\),\\([0-9]+\\) @@")
-	   (basename-re "\\`\\(.*\\)/\\(.*\\)\\'")
-	   (lisp-defun-re "(def[a-z-]*\\*? \\([^ \n]+\\)")
-; 	   (c-token-re "[][_a-zA-Z0-9]+")
-; 	   (ws-re "\\(\\s-\\|\n\\+\\)*")
-; 	   (c-multi-token-re (concat c-token-re "\\(" ws-re c-token-re "\\)*"))
-; 	   (c-defun-re (concat "^+\\(" c-token-re ws-re "\\)*"
-; 			       "\\(" c-token-re "\\)" ws-re "(" ws-re
-; 			       "\\("
-; 			       c-multi-token-re ws-re
-; 			       "\\(," ws-re c-multi-token-re ws-re "\\)*"
-; 			       "\\)?" ws-re ")" ws-re "{" ws-re "$"))
-	   (new-defun-re (concat "^\\+" lisp-defun-re))
-	   (nomore-defun-re (concat "^-" lisp-defun-re))
-           (new-heuristic-fun-re
-            (concat "^\\+" (substring add-log-current-defun-header-regexp 1)))
-           (nomore-heuristic-fun-re
-            (concat "^-" (substring add-log-current-defun-header-regexp 1)))
-	   (done-hash       (make-hash-table :size 20 :test 'equal))
-	   (new-fun-hash    (make-hash-table :size 20 :test 'equal))
-	   (nomore-fun-hash (make-hash-table :size 20 :test 'equal))
-	   (new-heuristic-fun-hash    (make-hash-table :size 20 :test 'equal))
-	   (nomore-heuristic-fun-hash (make-hash-table :size 20 :test 'equal))
-	   change-log-buffer change-log-buffers change-log-directory
-	   file absfile limit current-defun
-	   dirname basename previous-dirname
-	   all-entries first-file-re-p
-	   insertion-marker
-	   )
+  (let* ((my-name (or my-name add-log-full-name (user-full-name)))
+         (my-email (or my-email add-log-mailing-address (user-mail-address)))
+         (old-font-lock-auto-fontify font-lock-auto-fontify)
+         
+         (font-lock-auto-fontify nil)
+         (file-re1 "^Index: \\([^\n]*\\)")
+         (file-re2 "^\\+\\+\\+ \\(.*?\\)\\(\t\\|\n\\)")
+         (hunk-re "^@@ -[0-9]+,[0-9]+ \\+\\([0-9]+\\),\\([0-9]+\\) @@")
+         (basename-re "\\`\\(.*\\)/\\(.*\\)\\'")
+         (lisp-defun-re "(def[a-z-]*\\*? \\([^ \n]+\\)")
+; 	 (c-token-re "[][_a-zA-Z0-9]+")
+; 	 (ws-re "\\(\\s-\\|\n\\+\\)*")
+; 	 (c-multi-token-re (concat c-token-re "\\(" ws-re c-token-re "\\)*"))
+; 	 (c-defun-re (concat "^+\\(" c-token-re ws-re "\\)*"
+; 	      	       "\\(" c-token-re "\\)" ws-re "(" ws-re
+; 	      	       "\\("
+; 	      	       c-multi-token-re ws-re
+; 	      	       "\\(," ws-re c-multi-token-re ws-re "\\)*"
+; 	 		       "\\)?" ws-re ")" ws-re "{" ws-re "$"))
+         (new-defun-re (concat "^\\+" lisp-defun-re))
+         (nomore-defun-re (concat "^-" lisp-defun-re))
+         (new-heuristic-fun-re
+          (concat "^\\+" (substring add-log-current-defun-header-regexp 1)))
+         (nomore-heuristic-fun-re
+          (concat "^-" (substring add-log-current-defun-header-regexp 1)))
+         (done-hash       (make-hash-table :size 20 :test 'equal))
+         (new-fun-hash    (make-hash-table :size 20 :test 'equal))
+         (nomore-fun-hash (make-hash-table :size 20 :test 'equal))
+         (new-heuristic-fun-hash    (make-hash-table :size 20 :test 'equal))
+         (nomore-heuristic-fun-hash (make-hash-table :size 20 :test 'equal))
+         change-log-buffer change-log-buffers change-log-directory file
+         absfile limit current-defun dirname basename previous-dirname
+         all-entries first-file-re-p insertion-marker)
+    (flet
+        ((add-change-log-string (str)
+           (with-current-buffer change-log-buffer
+             (goto-char insertion-marker)
+             (insert-before-markers str)))
+         (add-entry (filename line fun str)
+           (let ((entry (cons filename fun)))
+             (unless (or (gethash entry done-hash)
+                         (string-match "\n." str))
+               ;; (message "%s %S" str (gethash entry done-hash))
+               (puthash entry t done-hash)
+               (push (cons str line) all-entries))))
+         (flush-change-log-entries ()
+           (setq all-entries (sort all-entries #'cdr-less-than-cdr))
+           (mapc #'(lambda (entry)
+                     (add-change-log-string (car entry)))
+                 all-entries)
+           (setq all-entries nil))
+         (line-num () (1+ (count-lines (point-min) (point-at-bol))))
+         (finish-up-change-log-buffer ()
+           (push change-log-buffer change-log-buffers)
+           (unless dry-run
+             (add-change-log-string "\n"))
+           (with-current-buffer change-log-buffer
+             (goto-char (point-min)))))
+      (save-excursion
+        (goto-char (point-min))
+        (while (or (prog1 (re-search-forward file-re1 nil t)
+                     (setq first-file-re-p t))
+                (prog1 (re-search-forward file-re2 nil t)
+                  (setq first-file-re-p nil)))
+          (setq file (match-string 1))
+          (if (string-match basename-re file)
+              (setq dirname  (match-string 1 file)
+                    basename (match-string 2 file))
+            (setq dirname "" basename file))
+          (setq absfile (expand-file-name file devdir))
+          (setq limit
+                (save-excursion (or (re-search-forward
+                                     (if first-file-re-p file-re1 file-re2)
+                                     nil t)
+                                    (point-max))))
+          (when (not (equal dirname previous-dirname))
+            (if previous-dirname
+                (finish-up-change-log-buffer))
+            (setq previous-dirname dirname)
+            (setq change-log-buffer
+                  (let ((font-lock-auto-fontify
+                         old-font-lock-auto-fontify))
+                    (find-file-noselect
+                     ;; APA: find a change-log relative to current directory.
+                     (with-temp-buffer
+                       (cd (expand-file-name dirname devdir))
+                       (find-change-log)))))
+            (setq change-log-directory
+                  (with-current-buffer change-log-buffer default-directory))
+            (unless dry-run
+              (when extent-property
+                (with-current-buffer change-log-buffer
+                  (set-extent-properties
+                   (make-extent (point-min) (point-min))
+                   (list 'end-open nil
+                         extent-property extent-property-value))))
+              (setq insertion-marker (point-min-marker change-log-buffer))
+              (add-change-log-string
+               (format (concat "%s  " my-name "  <" my-email
+                               ">\n\n")
+                       (iso8601-time-string)))))
+          ;; APA: Standardize on / in ChangeLog entry paths.
+          (let ((directory-sep-char ?/))
+            (setq basename
+                  (file-relative-name absfile change-log-directory)))
+          ;; now do each hunk in turn.
+          (unless dry-run
+            (while (re-search-forward hunk-re limit t)
+              (let* ((hunk-start-line (line-num))
+                     (first-file-line (string-to-int (match-string 1)))
+                     (hunk-limit
+                      (save-excursion (or (and
+                                           (re-search-forward hunk-re limit
+                                                              t)
+                                           (match-beginning 0))
+                                          limit)))
+                     ;; numlines is the number of lines in the hunk, not
+                     ;; the number of file lines affected by the hunk, i.e.
+                     ;; (match-string 2), which is generally less
+                     (numlines (1- (- (save-excursion
+                                        (goto-char hunk-limit)
+                                        (line-num))
+                                      hunk-start-line))))
 
-      (flet
-	  ((add-change-log-string
-	    (str)
-	    (with-current-buffer change-log-buffer
-	      (goto-char insertion-marker)
-	      (insert-before-markers str)))
-
-	   (add-entry
-	    (filename line fun str)
-	    (let ((entry (cons filename fun)))
-	      (unless (or (gethash entry done-hash)
-			  (string-match "\n." str))
-		;; (message "%s %S" str (gethash entry done-hash))
-		(puthash entry t done-hash)
-		(push (cons str line) all-entries))))
-
-	   (flush-change-log-entries
-	    ()
-	    (setq all-entries (sort all-entries #'cdr-less-than-cdr))
-	    (mapc #'(lambda (entry)
-		      (add-change-log-string (car entry)))
-		  all-entries)
-	    (setq all-entries nil))
-
-	   (line-num () (1+ (count-lines (point-min) (point-at-bol))))
-
-	   (finish-up-change-log-buffer
-	    ()
-	    (push change-log-buffer change-log-buffers)
-	    (unless cl-dry-run
-	      (add-change-log-string "\n"))
-	    (with-current-buffer change-log-buffer
-	      (goto-char (point-min)))))
-
-	(save-excursion
-	  (goto-char (point-min))
-	  (while (or (prog1 (re-search-forward file-re1 nil t)
-		       (setq first-file-re-p t))
-		     (prog1 (re-search-forward file-re2 nil t)
-		       (setq first-file-re-p nil)))
-	    (setq file (match-string 1))
-	    (if (string-match basename-re file)
-		(setq dirname  (match-string 1 file)
-		      basename (match-string 2 file))
-	      (setq dirname "" basename file))
-	    (setq absfile (expand-file-name file devdir))
-	    (setq limit
-		  (save-excursion (or (re-search-forward
-				       (if first-file-re-p file-re1 file-re2)
-				       nil t)
-				      (point-max))))
-	    (when (not (equal dirname previous-dirname))
-	      (if previous-dirname
-		  (finish-up-change-log-buffer))
-	      (setq previous-dirname dirname)
-	      (setq change-log-buffer
-		    (let ((font-lock-auto-fontify
-			   old-font-lock-auto-fontify))
-		      (find-file-noselect
-		       ;; APA: find a change-log relative to current directory.
-		       (with-temp-buffer
-			 (cd (expand-file-name dirname devdir))
-			 (find-change-log)))))
-	      (setq change-log-directory
-		    (with-current-buffer change-log-buffer default-directory))
-	      (unless cl-dry-run
-		(when cl-extent-property
-		  (with-current-buffer change-log-buffer
-		    (set-extent-properties
-			(make-extent (point-min) (point-min))
-		      (list 'end-open nil
-			    cl-extent-property cl-extent-property-value))))
-		(setq insertion-marker (point-min-marker change-log-buffer))
-		(add-change-log-string
-		 (format (concat "%s  " cl-my-name "  <" cl-my-email
-				 ">\n\n")
-			 (iso8601-time-string)))))
-            ;; APA: Standardize on / in ChangeLog entry paths.
-            (let ((directory-sep-char ?/))
-              (setq basename
-                    (file-relative-name absfile change-log-directory)))
-	    ;; now do each hunk in turn.
-	    (unless cl-dry-run
-	      (while (re-search-forward hunk-re limit t)
-		(let* ((hunk-start-line (line-num))
-		       (first-file-line (string-to-int (match-string 1)))
-		       (hunk-limit
-			(save-excursion (or (and
-					     (re-search-forward hunk-re limit
-								t)
-					     (match-beginning 0))
-					    limit)))
-		       ;; numlines is the number of lines in the hunk, not
-		       ;; the number of file lines affected by the hunk, i.e.
-		       ;; (match-string 2), which is generally less
-		       (numlines (1- (- (save-excursion
-					  (goto-char hunk-limit)
-					  (line-num))
-					hunk-start-line))))
-
-		  ;; do added and/or removed functions.
-		  (clrhash new-fun-hash)
-		  (clrhash nomore-fun-hash)
-		  (save-excursion
-		    (while (re-search-forward new-defun-re hunk-limit t)
-		      (puthash (match-string 1)
-			       (1- (- (line-num) hunk-start-line))
-			       new-fun-hash)))
-		  (save-excursion
-		    (while (re-search-forward nomore-defun-re hunk-limit t)
-		      (let ((fun (match-string 1)))
-			(if (gethash fun new-fun-hash)
-			    (remhash fun new-fun-hash)
-			  (puthash fun
-				   (1- (- (line-num) hunk-start-line))
-				   nomore-fun-hash)))))
-		  ;; do added and/or removed variable heuristics.
-		  (clrhash new-heuristic-fun-hash)
-		  (clrhash nomore-heuristic-fun-hash)
-		  (save-excursion
-		    (while (re-search-forward
-                            new-heuristic-fun-re hunk-limit t)
-		      (let ((fun (match-string 1)))
-                        (unless (gethash fun new-fun-hash)
-                          (puthash (match-string 1)
+                ;; do added and/or removed functions.
+                (clrhash new-fun-hash)
+                (clrhash nomore-fun-hash)
+                (save-excursion
+                  (while (re-search-forward new-defun-re hunk-limit t)
+                    (puthash (match-string 1)
+                             (1- (- (line-num) hunk-start-line))
+                             new-fun-hash)))
+                (save-excursion
+                  (while (re-search-forward nomore-defun-re hunk-limit t)
+                    (let ((fun (match-string 1)))
+                      (if (gethash fun new-fun-hash)
+                          (remhash fun new-fun-hash)
+                        (puthash fun
+                                 (1- (- (line-num) hunk-start-line))
+                                 nomore-fun-hash)))))
+                ;; do added and/or removed variable heuristics.
+                (clrhash new-heuristic-fun-hash)
+                (clrhash nomore-heuristic-fun-hash)
+                (save-excursion
+                  (while (re-search-forward
+                          new-heuristic-fun-re hunk-limit t)
+                    (let ((fun (match-string 1)))
+                      (unless (gethash fun new-fun-hash)
+                        (puthash (match-string 1)
+                                 (1- (- (line-num) hunk-start-line))
+                                 new-heuristic-fun-hash)))))
+                (save-excursion
+                  (while (re-search-forward
+                          nomore-heuristic-fun-re hunk-limit t)
+                    (let ((fun (match-string 1)))
+                      (if (gethash fun new-heuristic-fun-hash)
+                          (remhash fun new-heuristic-fun-hash)
+                        (unless (gethash fun nomore-fun-hash)
+                          (puthash fun
                                    (1- (- (line-num) hunk-start-line))
-                                   new-heuristic-fun-hash)))))
-		  (save-excursion
-		    (while (re-search-forward
-                            nomore-heuristic-fun-re hunk-limit t)
-		      (let ((fun (match-string 1)))
-			(if (gethash fun new-heuristic-fun-hash)
-			    (remhash fun new-heuristic-fun-hash)
-                          (unless (gethash fun nomore-fun-hash)
-                            (puthash fun
-                                     (1- (- (line-num) hunk-start-line))
-                                     nomore-heuristic-fun-hash))))))
-		  (maphash
-		   #'(lambda (fun val)
-		       (add-entry
-			basename
-			;; this is not a perfect measure of the actual
-			;; file line, but good enough for sorting.
-			(+ first-file-line val)
-			fun
-			(format "\t* %s (%s): New.\n" basename fun)))
-		   new-fun-hash)
-		  (maphash
-		   #'(lambda (fun val)
-		       (add-entry
-			basename
-			(+ first-file-line val)
-			fun
-			(format "\t* %s (%s): Removed.\n" basename fun)))
-		   nomore-fun-hash)
-                  (maphash
-                   #'(lambda (fun val)
-                       (add-entry
-                        basename
-                        ;; this is not a perfect measure of the actual
-                        ;; file line, but good enough for sorting.
-                        (+ first-file-line val)
-                        fun
-                        (format "\t* %s (%s): New.\n" basename fun)))
-                   new-heuristic-fun-hash)
-                  (maphash
-                   #'(lambda (fun val)
-                       (add-entry
-                        basename
-                        (+ first-file-line val)
-                        fun
-                        (format "\t* %s (%s): Removed.\n" basename fun)))
-                   nomore-heuristic-fun-hash)
-
-		  ;; now try to handle what changed.
-		  (let (trylines
-			(trystart t)
-			(line-in-file first-file-line))
-
-		    ;; accumulate a list of lines to check.  we check
-		    ;; only changed lines, and only the first such line
-		    ;; per blank-line-delimited block (we assume all
-		    ;; functions are preceded by a blank line).
-		    (save-excursion
-		      (dotimes (n numlines)
-			(forward-line 1)
-			(if (looking-at ".\n")
-			    (setq trystart t))
-			(when (not (eq ?  (char-after)))
-			  (when trystart
-			    (setq trylines (cons line-in-file trylines))
-			    (setq trystart nil)))
-			;; N is not an accurate gauge of the file line,
-			;; because of the presence of deleted lines in the
-			;; hunk.
-			(when (not (eq ?- (char-after)))
-			  (incf line-in-file))))
-		    (setq trylines (nreverse trylines))
-		    (save-excursion
-		      (let ((already-visiting-p (get-file-buffer absfile)))
-			(set-buffer (find-file-noselect absfile))
-			(mapc #'(lambda (n)
-				  (goto-line n)
-				  (setq current-defun (add-log-current-defun))
-				  (add-entry
-				   basename
-				   (if current-defun n 0)
-				   current-defun
-				   (format (if current-defun
-					       "\t* %s (%s):\n" "\t* %s:\n")
-					   basename current-defun)))
-			      trylines)
-			(unless (or already-visiting-p cl-keep-source-files)
-			  (kill-buffer (current-buffer))))))))
-	      (flush-change-log-entries))
-	    ))
-        ;; the patch might be totally blank.
-	(if change-log-buffer
-	    (finish-up-change-log-buffer))
-	;; return the list of ChangeLog buffers
-	change-log-buffers))))
+                                   nomore-heuristic-fun-hash))))))
+                (maphash
+                 #'(lambda (fun val)
+                     (add-entry
+                      basename
+                      ;; this is not a perfect measure of the actual
+                      ;; file line, but good enough for sorting.
+                      (+ first-file-line val)
+                      fun
+                      (format "\t* %s (%s): New.\n" basename fun)))
+                 new-fun-hash)
+                (maphash
+                 #'(lambda (fun val)
+                     (add-entry
+                      basename
+                      (+ first-file-line val)
+                      fun
+                      (format "\t* %s (%s): Removed.\n" basename fun)))
+                 nomore-fun-hash)
+                (maphash
+                 #'(lambda (fun val)
+                     (add-entry
+                      basename
+                      ;; this is not a perfect measure of the actual
+                      ;; file line, but good enough for sorting.
+                      (+ first-file-line val)
+                      fun
+                      (format "\t* %s (%s): New.\n" basename fun)))
+                 new-heuristic-fun-hash)
+                (maphash
+                 #'(lambda (fun val)
+                     (add-entry
+                      basename
+                      (+ first-file-line val)
+                      fun
+                      (format "\t* %s (%s): Removed.\n" basename fun)))
+                 nomore-heuristic-fun-hash)
+                ;; now try to handle what changed.
+                (let (trylines
+                      (trystart t)
+                      (line-in-file first-file-line))
+                  ;; accumulate a list of lines to check.  we check only
+                  ;; changed lines, and only the first such line per
+                  ;; blank-line-delimited block (we assume all functions are
+                  ;; preceded by a blank line).
+                  (save-excursion
+                    (dotimes (n numlines)
+                      (forward-line 1)
+                      (if (looking-at ".\n")
+                          (setq trystart t))
+                      (when (not (eq ?  (char-after)))
+                        (when trystart
+                          (setq trylines (cons line-in-file trylines))
+                          (setq trystart nil)))
+                      ;; N is not an accurate gauge of the file line,
+                      ;; because of the presence of deleted lines in the
+                      ;; hunk.
+                      (when (not (eq ?- (char-after)))
+                        (incf line-in-file))))
+                  (setq trylines (nreverse trylines))
+                  (save-excursion
+                    (let ((already-visiting-p (get-file-buffer absfile)))
+                      (set-buffer (find-file-noselect absfile))
+                      (mapc #'(lambda (n)
+                                (goto-line n)
+                                (setq current-defun (add-log-current-defun))
+                                (add-entry
+                                 basename
+                                 (if current-defun n 0)
+                                 current-defun
+                                 (format (if current-defun
+                                             "\t* %s (%s):\n" "\t* %s:\n")
+                                         basename current-defun)))
+                            trylines)
+                      (unless (or already-visiting-p keep-source-files)
+                        (kill-buffer (current-buffer))))))))
+            (flush-change-log-entries))))
+      ;; the patch might be totally blank.
+      (if change-log-buffer
+          (finish-up-change-log-buffer))
+      ;; return the list of ChangeLog buffers
+      change-log-buffers)))
 
 ;;;###autoload
 (defun change-log-redate ()
