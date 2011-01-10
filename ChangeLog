@@ -1,3 +1,7 @@
+2011-01-10  Norbert Koch  <viteno@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 2.30 released.
+
 2011-01-08  Aidan Kehoe  <kehoea@parhasard.net>
 
 	* add-log.el (patch-to-change-log):
