@@ -1,3 +1,10 @@
+2011-12-30  Aidan Kehoe  <kehoea@parhasard.net>
+
+	* advice.el (ad-set-arguments):
+	* advice.el (ad-assemble-advised-definition):
+	Use #'subst, not #'nsubst; advice constructed by macros may have
+	shared structure, and any in-place modification will break this.
+
 2011-01-10  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 2.30 released.
