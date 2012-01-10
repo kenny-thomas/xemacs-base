@@ -1,3 +1,7 @@
+2012-01-10  Norbert Koch  <viteno@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 2.31 released.
+
 2011-12-30  Aidan Kehoe  <kehoea@parhasard.net>
 
 	* advice.el (ad-set-arguments):
