@@ -1922,24 +1922,24 @@ COMPILE argument of `ad-activate' was supplied as nil.")
 (defvar ad-advised-functions nil)
 
 (defmacro ad-pushnew-advised-function (function)
-  ;;"Add FUNCTION to `ad-advised-functions' unless its already there."
+  "Add FUNCTION to `ad-advised-functions' unless its already there."
   (` (if (not (assoc (symbol-name (, function)) ad-advised-functions))
 	 (setq ad-advised-functions
 	       (cons (list (symbol-name (, function)))
 		     ad-advised-functions)))))
 
 (defmacro ad-pop-advised-function (function)
-  ;;"Remove FUNCTION from `ad-advised-functions'."
+  "Remove FUNCTION from `ad-advised-functions'."
   (` (setq ad-advised-functions
 	   (delq (assoc (symbol-name (, function)) ad-advised-functions)
 		 ad-advised-functions))))
 
 (defmacro ad-do-advised-functions (varform &rest body)
-  ;;"`dolist'-style iterator that maps over `ad-advised-functions'.
-  ;;     (ad-do-advised-functions (VAR [RESULT-FORM])
-  ;;         BODY-FORM...)
-  ;;Also see `dolist'.  On each iteration VAR will be bound to the
-  ;;name of an advised function (a symbol)."
+  "`dolist'-style iterator that maps over `ad-advised-functions'.
+     (ad-do-advised-functions (VAR [RESULT-FORM])
+         BODY-FORM...)
+Also see `dolist'.  On each iteration VAR will be bound to the
+name of an advised function (a symbol)."
   (` (dolist ((, (car varform))
 		 ad-advised-functions
 		 (, (car (cdr varform))))
@@ -1959,22 +1959,22 @@ COMPILE argument of `ad-activate' was supplied as nil.")
   (` (copy-tree (get (, function) 'ad-advice-info))))
 
 (defmacro ad-is-advised (function)
-  ;;"Returns non-nil if FUNCTION has any advice info associated with it.
-  ;;This does not mean that the advice is also active."
+  "Return non-nil if FUNCTION has any advice info associated with it.
+This does not mean that the advice is also active."
   (list 'ad-get-advice-info function))
 
 (defun ad-initialize-advice-info (function)
-  ;;"Initializes the advice info for FUNCTION.
-  ;;Assumes that FUNCTION has not yet been advised."
+  "Initializes the advice info for FUNCTION.
+Assumes that FUNCTION has not yet been advised."
   (ad-pushnew-advised-function function)
   (ad-set-advice-info function (list (cons 'active nil))))
 
 (defmacro ad-get-advice-info-field (function field)
-  ;;"Retrieves the value of the advice info FIELD of FUNCTION."
+  "Retrieves the value of the advice info FIELD of FUNCTION."
   (` (cdr (assq (, field) (ad-get-advice-info (, function))))))
 
 (defun ad-set-advice-info-field (function field value)
-  ;;"Destructively modifies VALUE of the advice info FIELD of FUNCTION."
+  "Destructively modifies VALUE of the advice info FIELD of FUNCTION."
   (and (ad-is-advised function)
        (cond ((assq field (ad-get-advice-info function))
 	      ;; A field with that name is already present:
@@ -1985,7 +1985,7 @@ COMPILE argument of `ad-activate' was supplied as nil.")
 
 ;; Don't make this a macro so we can use it as a predicate:
 (defun ad-is-active (function)
-  ;;"non-nil if FUNCTION is advised and activated."
+  "Return non-nil if FUNCTION is advised and activated."
   (ad-get-advice-info-field function 'active))
 
 
@@ -2029,27 +2029,27 @@ either t or nil, and DEFINITION should be a list of the form
 (defvar ad-advice-classes '(before around after activation deactivation))
 
 (defun ad-has-enabled-advice (function class)
-  ;;"True if at least one of FUNCTION's advices in CLASS is enabled."
+  "True if at least one of FUNCTION's advices in CLASS is enabled."
   (dolist (advice (ad-get-advice-info-field function class))
     (if (ad-advice-enabled advice) (return t))))
 
 (defun ad-has-redefining-advice (function)
-  ;;"True if FUNCTION's advice info defines at least 1 redefining advice.
-  ;;Redefining advices affect the construction of an advised definition."
+  "True if FUNCTION's advice info defines at least 1 redefining advice.
+Redefining advices affect the construction of an advised definition."
   (and (ad-is-advised function)
        (or (ad-has-enabled-advice function 'before)
 	   (ad-has-enabled-advice function 'around)
 	   (ad-has-enabled-advice function 'after))))
 
 (defun ad-has-any-advice (function)
-  ;;"True if the advice info of FUNCTION defines at least one advice."
+  "True if the advice info of FUNCTION defines at least one advice."
   (and (ad-is-advised function)
        (dolist (class ad-advice-classes nil)
 	 (if (ad-get-advice-info-field function class)
 	     (return t)))))
 
 (defun ad-get-enabled-advices (function class)
-  ;;"Returns the list of enabled advices of FUNCTION in CLASS."
+  "Returns the list of enabled advices of FUNCTION in CLASS."
   (let (enabled-advices)
     (dolist (advice (ad-get-advice-info-field function class))
       (if (ad-advice-enabled advice)
@@ -2101,7 +2101,7 @@ either t or nil, and DEFINITION should be a list of the form
        (,@ body))))
 
 (defun ad-safe-fset (symbol definition)
-  ;; A safe `fset' which will never call `ad-activate' recursively.
+  "A safe `fset' which will never call `ad-activate' recursively."
   (ad-with-auto-activation-disabled
    (ad-real-fset symbol definition)))
 
@@ -2116,7 +2116,7 @@ either t or nil, and DEFINITION should be a list of the form
 ;; we need to use `ad-real-orig-definition'.
 
 (defun ad-make-origname (function)
-  ;;"Makes name to be used to call the original FUNCTION."
+  "Make name to be used to call the original FUNCTION."
   (intern (format "ad-Orig-%s" function)))
 
 (defmacro ad-get-orig-definition (function)
@@ -2136,11 +2136,11 @@ either t or nil, and DEFINITION should be a list of the form
 ;; ===============================
 
 (defun ad-read-advised-function (&optional prompt predicate default)
-  ;;"Reads name of advised function with completion from the minibuffer.
-  ;;An optional PROMPT will be used to prompt for the function.  PREDICATE
-  ;;plays the same role as for `try-completion' (which see).  DEFAULT will
-  ;;be returned on empty input (defaults to the first advised function for
-  ;;which PREDICATE returns non-nil)."
+  "Read name of advised function with completion from the minibuffer.
+An optional PROMPT will be used to prompt for the function.  PREDICATE
+plays the same role as for `try-completion' (which see).  DEFAULT will
+be returned on empty input (defaults to the first advised function for
+which PREDICATE returns non-nil)."
   (if (null ad-advised-functions)
       (error "ad-read-advised-function: There are no advised functions"))
   (setq default
@@ -2175,10 +2175,10 @@ either t or nil, and DEFINITION should be a list of the form
 	  ad-advice-classes))
 
 (defun ad-read-advice-class (function &optional prompt default)
-  ;;"Reads a legal advice class with completion from the minibuffer.
-  ;;An optional PROMPT will be used to prompt for the class.  DEFAULT will
-  ;;be returned on empty input (defaults to the first non-empty advice
-  ;;class of FUNCTION)."
+  "Read a legal advice class with completion from the minibuffer.
+An optional PROMPT will be used to prompt for the class.  DEFAULT will
+be returned on empty input (defaults to the first non-empty advice
+class of FUNCTION)."
   (setq default
 	(or default
 	    (dolist (class ad-advice-classes)
@@ -2193,8 +2193,8 @@ either t or nil, and DEFINITION should be a list of the form
       (intern class))))
 
 (defun ad-read-advice-name (function class &optional prompt)
-  ;;"Reads name of existing advice of CLASS for FUNCTION with completion.
-  ;;An optional PROMPT is used to prompt for the name."
+  "Reads name of existing advice of CLASS for FUNCTION with completion.
+An optional PROMPT is used to prompt for the name."
   (let* ((name-completion-table
           (mapcar (function (lambda (advice)
 			      (list (symbol-name (ad-advice-name advice)))))
@@ -2211,9 +2211,9 @@ either t or nil, and DEFINITION should be a list of the form
       (intern name))))
 
 (defun ad-read-advice-specification (&optional prompt)
-  ;;"Reads a complete function/class/name specification from minibuffer.
-  ;;The list of read symbols will be returned.  The optional PROMPT will
-  ;;be used to prompt for the function."
+  "Reads a complete function/class/name specification from minibuffer.
+The list of read symbols will be returned.  The optional PROMPT will
+be used to prompt for the function."
   (let* ((function (ad-read-advised-function prompt))
 	 (class (ad-read-advice-class function))
 	 (name (ad-read-advice-name function class)))
@@ -2223,7 +2223,7 @@ either t or nil, and DEFINITION should be a list of the form
 (defvar ad-last-regexp "")
 
 (defun ad-read-regexp (&optional prompt)
-  ;;"Reads a regular expression from the minibuffer."
+  "Read a regular expression from the minibuffer."
   (let ((regexp (read-from-minibuffer
 		 (concat (or prompt "Regular expression: ")
 			 (if (equal ad-last-regexp "") ""
@@ -2236,11 +2236,11 @@ either t or nil, and DEFINITION should be a list of the form
 ;; ===========================================================
 
 (defmacro ad-find-advice (function class name)
-  ;;"Finds the first advice of FUNCTION in CLASS with NAME."
+  "Find the first advice of FUNCTION in CLASS with NAME."
   (` (assq (, name) (ad-get-advice-info-field (, function) (, class)))))
 
 (defun ad-advice-position (function class name)
-  ;;"Returns position of first advice of FUNCTION in CLASS with NAME."
+  "Return position of first advice of FUNCTION in CLASS with NAME."
   (let* ((found-advice (ad-find-advice function class name))
 	 (advices (ad-get-advice-info-field function class)))
     (if found-advice
@@ -2429,19 +2429,19 @@ will clear the cache."
     (ad-safe-fset 'byte-code-function-p 'compiled-function-p))
 
 (defmacro ad-compiled-p (definition)
-  ;;"non-nil if DEFINITION is a compiled byte-code object."
+  "Return non-nil if DEFINITION is a compiled byte-code object."
   (` (or (byte-code-function-p (, definition))
 	 (and (ad-macro-p (, definition))
 	      (byte-code-function-p (ad-lambdafy (, definition)))))))
 
 (defmacro ad-compiled-code (compiled-definition)
-  ;;"Returns the byte-code object of a COMPILED-DEFINITION."
+  "Return the byte-code object of a COMPILED-DEFINITION."
   (` (if (ad-macro-p (, compiled-definition))
 	 (ad-lambdafy (, compiled-definition))
        (, compiled-definition))))
 
 (defun ad-lambda-expression (definition)
-  ;;"Returns the lambda expression of a function/macro/advice DEFINITION."
+  "Return the lambda expression of a function/macro/advice DEFINITION."
   (cond ((ad-lambda-p definition)
 	 definition)
 	((ad-macro-p definition)
@@ -2451,9 +2451,9 @@ will clear the cache."
 	(t nil)))
 
 (defun ad-arglist (definition &optional name)
-  ;;"Returns the argument list of DEFINITION.
-  ;;If DEFINITION could be from a subr then its NAME should be
-  ;;supplied to make subr arglist lookup more efficient."
+  "Return the argument list of DEFINITION.
+If DEFINITION could be from a subr then its NAME should be
+supplied to make subr arglist lookup more efficient."
   (cond ((ad-compiled-p definition)
 	 ;; XEmacs fix:
 	 (if (featurep 'xemacs)
@@ -2482,10 +2482,10 @@ will clear the cache."
   (` (car (get (, subr) 'ad-subr-arglist))))
 
 (defun ad-subr-arglist (subr-name)
-  ;;"Retrieve arglist of the subr with SUBR-NAME.
-  ;;Either use the one stored under the `ad-subr-arglist' property,
-  ;;or try to retrieve it from the docstring and cache it under
-  ;;that property, or otherwise use `(&rest ad-subr-args)'."
+  "Retrieve arglist of the subr with SUBR-NAME.
+Either use the one stored under the `ad-subr-arglist' property,
+or try to retrieve it from the docstring and cache it under
+that property, or otherwise use `(&rest ad-subr-args)'."
   (cond ((ad-subr-args-defined-p subr-name)
 	 (ad-get-subr-args subr-name))
 	;; says jwz: Should use this for Lemacs 19.8 and above:
@@ -2524,7 +2524,7 @@ will clear the cache."
 		   (t '(&rest ad-subr-args)))))))
 
 (defun ad-docstring (definition)
-  ;;"Returns the unexpanded docstring of DEFINITION."
+  "Return the unexpanded docstring of DEFINITION."
   (let ((docstring
 	 (if (ad-compiled-p definition)
 	     (ad-real-documentation definition t)
@@ -2534,7 +2534,7 @@ will clear the cache."
 	docstring)))
 
 (defun ad-interactive-form (definition)
-  ;;"Returns the interactive form of DEFINITION."
+  "Return the interactive form of DEFINITION."
   (cond ((ad-compiled-p definition)
 	 (and (commandp definition)
 	      ;; XEmacs: we have an accessor function so don't use aref.
@@ -2546,7 +2546,7 @@ will clear the cache."
 	 (commandp (ad-lambda-expression definition)))))
 
 (defun ad-body-forms (definition)
-  ;;"Returns the list of body forms of DEFINITION."
+  "Return the list of body forms of DEFINITION."
   (cond ((ad-compiled-p definition)
 	 nil)
 	((consp definition)
@@ -2559,15 +2559,15 @@ will clear the cache."
 (defvar ad-advised-definition-docstring-regexp "^\\$ad-doc: \\(.+\\)\\$$")
 
 (defun ad-make-advised-definition-docstring (function)
-  ;; Makes an identifying docstring for the advised definition of FUNCTION.
-  ;; Put function name into the documentation string so we can infer
-  ;; the name of the advised function from the docstring.  This is needed
-  ;; to generate a proper advised docstring even if we are just given a
-  ;; definition (also see the defadvice for `documentation'):
+  "Make an identifying docstring for the advised definition of FUNCTION.
+Put function name into the documentation string so we can infer
+the name of the advised function from the docstring.  This is needed
+to generate a proper advised docstring even if we are just given a
+definition (also see the defadvice for `documentation')."
   (format "$ad-doc: %s$" (prin1-to-string function)))
 
 (defun ad-advised-definition-p (definition)
-  ;;"non-nil if DEFINITION was generated from advice information."
+  "Return non-nil if DEFINITION was generated from advice information."
   (if (or (ad-lambda-p definition)
 	  (ad-macro-p definition)
 	  (ad-compiled-p definition))
@@ -2577,7 +2577,7 @@ will clear the cache."
 	      ad-advised-definition-docstring-regexp docstring)))))
 
 (defun ad-definition-type (definition)
-  ;;"Returns symbol that describes the type of DEFINITION."
+  "Return symbol that describes the type of DEFINITION."
   (if (ad-macro-p definition)
       'macro
     (if (ad-subr-p definition)
@@ -2591,8 +2591,8 @@ will clear the cache."
 	    'advice)))))
 
 (defun ad-has-proper-definition (function)
-  ;;"True if FUNCTION is a symbol with a proper definition.
-  ;;For that it has to be fbound with a non-autoload definition."
+  "True if FUNCTION is a symbol with a proper definition.
+For that it has to be fbound with a non-autoload definition."
   (and (symbolp function)
        (fboundp function)
        (not (eq (car-safe (symbol-function function)) 'autoload))))
@@ -2600,7 +2600,7 @@ will clear the cache."
 ;; The following two are necessary for the sake of packages such as
 ;; ange-ftp which redefine functions via fcell indirection:
 (defun ad-real-definition (function)
-  ;;"Finds FUNCTION's definition at the end of function cell indirection."
+  "Find FUNCTION's definition at the end of function cell indirection."
   (if (ad-has-proper-definition function)
       (let ((definition (symbol-function function)))
 	(if (symbolp definition)
@@ -2608,19 +2608,19 @@ will clear the cache."
 	  definition))))
 
 (defun ad-real-orig-definition (function)
-  ;;"Finds FUNCTION's real original definition starting from its `origname'."
+  "Find FUNCTION's real original definition starting from its `origname'."
   (if (ad-is-advised function)
       (ad-real-definition (ad-get-advice-info-field function 'origname))))
 
 (defun ad-is-compilable (function)
-  ;;"True if FUNCTION has an interpreted definition that can be compiled."
+  "True if FUNCTION has an interpreted definition that can be compiled."
   (and (ad-has-proper-definition function)
        (or (ad-lambda-p (symbol-function function))
 	   (ad-macro-p (symbol-function function)))
        (not (ad-compiled-p (symbol-function function)))))
 
 (defun ad-compile-function (function)
-  "Byte-compiles FUNCTION (or macro) if it is not yet compiled."
+  "Byte-compile FUNCTION (or macro) if it is not yet compiled."
   (interactive "aByte-compile function: ")
   (if (ad-is-compilable function)
       ;; Need to turn off auto-activation
@@ -2667,10 +2667,10 @@ will clear the cache."
 ;; =============================
 
 (defun ad-parse-arglist (arglist)
-  ;;"Parses ARGLIST into its required, optional and rest parameters.
-  ;;A three-element list is returned, where the 1st element is the list of
-  ;;required arguments, the 2nd is the list of optional arguments, and the 3rd
-  ;;is the name of an optional rest parameter (or nil)."
+  "Parse ARGLIST into its required, optional and rest parameters.
+A three-element list is returned, where the 1st element is the list of
+required arguments, the 2nd is the list of optional arguments, and the 3rd
+is the name of an optional rest parameter (or nil)."
   (let* (required optional rest)
     (setq rest (car (cdr (memq '&rest arglist))))
     (if rest (setq arglist (reverse (cdr (memq '&rest (reverse arglist))))))
@@ -2681,12 +2681,12 @@ will clear the cache."
     (list required optional rest)))
 
 (defun ad-retrieve-args-form (arglist)
-  ;;"Generates a form which evaluates into names/values/types of ARGLIST.
-  ;;When the form gets evaluated within a function with that argument list
-  ;;it will result in a list with one entry for each argument, where the
-  ;;first element of each entry is the name of the argument, the second
-  ;;element is its actual current value, and the third element is either
-  ;;`required', `optional' or `rest' depending on the type of the argument."
+  "Generate a form which evaluates into names/values/types of ARGLIST.
+When the form gets evaluated within a function with that argument list
+it will result in a list with one entry for each argument, where the
+first element of each entry is the name of the argument, the second
+element is its actual current value, and the third element is either
+`required', `optional' or `rest' depending on the type of the argument."
   (let* ((parsed-arglist (ad-parse-arglist arglist))
 	 (rest (nth 2 parsed-arglist)))
     (` (list
@@ -2717,9 +2717,9 @@ will clear the cache."
 	(t (list 'nth position list))))
 
 (defun ad-access-argument (arglist index)
-  ;;"Tells how to access ARGLIST's actual argument at position INDEX.
-  ;;For a required/optional arg it simply returns it, if a rest argument has
-  ;;to be accessed, it returns a list with the index and name."
+  "Tells how to access ARGLIST's actual argument at position INDEX.
+For a required/optional arg it simply returns it, if a rest argument has
+to be accessed, it returns a list with the index and name."
   (let* ((parsed-arglist (ad-parse-arglist arglist))
 	 (reqopt-args (append (nth 0 parsed-arglist)
 			      (nth 1 parsed-arglist)))
@@ -2730,7 +2730,7 @@ will clear the cache."
 	   (list (- index (length reqopt-args)) rest-arg)))))
 
 (defun ad-get-argument (arglist index)
-  ;;"Returns form to access ARGLIST's actual argument at position INDEX."
+  "Returns form to access ARGLIST's actual argument at position INDEX."
   (let ((argument-access (ad-access-argument arglist index)))
     (cond ((consp argument-access)
 	   (ad-element-access
@@ -2738,7 +2738,7 @@ will clear the cache."
 	  (argument-access))))
 
 (defun ad-set-argument (arglist index value-form)
-  ;;"Returns form to set ARGLIST's actual arg at INDEX to VALUE-FORM."
+  "Returns form to set ARGLIST's actual arg at INDEX to VALUE-FORM."
   (let ((argument-access (ad-access-argument arglist index)))
     (cond ((consp argument-access)
 	   ;; should this check whether there actually is something to set?
@@ -2751,7 +2751,7 @@ will clear the cache."
 		    index arglist)))))
 
 (defun ad-get-arguments (arglist index)
-  ;;"Returns form to access all actual arguments starting at position INDEX."
+  "Returns form to access all actual arguments starting at position INDEX."
   (let* ((parsed-arglist (ad-parse-arglist arglist))
 	 (reqopt-args (append (nth 0 parsed-arglist)
 			      (nth 1 parsed-arglist)))
@@ -2767,8 +2767,8 @@ will clear the cache."
     args-form))
 
 (defun ad-set-arguments (arglist index values-form)
-  ;;"Makes form to assign elements of VALUES-FORM as actual ARGLIST args.
-  ;;The assignment starts at position INDEX."
+  "Makes form to assign elements of VALUES-FORM as actual ARGLIST args.
+The assignment starts at position INDEX."
   (let ((values-index 0)
 	argument-access set-forms)
     (while (setq argument-access (ad-access-argument arglist index))
@@ -2805,7 +2805,7 @@ will clear the cache."
 	     (, 'ad-vAlUeS)))))))
 
 (defun ad-insert-argument-access-forms (definition arglist)
-  ;;"Expands arg-access text macros in DEFINITION according to ARGLIST."
+  "Expand arg-access text macros in DEFINITION according to ARGLIST."
   (macrolet
       ((subtree-test (form)
          `(funcall #'(lambda (form)
@@ -2892,7 +2892,7 @@ Example: `(ad-map-arglists '(a &rest args) '(w x y z))' will return
 						  source-reqopt-args)))))))))
 
 (defun ad-make-mapped-call (source-arglist target-arglist target-function)
-  ;;"Makes form to call TARGET-FUNCTION with args from SOURCE-ARGLIST."
+  "Make form to call TARGET-FUNCTION with args from SOURCE-ARGLIST."
   (let* ((mapped-form (ad-map-arglists source-arglist target-arglist)))
     (if (eq (car mapped-form) 'funcall)
 	(cons target-function (cdr (cdr mapped-form)))
@@ -2925,13 +2925,13 @@ Example: `(ad-map-arglists '(a &rest args) '(w x y z))' will return
 		     (or advice-docstring ""))))))
 
 (defun ad-make-advised-docstring (function &optional style)
-  ;;"Constructs a documentation string for the advised FUNCTION.
-  ;;It concatenates the original documentation with the documentation
-  ;;strings of the individual pieces of advice which will be formatted
-  ;;according to STYLE.  STYLE can be `plain' or `freeze', everything else
-  ;;will be interpreted as `default'.  The order of the advice documentation
-  ;;strings corresponds to before/around/after and the individual ordering
-  ;;in any of these classes."
+  "Construct a documentation string for the advised FUNCTION.
+It concatenates the original documentation with the documentation
+strings of the individual pieces of advice which will be formatted
+according to STYLE.  STYLE can be `plain' or `freeze', everything else
+will be interpreted as `default'.  The order of the advice documentation
+strings corresponds to before/around/after and the individual ordering
+in any of these classes."
   (let* ((origdef (ad-real-orig-definition function))
 	 (origtype (symbol-name (ad-definition-type origdef)))
 	 (origdoc
@@ -2961,7 +2961,7 @@ Example: `(ad-map-arglists '(a &rest args) '(w x y z))' will return
 ;; ========================================================
 
 (defun ad-advised-arglist (function)
-  ;;"Finds first defined arglist in FUNCTION's redefining advices."
+  "Find first defined arglist in FUNCTION's redefining advices."
   (dolist (advice (append (ad-get-enabled-advices function 'before)
 			     (ad-get-enabled-advices function 'around)
 			     (ad-get-enabled-advices function 'after)))
@@ -2971,7 +2971,7 @@ Example: `(ad-map-arglists '(a &rest args) '(w x y z))' will return
 	  (return arglist)))))
 
 (defun ad-advised-interactive-form (function)
-  ;;"Finds first interactive form in FUNCTION's redefining advices."
+  "Find first interactive form in FUNCTION's redefining advices."
   (dolist (advice (append (ad-get-enabled-advices function 'before)
 			     (ad-get-enabled-advices function 'around)
 			     (ad-get-enabled-advices function 'after)))
@@ -2985,7 +2985,7 @@ Example: `(ad-map-arglists '(a &rest args) '(w x y z))' will return
 ;; ============================
 
 (defun ad-make-advised-definition (function)
-  ;;"Generates an advised definition of FUNCTION from its advice info."
+  "Generate an advised definition of FUNCTION from its advice info."
   (if (and (ad-is-advised function)
 	   (ad-has-redefining-advice function))
       (let* ((origdef (ad-real-orig-definition function))
@@ -3129,7 +3129,7 @@ Example: `(ad-map-arglists '(a &rest args) '(w x y z))' will return
 
 ;; This is needed for activation/deactivation hooks:
 (defun ad-make-hook-form (function hook-name)
-  ;;"Makes hook-form from FUNCTION's advice bodies in class HOOK-NAME."
+  "Make hook-form from FUNCTION's advice bodies in class HOOK-NAME."
   (let ((hook-forms
 	 (mapcar (function (lambda (advice)
 			     (ad-body-forms (ad-advice-definition advice))))
@@ -3217,7 +3217,7 @@ advised definition from scratch."
   (ad-set-advice-info-field function 'cache nil))
 
 (defun ad-make-cache-id (function)
-  ;;"Generates an identifying image of the current advices of FUNCTION."
+  "Generate an identifying image of the current advices of FUNCTION."
   (let ((original-definition (ad-real-orig-definition function))
 	(cached-definition (ad-get-cache-definition function)))
     (list (mapcar (function (lambda (advice) (ad-advice-name advice)))
@@ -3236,7 +3236,7 @@ advised definition from scratch."
 		     (ad-interactive-form cached-definition))))))
 
 (defun ad-get-cache-class-id (function class)
-  ;;"Returns the part of FUNCTION's cache id that identifies CLASS."
+  "Return the part of FUNCTION's cache id that identifies CLASS."
   (let ((cache-id (ad-get-cache-id function)))
     (if (eq class 'before)
 	(car cache-id)
@@ -3286,7 +3286,7 @@ advised definition from scratch."
     code))
 
 (defun ad-verify-cache-id (function)
-  ;;"True if FUNCTION's cache-id is compatible with its current advices."
+  "True if FUNCTION's cache-id is compatible with its current advices."
   (eq (ad-cache-id-verification-code function) 'verified))
 
 
@@ -3314,7 +3314,7 @@ advised definition from scratch."
 ;; advised definition will be generated.
 
 (defun ad-preactivate-advice (function advice class position)
-  ;;"Preactivates FUNCTION and returns the constructed cache."
+  "Preactivate FUNCTION and returns the constructed cache."
   (let* ((function-defined-p (fboundp function))
 	 (old-definition
 	  (if function-defined-p
@@ -3426,11 +3426,11 @@ advised definition from scratch."
 ;; ======================================
 
 (defun ad-should-compile (function compile)
-  ;;"Returns non-nil if the advised FUNCTION should be compiled.
-  ;;If COMPILE is non-nil and not a negative number then it returns t.
-  ;;If COMPILE is a negative number then it returns nil.
-  ;;If COMPILE is nil then the result depends on the value of
-  ;;`ad-default-compilation-action' (which see)."
+  "Return non-nil if the advised FUNCTION should be compiled.
+If COMPILE is non-nil and not a negative number then it returns t.
+If COMPILE is a negative number then it returns nil.
+If COMPILE is nil then the result depends on the value of
+`ad-default-compilation-action' (which see)."
   (if (integerp compile)
       (>= compile 0)
     (if compile
@@ -3446,9 +3446,9 @@ advised definition from scratch."
 	    (t (featurep 'byte-compile))))))
 
 (defun ad-activate-advised-definition (function compile)
-  ;;"Redefines FUNCTION with its advised definition from cache or scratch.
-  ;;The resulting FUNCTION will be compiled if `ad-should-compile' returns t.
-  ;;The current definition and its cache-id will be put into the cache."
+  "Redefine FUNCTION with its advised definition from cache or scratch.
+The resulting FUNCTION will be compiled if `ad-should-compile' returns t.
+The current definition and its cache-id will be put into the cache."
   (let ((verified-cached-definition
 	 (if (ad-verify-cache-id function)
 	     (ad-get-cache-definition function))))
