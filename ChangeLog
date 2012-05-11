@@ -60,6 +60,8 @@
 	Uncomment the docstrings for these functions, they take up negligible
 	space these days.
 
+	Use standard backquotes, old Emacs Lisp backquotes are long obsolete.
+
 2012-01-10  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 2.31 released.
