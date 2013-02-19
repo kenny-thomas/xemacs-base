@@ -38,7 +38,7 @@ ELCS = add-log.elc advice.elc annotations.elc assoc.elc autoload-operators.elc \
 	helper.elc imenu.elc iso-syntax.elc macros.elc novice.elc outline.elc \
 	passwd.elc pp.elc regexp-opt.elc regi.elc ring.elc shell.elc \
 	skeleton.elc sort.elc thing.elc time-stamp.elc timer-funcs.elc \
-	timezone.elc tq.elc xbm-button.elc xpm-button.elc
+	timezone.elc tq.elc xbm-button.elc xpm-button.elc rx.elc
 
 DATA_FILES = etc/enriched.doc
 DATA_DEST = .
