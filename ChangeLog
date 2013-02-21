@@ -1,3 +1,9 @@
+2013-02-21  Michael Sperber  <mike@xemacs.org>
+
+	* file-util.el:
+	(locate-dominating-stop-dir-regexp, locate-dominating-file): New
+	file, add functions from GNU Emacs.
+
 2013-02-19  Michael Sperber  <mike@xemacs.org>
 
 	* rx.el: Added port from GNU Emacs 24.2.

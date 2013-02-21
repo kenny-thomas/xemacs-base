@@ -35,6 +35,7 @@ ELCS = add-log.elc advice.elc annotations.elc assoc.elc autoload-operators.elc \
 	chistory.elc comint.elc comint-xemacs.elc compile.elc debug.elc \
 	easy-mmode.elc ebuff-menu.elc echistory.elc ehelp.elc edmacro.elc \
 	electric.elc enriched.elc env.elc facemenu.elc ffap.elc field.elc \
+	file-util.elc \
 	helper.elc imenu.elc iso-syntax.elc macros.elc novice.elc outline.elc \
 	passwd.elc pp.elc regexp-opt.elc regi.elc ring.elc shell.elc \
 	skeleton.elc sort.elc thing.elc time-stamp.elc timer-funcs.elc \
