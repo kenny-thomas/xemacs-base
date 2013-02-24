@@ -4,6 +4,10 @@
 	(locate-dominating-stop-dir-regexp, locate-dominating-file): New
 	file, add functions from GNU Emacs.
 
+2013-02-22  Norbert Koch  <viteno@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 2.33 released.
+
 2013-02-19  Michael Sperber  <mike@xemacs.org>
 
 	* rx.el: Added port from GNU Emacs 24.2.
