@@ -1,3 +1,7 @@
+2013-03-09  Norbert Koch  <viteno@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 2.34 released.
+
 2013-03-08  Michael Sperber  <mike@xemacs.org>
 
 	* imenu.el (imenu--generic-function): REGEXP may also be a search
