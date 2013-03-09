@@ -730,10 +730,13 @@ PATTERNS is an alist with elements that look like this:
 MENU-TITLE is a string used as the title for the submenu or nil if the
 entries are not nested.
 
-REGEXP is a regexp that should match a construct in the buffer that is
-to be displayed in the menu; i.e., function or variable definitions,
-etc.  It contains a substring which is the name to appear in the
-menu.  See the info section on Regexps for more information.
+REGEXP is a regexp that should match a construct in the buffer
+that is to be displayed in the menu; i.e., function or variable
+definitions, etc.  It contains a substring which is the name to
+appear in the menu.  See the info section on Regexps for more
+information.  REGEXP may also be a function, called without
+arguments.  It is expected to search backwards.  It shall return
+true and set `match-data' iff it finds another element.
 
 INDEX points to the substring in REGEXP that contains the name (of the
 function, variable or type) that is to appear in the menu.
@@ -778,7 +781,9 @@ PATTERNS."
 		    (rest (nthcdr 4 pat)))
 		;; Go backwards for convenience of adding items in order.
 		(goto-char (point-max))
-		(while (re-search-backward regexp nil t)
+	      (while (and (if (functionp regexp)
+			      (funcall regexp)
+			    (re-search-backward regexp nil t)))
 		  (imenu-progress-message prev-pos nil t)
 		  (setq beg (match-beginning index))
 		  ;; Add this sort of submenu only when we've found an

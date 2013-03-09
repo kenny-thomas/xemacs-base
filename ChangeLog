@@ -1,3 +1,8 @@
+2013-03-08  Michael Sperber  <mike@xemacs.org>
+
+	* imenu.el (imenu--generic-function): REGEXP may also be a search
+	function now, as in GNU Emacs.
+
 2013-02-21  Michael Sperber  <mike@xemacs.org>
 
 	* file-util.el:
