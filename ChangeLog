@@ -1,3 +1,9 @@
+2013-03-17  Michael Sperber  <mike@xemacs.org>
+
+	* subr-more.el (while-no-input, history-length, add-to-history)
+	(string-match-p): New file to complement the core basic lisp
+	subroutines for XEmacs.
+
 2013-03-09  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 2.34 released.
