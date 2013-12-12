@@ -1,3 +1,7 @@
+2013-12-12  Norbert Koch  <viteno@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 2.38 released.
+
 2013-12-08  Michael Sperber  <mike@xemacs.org>
 
 	* subr-more.el (condition-case-unless-debug): Added, from GNU Emacs.
