@@ -146,4 +146,29 @@ Otherwise, return nil."
 Otherwise, return nil."
   (or (null object) (eq object t)))
 
+;;;###autoload
+(defmacro condition-case-unless-debug (var bodyform &rest handlers)
+  "Like `condition-case' except that it does not catch anything when debugging.
+More specifically if `debug-on-error' is set, then it does not catch any signal."
+  (declare (debug condition-case) (indent 2))
+  (let ((bodysym (make-symbol "body")))
+    `(let ((,bodysym (lambda () ,bodyform)))
+       (if debug-on-error
+           (funcall ,bodysym)
+         (condition-case ,var
+             (funcall ,bodysym)
+           ,@handlers)))))
+
+;;;###autoload
+(defmacro with-demoted-errors (&rest body)
+  "Run BODY and demote any errors to simple messages.
+If `debug-on-error' is non-nil, run BODY without catching its errors.
+This is to be used around code which is not expected to signal an error
+but which should be robust in the unexpected case that an error is signaled."
+  (declare (debug t) (indent 0))
+  (let ((err (make-symbol "err")))
+    `(condition-case-unless-debug ,err
+         (progn ,@body)
+       (error (message "Error: %S" ,err) nil))))
+
 ;;; subr-more.el ends here
