@@ -1,3 +1,14 @@
+2013-12-08  Michael Sperber  <mike@xemacs.org>
+
+	* subr-more.el (condition-case-unless-debug): Added, from GNU Emacs.
+	(with-demoted-errors): Added, from GNU Emacs.
+
+	* simple-more.el:
+	(move-beginning-of-line, move-end-of-line, invisible-p): New file,
+	with some functions from GNU Emacs.
+
+	* field.el (field): Add a provide, needed for simple-more.el.
+
 2013-09-02  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 2.37 released.

@@ -59,6 +59,8 @@
 
 ;;; Code:
 
+(provide 'field)
+
 (defgroup field nil
   "Text fields."
   :group 'editing)
