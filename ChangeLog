@@ -1,3 +1,7 @@
+2013-12-14  Mats Lidell  <matsl@xemacs.org>
+
+	* Makefile (ELCS): Add rcfiles.elc so it is built and installed.
+
 2013-12-12  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 2.38 released.
