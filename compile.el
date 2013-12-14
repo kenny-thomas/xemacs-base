@@ -153,6 +153,7 @@ variable `compilation-error-regexp-alist'."
                      nil))
                 compilation-error-regexp-alist-alist))))
 
+;;;###autoload
 (defvar compilation-error-regexp-alist-alist
   '(
     ;; NOTE!  See also grep-regexp-alist, below.
