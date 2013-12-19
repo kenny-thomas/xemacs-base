@@ -1,3 +1,7 @@
+2013-12-19  Norbert Koch  <viteno@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 2.39 released.
+
 2013-12-12  Michael Sperber  <mike@xemacs.org>
 
 	* compile.el (compilation-error-regexp-alist-alist): Make it autoloaded.
