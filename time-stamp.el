@@ -52,7 +52,7 @@
 ;; Originally based on the 19 Dec 88 version of
 ;;   date.el by John Sturdy <mcvax!harlqn.co.uk!jcgs@uunet.uu.net>
 ;; version 2, January 1995: replaced functions with %-escapes
-;; $Id$
+;; $Id: time-stamp.el,v 1.3 2002-09-11 17:21:05 scop Exp $
 
 ;;; Code:
 
