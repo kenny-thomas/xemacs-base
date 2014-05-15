@@ -1,5 +1,9 @@
 2014-05-15  Norbert Koch  <viteno@xemacs.org>
 
+	* Makefile (VERSION): XEmacs package 2.41 released.
+
+2014-05-15  Norbert Koch  <viteno@xemacs.org>
+
 	* Makefile (VERSION): XEmacs package 2.40 released.
 
 2014-05-13  Jerry James  <james@xemacs.org>
