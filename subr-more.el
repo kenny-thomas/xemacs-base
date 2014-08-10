@@ -171,4 +171,28 @@ but which should be robust in the unexpected case that an error is signaled."
          (progn ,@body)
        (error (message "Error: %S" ,err) nil))))
 
+;;;###autoload
+(defun assoc-string (key list &optional case-fold)
+  "Like `assoc' but specifically for strings (and symbols).
+
+This returns the first element of LIST whose car matches the string or
+symbol KEY, or NIL if no match exists.  When performing the comparison,
+symbols are first converted to strings.  If the optional arg CASE-FOLD
+is non-nil, case is ignored.
+
+Unlike `assoc', KEY can also match an entry in LIST consisting of a
+single string, rather than a cons cell whose car is a string."
+  (when (symbolp key)
+    (setq key (symbol-name key)))
+  (let* ((tail list) elt elt2 elt3 result)
+    (while (and (null result) tail)
+      (setq elt (car tail)
+	    elt2 (if (consp elt) (car elt) elt)
+	    elt3 (if (symbolp elt2) (symbol-name elt2) elt2)
+	    result (and (stringp elt3)
+			(eq (compare-strings elt3 0 nil key 0 nil case-fold) t)
+			elt)
+	    tail (cdr tail)))
+    result))
+
 ;;; subr-more.el ends here
