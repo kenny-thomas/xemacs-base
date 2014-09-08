@@ -1,3 +1,7 @@
+2014-09-08  Norbert Koch  <viteno@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 2.42 released.
+
 2014-08-04  Jerry James  <james@xemacs.org>
 
 	* subr-more.el (assoc-string): New function from GNU Emacs.
