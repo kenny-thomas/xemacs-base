@@ -195,4 +195,14 @@ single string, rather than a cons cell whose car is a string."
 	    tail (cdr tail)))
     result))
 
+;;;###autoload
+(defun start-file-process-shell-command (name buffer &rest args)
+  "Start a program in a subprocess.  Return the process object for it.
+Similar to `start-process-shell-command', but calls `start-file-process'."
+  (start-file-process
+   name buffer
+   (if (file-remote-p default-directory) "/bin/sh" shell-file-name)
+   (if (file-remote-p default-directory) "-c" shell-command-switch)
+   (mapconcat 'identity args " ")))
+
 ;;; subr-more.el ends here

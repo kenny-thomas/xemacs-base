@@ -130,4 +130,22 @@ else if the text is replaced by an ellipsis."
 	(setq rest (cdr rest)))
       done))))
 
+;;;###autoload
+(defun start-file-process (name buffer program &rest program-args)
+  "Start a program in a subprocess.  Return the process object for it.
+
+Similar to `start-process', but may invoke a file handler based on
+`default-directory'.  See Info node `(elisp)Magic File Names'.
+
+This handler ought to run PROGRAM, perhaps on the local host,
+perhaps on a remote host that corresponds to `default-directory'.
+In the latter case, the local part of `default-directory' becomes
+the working directory of the process.
+
+PROGRAM and PROGRAM-ARGS might be file names."
+  (let ((fh (find-file-name-handler default-directory 'start-file-process)))
+    (if fh (apply fh 'start-file-process name buffer program program-args)
+      (apply 'start-process name buffer program program-args))))
+
+
 ;;; simple-more.el ends here
