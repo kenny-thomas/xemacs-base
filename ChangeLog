@@ -1,3 +1,9 @@
+2014-09-27  Michael Sperber  <mike@xemacs.org>
+
+	* simple-more.el (start-file-process): 
+	* subr-more.el (start-file-process-shell-command): Port from GNU
+	Emacs.
+
 2014-09-08  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 2.42 released.
