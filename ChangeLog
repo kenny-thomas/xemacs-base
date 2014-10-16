@@ -1,3 +1,7 @@
+2014-10-16  Norbert Koch  <viteno@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 2.43 released.
+
 2014-09-27  Michael Sperber  <mike@xemacs.org>
 
 	* simple-more.el (start-file-process): 
