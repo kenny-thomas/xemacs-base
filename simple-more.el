@@ -40,7 +40,7 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
 
     ;; Move by lines, if ARG is not 1 (the default).
     (if (/= arg 1)
-	(line-move (1- arg)))
+	(line-move (1- arg) 'noerror))
 
     ;; Move to beginning-of-line, ignoring fields and invisible text.
     (skip-chars-backward "^\n")
@@ -78,7 +78,7 @@ If point reaches the beginning or end of buffer, it stops there."
       (let ((newpos
 	     (save-excursion
 	       (let ((goal-column 0))
-		 (line-move arg)
+		 (line-move arg 'noerror)
 		 (and
 		  ;; With bidi reordering, we may not be at bol,
 		  ;; so make sure we are.
