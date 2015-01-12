@@ -1,3 +1,7 @@
+2015-01-12  Norbert Koch  <viteno@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 2.44 released.
+
 2015-01-03  Michael Sperber  <mike@xemacs.org>
 
 	* simple-more.el (move-beginning-of-line, move-end-of-line): Use
