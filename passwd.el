@@ -100,6 +100,108 @@ number of commands are understood.  The important bindings are:
 
 All other characters insert themselves (but do not echo.)")
 
+(define-function-when-void 'clear-string
+    (if (not (featurep 'mule))
+        #'(lambda (string)
+            "Fill STRING with ?\\x00 characters.  Return nil."
+            (prog1 nil (fillarray string ?\x00)))
+      #'(lambda (string)
+          "Fill STRING with ?\\x00 characters.  Return nil.            
+
+This differs from `fill' with a ?\\x00 argument in that it attempts to ensure
+that STRING's existing contents are discarded, even in the event of
+reallocation due to a change in the byte length of STRING.
+
+This Lisp implementation achieves this by replacing each character with a
+character of the same octet length, chosen at (pseudo-)random, and only then
+filling STRING with ?\\x00 characters. The information about the individual
+octet lengths of the characters can still be leaked to anyone motivated who
+has access to a core dump, but this is still a big improvement on having the
+entire string around in memory.
+
+In this implementation, the Lisp-visible character length of STRING is not
+changed."
+          (prog1
+              nil
+            (save-match-data
+              (let ((start 0) (last 0) charset charset-id
+                    (string-char-byte-conversion-info
+                     (and (fboundp 'string-char-byte-conversion-info)
+                          (string-char-byte-conversion-info string))))
+                (while (setq start (string-match "[^\x00-\x7f]" string start))
+                  ;; Fill the ASCII area with pseudorandom ASCII values.
+                  (loop for fixnum from last below start
+                        do (aset string fixnum (int-char (random #x80))))
+                  (setq charset (char-charset (aref string start))
+                        charset-id (charset-id charset))
+                  ;; Replace each non-ASCII character with pseudorandom values
+                  ;; that have the same octet length. All the following
+                  ;; information on the association between a charset's ID and
+                  ;; its octet length is from charset.h on 21.5 and
+                  ;; mule-charset.h on 21.4.
+                  (cond
+                    ((<= #x80 charset-id #x8f)
+                     ;; "Dimension-1 official" charsets, two octets. Stick
+                     ;; with control-1 and latin-1 for filling, so it looks
+                     ;; more like data from a no-conversion coding system.
+                     (aset string start (int-char (+ #x80 (random #x80)))))
+                    ;; This range includes #x9e and #x9f which will never be
+                    ;; returned by #'charset-id.
+                    ((or (<= #x90 charset-id #xc0)
+                         ;; MAX_LEADING_BYTE_PRIVATE_1 changed in the course
+                         ;; of 21.5, charset ids in this range can reflect
+                         ;; either three octets or four.
+                         (and (<= #xc1 charset-id #xef)
+                              (eql 1 (charset-dimension charset))))
+                     ;; "Dimension-2 official" charsets, three octets. Also
+                     ;; "dimension 1 private" charsets, three octets. Choose
+                     ;; pseudorandom from among a list of seven predictable 94
+                     ;; x 94 official charsets.
+                     (symbol-macrolet
+                         ((three-octet-charsets
+                           [japanese-jisx0208-1978 chinese-gb2312
+                            japanese-jisx0208 korean-ksc5601 japanese-jisx0212
+                            chinese-cns11643-1 chinese-cns11643-2]))
+                       (aset string start
+                             (make-char
+                              (aref three-octet-charsets
+                                    (random (length three-octet-charsets)))
+                              (+ 33 (random 94))
+                              (+ 33 (random 94))))))
+                    ((and (>= charset-id #xc1)
+                          (eql 2 (charset-dimension charset)))
+                     ;; "Dimension-2 private characters", four octets in
+                     ;; length.
+                     (symbol-macrolet
+                         ((four-octet-charsets
+                           [ethiopic chinese-cns11643-3 chinese-cns11643-4
+                            chinese-cns11643-5 chinese-cns11643-6
+                            chinese-cns11643-7]))
+                       (aset string start
+                             (make-char
+                              (aref four-octet-charsets
+                                    (random (length four-octet-charsets)))
+                              (+ 33 (random 94))
+                              (+ 33 (random 94))))))
+                    (t
+                     (error 'invalid-argument
+                            "Not known how long this character is"
+                            (prog1
+                                (aref string start)
+                              (fillarray string ?\x00)))))
+                  (setq start (1+ start)
+                        last start))
+                (when (> last 0)
+                  (loop for fixnum from last below (length string)
+                        do (aset string fixnum (int-char (random #x80))))
+                  (unless (or (not string-char-byte-conversion-info)
+                              (equal string-char-byte-conversion-info
+                                     (string-char-byte-conversion-info string)))
+                    (fillarray string ?\x00)
+                    (error 'internal-error
+                           "String octet length altered unintentionally")))
+                (fillarray string ?\x00)))))))
+
 ;;; internal variables
 
 (defvar passwd-history nil)
@@ -137,7 +239,7 @@ resultant core file.
 Some steps you can take to prevent the password from being copied around:
 
  - as soon as you are done with the returned string, destroy it with
-   (fillarray string 0).  The same goes for any default passwords
+   (clear-string string).  The same goes for any default passwords
    or password histories.
 
  - do not copy the string, as with concat or substring - if you do, be
@@ -196,7 +298,7 @@ Some steps you can take to prevent the password from being copied around:
 		    (read-passwd-1 input prompt "[Retype to confirm]")
 		    (if (passwd-compare-string-to-buffer passwd input)
 			(setq ok t)
-		      (fillarray passwd 0)
+		      (clear-string passwd)
 		      (setq passwd nil)
 		      (beep)
 		      (read-passwd-1 input prompt "[Mismatch. Start over]")
