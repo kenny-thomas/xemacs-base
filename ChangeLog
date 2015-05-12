@@ -1,3 +1,13 @@
+2015-05-12  Aidan Kehoe  <kehoea@parhasard.net>
+
+	* passwd.el (clear-string): New.
+	Provide an implementation of this if is void at load time,
+	equivalent to (fillarray string ?\x00) on non-Mule, and filling
+	the string with pseudorandom characters of equivalent octet length
+	before filling with ?\x00 on Mule.
+	* passwd.el (read-passwd):
+	Use it; document it rather than (fillarray string ?\x00).
+
 2015-01-12  Norbert Koch  <viteno@xemacs.org>
 
 	* Makefile (VERSION): XEmacs package 2.44 released.
