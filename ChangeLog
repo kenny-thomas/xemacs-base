@@ -1,3 +1,7 @@
+2015-05-17  Norbert Koch  <viteno@xemacs.org>
+
+	* Makefile (VERSION): XEmacs package 2.45 released.
+
 2015-05-12  Aidan Kehoe  <kehoea@parhasard.net>
 
 	* passwd.el (clear-string): New.
